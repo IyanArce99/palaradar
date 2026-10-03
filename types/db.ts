@@ -65,6 +65,8 @@ export interface StoreRow {
   slug: string;
   name: string;
   url: string;
+  /** Tienda de demostración: sus precios no cuentan salvo en desarrollo */
+  is_demo: boolean;
 }
 
 /** Precio actual de una pala en una tienda */

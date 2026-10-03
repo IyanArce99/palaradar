@@ -69,6 +69,18 @@ export function priceFreshness(checkedAt: string, now: Date): PriceFreshness {
   return hours <= pricingConfig.staleAfterHours ? "recent" : "stale";
 }
 
+/**
+ * Ofertas que cuentan para el mejor precio, de más barata a más cara. Un precio
+ * desactualizado no compite con uno comprobado: si alguna tienda tiene el precio
+ * al día, las desactualizadas se descartan. Solo si todas lo están se devuelven
+ * todas, y entonces el resumen se presenta como «precio sin confirmar».
+ */
+export function usableOffers(offers: StoreOffer[], now: Date): RankedOffer[] {
+  const ranked = rankOffers(offers);
+  const checked = ranked.filter((offer) => priceFreshness(offer.checkedAt, now) !== "stale");
+  return checked.length > 0 ? checked : ranked;
+}
+
 function average(points: PricePoint[]): number | null {
   if (points.length === 0) return null;
   return Math.round(points.reduce((sum, point) => sum + point.price, 0) / points.length);
@@ -112,7 +124,8 @@ export function computePriceStats(
   history: PricePoint[],
   now: Date,
 ): PriceStats | null {
-  const best = rankOffers(offers)[0];
+  const usable = usableOffers(offers, now);
+  const best = usable[0];
   if (!best) return null;
 
   const today = dayTime(toIsoDate(now));
@@ -125,7 +138,7 @@ export function computePriceStats(
   return {
     bestPrice: best.total,
     bestStoreId: best.store.id,
-    storeCount: offers.length,
+    storeCount: usable.length,
     previousPrice,
     dropPercent:
       previousPrice !== null && previousPrice > best.total
@@ -214,7 +227,7 @@ export function buildPriceSummary(
   const stats = computePriceStats(offers, history, now);
   if (!stats) return null;
 
-  const ranked = rankOffers(offers);
+  const ranked = usableOffers(offers, now);
   const freshness = priceFreshness(stats.priceCheckedAt, now);
 
   return {

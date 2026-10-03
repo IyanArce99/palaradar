@@ -1,4 +1,4 @@
-import type { CatalogRacket, PublishedPrice, RunResult, StoreProduct } from "./types";
+import type { CatalogRacket, PublishedPrice, RunResult, StoreAdapter, StoreProduct } from "./types";
 
 export interface IngestionStore {
   id: string;
@@ -13,7 +13,7 @@ export interface IngestionStore {
 export interface IngestionRepository {
   getStore(slug: string): Promise<IngestionStore | null>;
   /** Devuelve la tienda, creándola si todavía no existe */
-  ensureStore(store: { slug: string; name: string; url: string }): Promise<IngestionStore>;
+  ensureStore(store: StoreAdapter["store"]): Promise<IngestionStore>;
   /**
    * Ejecuta `work` de forma atómica sobre un repositorio transaccional: si
    * falla, no queda escrito nada de lo que hizo.

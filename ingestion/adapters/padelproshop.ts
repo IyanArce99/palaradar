@@ -83,7 +83,7 @@ export function createPadelProShopAdapter(
   pause: (ms: number) => Promise<void> = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
 ): StoreAdapter {
   return {
-    store: { slug: "padelproshop", name: "PadelProShop", url: BASE_URL },
+    store: { slug: "padelproshop", name: "PadelProShop", url: BASE_URL, isDemo: false },
     shipping: SHIPPING,
 
     async fetchProducts() {

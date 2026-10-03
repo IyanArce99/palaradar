@@ -1,14 +1,21 @@
 // Operaciones de administración de la base de datos: aplicar el esquema, cargar
 // la semilla y recalcular los agregados de precio. Las usan los scripts de
 // scripts/db/; la web no las llama.
+//
+// Hay tres clases de datos y cada una tiene su camino:
+//   · catálogo (marcas, palas, EAN)  → upsertCatalog, no borra nada
+//   · demostración (tiendas demo)    → loadDevSeed, destructivo y protegido
+//   · reales (tiendas, precios…)     → solo los escribe la ingestión
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { pricingConfig } from "@/config/pricing";
 import { computePriceStats } from "@/lib/pricing";
 import type { PricePoint, StoreOffer } from "@/types/catalog";
-import type { RacketPriceStatsRow, RacketRow, StorePriceRow, StoreRow } from "@/types/db";
+import type { RacketPriceStatsRow, RacketRow, StorePriceRow } from "@/types/db";
 import { toPriceStatsRow, toStoreOffer } from "../mappers";
 import type { SeedTables } from "../seed/build";
 import { inTransaction, type Sql } from "./client";
+import { activeStores } from "./sources";
 
 const DB_DIR = join(process.cwd(), "db");
 const MIGRATIONS_DIR = join(DB_DIR, "migrations");
@@ -120,7 +127,7 @@ function chunks<T>(rows: T[]): T[][] {
   return result;
 }
 
-async function insertRacket(sql: Sql, r: RacketRow): Promise<void> {
+async function insertRacket(sql: Sql, r: RacketRow, onConflict = sql``): Promise<void> {
   // El driver serializa los jsonb: se le pasa el valor, no un texto ya convertido a JSON.
   const json = (value: object) => sql.json(value as Parameters<Sql["json"]>[0]);
 
@@ -143,20 +150,121 @@ async function insertRacket(sql: Sql, r: RacketRow): Promise<void> {
       ${r.rating}, ${r.review_count}, ${json(r.review_aspects)},
       ${pgArray(r.review_highlights)}::text[], ${json(r.technical_specs)},
       ${json(r.faq)}, ${r.specs_source_url}
-    )`;
+    ) ${onConflict}`;
 }
 
 /**
- * Sustituye el contenido de las tablas de PalaRadar por la semilla, en una
- * transacción. Después hay que recalcular los agregados (refreshPriceStats).
+ * Catálogo de la semilla (marcas, palas, alternativas e identificadores), SIN
+ * borrar nada: crea lo que falta y actualiza lo que ya existe. No toca tiendas,
+ * precios, histórico, productos de tienda, ejecuciones ni opiniones.
+ *
+ * De una pala existente se actualizan sus datos de catálogo; el texto editorial
+ * solo mientras siga en borrador, y nunca la valoración ni las opiniones.
  */
-export async function loadSeed(sql: Sql, seed: SeedTables): Promise<void> {
-  await sql.begin(async (tx) => {
+export async function upsertCatalog(sql: Sql, seed: SeedTables): Promise<void> {
+  await inTransaction(sql, async (tx) => {
+    await tx`
+      insert into brands ${tx(seed.brands)}
+      on conflict (slug) do update set name = excluded.name, description = excluded.description`;
+
+    for (const racket of seed.rackets) {
+      await insertRacket(
+        tx,
+        racket,
+        tx`
+          on conflict (slug) do update set
+            brand_id = excluded.brand_id,
+            model = excluded.model,
+            year = excluded.year,
+            images = excluded.images,
+            shape = excluded.shape,
+            balance = excluded.balance,
+            play_style = excluded.play_style,
+            levels = excluded.levels,
+            weight_min = excluded.weight_min,
+            weight_max = excluded.weight_max,
+            technical_specs = excluded.technical_specs,
+            specs_source_url = excluded.specs_source_url,
+            description = case when rackets.editorial_status = 'draft' then excluded.description else rackets.description end,
+            editorial_summary = case when rackets.editorial_status = 'draft' then excluded.editorial_summary else rackets.editorial_summary end,
+            ideal_for = case when rackets.editorial_status = 'draft' then excluded.ideal_for else rackets.ideal_for end`,
+      );
+    }
+
+    // Las alternativas se derivan del catálogo: se recalculan para las palas de la semilla.
+    const racketIds = seed.rackets.map((racket) => racket.id);
+    if (racketIds.length > 0) {
+      await tx`delete from racket_alternatives where racket_id in ${tx(racketIds)}`;
+    }
+    if (seed.racketAlternatives.length > 0) {
+      await tx`insert into racket_alternatives ${tx(seed.racketAlternatives)}`;
+    }
+    // Un identificador ya guardado no se pisa: pudo verificarse a mano.
+    if (seed.racketIdentifiers.length > 0) {
+      await tx`insert into racket_identifiers ${tx(seed.racketIdentifiers)} on conflict do nothing`;
+    }
+  });
+}
+
+export interface DevSeedContext {
+  nodeEnv: string | undefined;
+  /** Tiendas reales (no demo) que hay en la base de datos */
+  realStores: string[];
+  /** true si se ha pedido expresamente borrar los datos reales */
+  force: boolean;
+}
+
+/**
+ * Motivo por el que NO se puede cargar el seed de desarrollo (que borra todas
+ * las tablas), o null si se puede. En producción no se puede nunca; con datos
+ * de tiendas reales, solo pidiéndolo expresamente.
+ */
+export function devSeedBlocker({ nodeEnv, realStores, force }: DevSeedContext): string | null {
+  if (nodeEnv === "production") {
+    return "El seed de desarrollo borra todos los datos y no se ejecuta con NODE_ENV=production.";
+  }
+  if (realStores.length > 0 && !force) {
+    return (
+      `La base de datos tiene datos de tiendas reales (${realStores.join(", ")}) que el seed de desarrollo borraría: ` +
+      "precios, histórico y emparejamientos. Para el catálogo usa `npm run db:seed`, que no borra nada. " +
+      `Si de verdad quieres borrarlos, repite con ${DEV_SEED_FORCE_FLAG}.`
+    );
+  }
+  return null;
+}
+
+export const DEV_SEED_FORCE_FLAG = "--force-delete-real-data";
+
+/** Tiendas reales de la base de datos: las que el seed de desarrollo destruiría. */
+export async function listRealStores(sql: Sql): Promise<string[]> {
+  const rows = await sql<{ slug: string }[]>`select slug from stores where not is_demo order by slug`;
+  return rows.map((row) => row.slug);
+}
+
+/**
+ * Seed de DESARROLLO: SUSTITUYE el contenido de todas las tablas de PalaRadar
+ * por la semilla, con tiendas y precios de demostración. Comprueba antes
+ * `devSeedBlocker`. Después hay que recalcular los agregados (refreshPriceStats).
+ */
+export async function loadDevSeed(
+  sql: Sql,
+  seed: SeedTables,
+  options: { force?: boolean; nodeEnv?: string } = {},
+): Promise<void> {
+  await inTransaction(sql, async (tx) => {
+    // Dentro de la transacción: nadie puede añadir datos reales entre la comprobación y el borrado.
+    const blocker = devSeedBlocker({
+      nodeEnv: options.nodeEnv ?? process.env.NODE_ENV,
+      realStores: await listRealStores(tx),
+      force: options.force ?? false,
+    });
+    if (blocker) throw new Error(blocker);
+
     await tx.unsafe(`truncate ${TABLES.join(", ")} cascade`);
 
     await tx`insert into brands ${tx(seed.brands)}`;
     await tx`insert into stores ${tx(seed.stores)}`;
-    for (const racket of seed.rackets) await insertRacket(tx as unknown as Sql, racket);
+    for (const racket of seed.rackets) await insertRacket(tx, racket);
     if (seed.racketAlternatives.length > 0) {
       await tx`insert into racket_alternatives ${tx(seed.racketAlternatives)}`;
     }
@@ -169,23 +277,49 @@ export async function loadSeed(sql: Sql, seed: SeedTables): Promise<void> {
   });
 }
 
+interface StatsOfferRow extends StorePriceRow {
+  store_slug: string;
+  store_name: string;
+  store_url: string;
+}
+
 /**
  * Recalcula `racket_price_stats` para todas las palas a partir de los precios
- * actuales y del histórico, con computePriceStats. Es lo que deberá ejecutar el
- * proceso de actualización de precios después de cada pasada.
+ * actuales y del histórico, con computePriceStats. Solo cuentan las tiendas
+ * activas como fuente de precios (ver activeStores): una pala que solo tenga
+ * precios de tiendas demo se queda sin agregados, es decir, sin precio.
  */
-export async function refreshPriceStats(sql: Sql, now: Date): Promise<number> {
+export async function refreshPriceStats(
+  sql: Sql,
+  now: Date,
+  includeDemo: boolean = pricingConfig.includeDemoStores,
+): Promise<number> {
+  const active = activeStores(sql, "s", includeDemo);
   const [prices, history] = await Promise.all([
-    sql<(StorePriceRow & { store: StoreRow })[]>`
-      select p.*, to_jsonb(s) as store from store_prices p join stores s on s.id = p.store_id`,
+    sql<StatsOfferRow[]>`
+      select p.*, s.slug as store_slug, s.name as store_name, s.url as store_url
+      from store_prices p join stores s on s.id = p.store_id
+      where ${active}`,
+    // Mejor precio de cada día entre las tiendas activas.
     sql<{ racket_id: string; price_date: string; price: number }[]>`
-      select racket_id, price_date, price from racket_price_daily order by price_date`,
+      select h.racket_id, h.price_date, min(h.price) as price
+      from price_history h join stores s on s.id = h.store_id
+      where ${active}
+      group by h.racket_id, h.price_date
+      order by h.price_date`,
   ]);
 
   const offersByRacket = new Map<string, StoreOffer[]>();
   for (const row of prices) {
     const offers = offersByRacket.get(row.racket_id) ?? [];
-    offers.push(toStoreOffer(row, row.store));
+    offers.push(
+      toStoreOffer(row, {
+        id: row.store_id,
+        slug: row.store_slug,
+        name: row.store_name,
+        url: row.store_url,
+      }),
+    );
     offersByRacket.set(row.racket_id, offers);
   }
 

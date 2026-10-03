@@ -33,7 +33,9 @@ Diferencias con el diseño de más abajo, decididas al implementar:
 - Un producto sin equivalente en el catálogo queda como rechazado con su motivo, no en revisión, para que la cola de revisión solo contenga dudas reales. Se reevalúa en cada ejecución, así que se empareja solo cuando la pala se añade al catálogo.
 
 - Una pala con el mismo nombre pero otro EAN (otro color, por ejemplo) no se empareja. Para aceptarla hay que añadir ese segundo EAN a `racket_identifiers`.
-- `npm run db:seed` vacía las tablas, incluidos los productos y precios reales de las tiendas. Después hay que volver a ejecutar la ingestión.
+- Cada adaptador declara si su tienda es real o de demostración (`store.isDemo`, guardado en `stores.is_demo`, migración `003_demo_stores.sql`). Los precios de las tiendas demo no cuentan en nada de lo que ve el usuario; el filtro está en `data/db/sources.ts`.
+- `npm run db:seed` solo crea o actualiza el catálogo y no borra nada. El seed destructivo es `npm run db:seed:dev`, que no se ejecuta en producción y se niega si hay datos de tiendas reales.
+- El histórico (`price_history`) no se borra nunca desde la ingestión: una pala agotada o desaparecida deja de publicarse en `store_prices`, pero conserva sus registros.
 
 Para probarlo: `npm test` (reglas de negocio, sin base de datos), `npm run test:db` (repositorio PostgreSQL, en una transacción que se deshace) y `npm run ingest:demo` (flujo completo con datos ficticios).
 

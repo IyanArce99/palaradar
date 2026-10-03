@@ -26,18 +26,21 @@ Sin configurar nada, el proyecto arranca con los datos seed en memoria.
 
 1. Copia `.env.example` como `.env.local` y pon tu `DATABASE_URL` (en Supabase: Project Settings → Database → Connection string).
 2. `npm run db:migrate` — aplica las migraciones pendientes (`db/schema.sql` y `db/migrations/`). No borra nada; `-- --reset` elimina las tablas de PalaRadar y las recrea.
-3. `npm run db:seed` — carga las palas y los precios de prueba, y calcula los agregados de precio. Sustituye el contenido de las tablas de PalaRadar.
-4. `npm run db:stats` — recalcula los agregados después de cambiar precios a mano.
+3. `npm run db:seed` — crea o actualiza el catálogo (marcas, palas, EAN). No borra nada ni toca tiendas, precios o histórico: se puede ejecutar sobre datos reales.
+4. `npm run prices:ingest -- --store=padelproshop` — precios reales de la tienda.
+5. `npm run db:stats` — recalcula los agregados después de cambiar precios a mano.
+
+Para una base de datos **de desarrollo** sin precios reales, `npm run db:seed:dev` sustituye el contenido de todas las tablas por la semilla con tiendas y precios de demostración. Es destructivo: no se ejecuta con `NODE_ENV=production` y se niega si la base tiene datos de tiendas reales (salvo `-- --force-delete-real-data`). Esos precios demo solo se muestran con `INCLUDE_DEMO_PRICES=true`.
 
 ### Cambiar entre mock y base de datos
 
 | `DATA_SOURCE` | Resultado |
 |---|---|
-| sin definir | Base de datos si `DATABASE_URL` está configurada; si no, seed en memoria |
+| sin definir | Base de datos si `DATABASE_URL` está configurada; si no, seed en memoria en desarrollo y error en producción |
 | `mock` | Seed en memoria, aunque haya base de datos |
 | `database` | Base de datos; falla al arrancar si no está configurada |
 
-Las demás variables (umbrales de antigüedad del precio, `PRICES_ARE_REAL`, dominio, indexación) están documentadas en `.env.example`.
+Las demás variables (umbrales de antigüedad del precio, `INCLUDE_DEMO_PRICES`, dominio, indexación) están documentadas en `.env.example`.
 
 ## Estructura
 
@@ -58,9 +61,9 @@ db/           schema.sql (esquema base) · migrations/ (cambios posteriores)
 docs/         price-ingestion.md: fuentes de precios y diseño de la ingestión
 ingestion/    Ingestión de precios: adaptadores, matcher, normalizador y flujo
 lib/          Lógica pura: precios, formato, consulta del catálogo, SEO
-tests/        ingestion/ (sin base de datos) · db/ (contra PostgreSQL)
+tests/        ingestion/ y pricing/ (sin base de datos) · db/ (contra PostgreSQL)
 types/        catalog.ts y pricing.ts (dominio) · db.ts (filas de BD)
-scripts/      db/ (migrate, seed, stats) · generate-art.ts · ingest-demo.ts
+scripts/      db/ (migrate, seed, seed-dev, stats) · prices/ · generate-art.ts · ingest-demo.ts
 ```
 
 ## Ingestión de precios
@@ -73,7 +76,17 @@ npm run prices:ingest -- --store=padelproshop # ingestión real, en una única t
 npm run ingest:demo                           # flujo completo con datos ficticios, sin base de datos
 ```
 
-Los precios reales conviven por ahora con los de las tiendas de prueba del seed, así que el aviso de precios de prueba sigue activo. `npm run db:seed` borra también los precios reales: después hay que repetir la ingestión.
+### Datos reales y de demostración
+
+Cada tienda es real o de demostración (`stores.is_demo`), y lo declara su adaptador (`isDemo`). Las que crea la ingestión desde `ingestion/adapters/index.ts` son reales; las del seed de desarrollo y el adaptador de prueba son demo.
+
+- Las tiendas demo **no participan** en nada que vea el usuario: ofertas, mejor precio, precio anterior, histórico, gráfico ni agregados. El filtro está en un solo sitio, `data/db/sources.ts` (`activeStores`), que usan la ficha y el cálculo de `racket_price_stats`.
+- Solo cuentan con `INCLUDE_DEMO_PRICES=true` y fuera de producción; con `NODE_ENV=production` la variable se ignora.
+- Una pala sin precio de ninguna tienda real se muestra sin precio.
+- En producción, si falta `DATABASE_URL` la web falla al arrancar en lugar de servir el seed en memoria (salvo `DATA_SOURCE=mock`).
+- El aviso de «precios de prueba» solo aparece con el seed en memoria o con las tiendas demo incluidas.
+
+Para conectar otra tienda: un adaptador nuevo con `isDemo: false`, registrado en `ingestion/adapters/index.ts`. No hay que tocar consultas ni componentes.
 
 ## Arquitectura de datos
 
@@ -95,7 +108,7 @@ Ningún componente importa la base de datos: solo `data/`.
 |---|---|
 | Catálogo, marca, ofertas, portada (listados) | `racket_catalog` (= `rackets` + `brands` + `racket_price_stats`) |
 | Filtros del catálogo | `brands`, `rackets`, `racket_price_stats` |
-| Ficha | `rackets`, `brands`, `store_prices`, `stores`, `racket_price_daily` (sobre `price_history`), `reviews`, `racket_alternatives` + `racket_catalog` |
+| Ficha | `rackets`, `brands`, `store_prices`, `stores`, `price_history` (mejor precio diario de las tiendas activas), `reviews`, `racket_alternatives` + `racket_catalog` |
 | Sitemap | `rackets`, `brands` |
 
 ### Fechas y precios
@@ -114,15 +127,17 @@ Según la antigüedad de `checked_at`, el precio se presenta como:
 | hasta 48 h (`PRICE_STALE_AFTER_HOURS`) | reciente | «Último precio conocido · comprobado hace N horas» |
 | más de 48 h | desactualizado | «Precio sin confirmar», sin veredicto |
 
+Un precio desactualizado nunca se presenta como precio actual: en la ficha no compite con las ofertas comprobadas de otras tiendas, y en los listados la pala aparece sin precio y queda fuera de ofertas, del filtro de precio máximo y del orden por precio.
+
 ### Seed
 
 `data/seed/rackets.ts` contiene 28 palas reales de 8 marcas. Cada una indica la página de la que salen sus datos; lo que la fuente no declara, o declara de forma ambigua, va en nulo. El campo `pending` recoge las dudas por revisar a mano. Varias marcas bloquean el acceso automático a su web, así que sus palas proceden de la ficha de una tienda (`source: "tienda"`) y conviene revisarlas.
 
 - **Editorial:** borrador que resume lo que declara la fuente (`editorial_status = 'draft'`). Sin pros y contras ni puntuaciones de sensaciones.
 - **Opiniones:** ninguna. Valoración y número de opiniones a cero.
-- **Precios:** de prueba, generados de forma determinista a partir del precio de referencia y repartidos en tiendas ficticias. Se comprueban «ahora» al ejecutar el seed, salvo unas pocas palas que quedan a 30 horas y a 6 días para ver los tres estados. Caducan a las 48 horas: `npm run db:seed` los renueva.
+- **Precios de demostración:** solo en el seed en memoria y en `npm run db:seed:dev`. Generados de forma determinista a partir del precio de referencia y repartidos en tiendas demo. Se comprueban «ahora» al cargarlos, salvo unas pocas palas que quedan a 30 horas y a 6 días para ver los tres estados.
 
-Mientras los precios sean de prueba (`PRICES_ARE_REAL` distinto de `true`), la web lo avisa y el JSON-LD no los publica como ofertas.
+Mientras se muestren precios de demostración, la web lo avisa y el JSON-LD no los publica como ofertas.
 
 ## SEO
 

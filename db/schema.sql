@@ -139,7 +139,8 @@ create table racket_price_stats (
 create index racket_price_stats_price_idx on racket_price_stats (best_price);
 create index racket_price_stats_drop_idx on racket_price_stats (drop_percent desc nulls last);
 
--- Mejor precio de cada día entre todas las tiendas: la serie del gráfico
+-- Mejor precio de cada día entre todas las tiendas. La elimina la migración
+-- 003: mezclaba tiendas reales y de demostración.
 create view racket_price_daily with (security_invoker = true) as
 select racket_id, price_date, min(price) as price
 from price_history

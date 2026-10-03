@@ -1,6 +1,7 @@
 // Punto de entrada de la capa de datos: lo único que importan páginas y
 // componentes. Aquí se decide de dónde salen los datos; el resto de la
 // aplicación no lo sabe.
+import { pricingConfig } from "@/config/pricing";
 import { featuredPalaSlug, guides } from "@/content/guides";
 import { DEFAULT_QUERY } from "@/lib/catalog/query";
 import type { Guide, Pala, PalaSummary } from "@/types/catalog";
@@ -17,21 +18,30 @@ export type DataSource = "database" | "mock";
  * Origen de datos:
  * - DATA_SOURCE=mock      → semilla en memoria, aunque haya base de datos.
  * - DATA_SOURCE=database  → base de datos; falla si no está configurada.
- * - sin DATA_SOURCE       → base de datos si DATABASE_URL está configurada;
- *                           si no, semilla en memoria (el proyecto siempre arranca).
+ * - sin DATA_SOURCE       → base de datos si DATABASE_URL está configurada. Si no,
+ *                           semilla en memoria en desarrollo y error en producción.
  */
-function resolveDataSource(): DataSource {
-  const forced = process.env.DATA_SOURCE;
+export function resolveDataSource(
+  env: Record<string, string | undefined>,
+  hasDatabase: boolean,
+): DataSource {
+  const forced = env.DATA_SOURCE;
   if (forced === "mock") return "mock";
+  if (hasDatabase) return "database";
 
-  const hasDatabase = getDatabaseUrl() !== null;
-  if (forced === "database" && !hasDatabase) {
+  if (forced === "database") {
     throw new Error("DATA_SOURCE=database pero DATABASE_URL no está configurada (ver .env.example).");
   }
-  return hasDatabase ? "database" : "mock";
+  // En producción no se cae en silencio a los datos de demostración.
+  if (env.NODE_ENV === "production") {
+    throw new Error(
+      "DATABASE_URL no está configurada. En producción no se usan los datos de demostración salvo que se pida con DATA_SOURCE=mock.",
+    );
+  }
+  return "mock";
 }
 
-export const dataSource: DataSource = resolveDataSource();
+export const dataSource: DataSource = resolveDataSource(process.env, getDatabaseUrl() !== null);
 
 let repository: CatalogRepository | undefined;
 
@@ -41,11 +51,12 @@ function getRepository(): CatalogRepository {
 }
 
 /**
- * true mientras los precios sean de prueba: siempre con la semilla en memoria,
- * y con base de datos hasta que se declare PRICES_ARE_REAL=true. La interfaz lo
- * usa para avisar y el SEO para no publicar esos precios como ofertas.
+ * true si entre los precios que se muestran puede haber alguno de demostración:
+ * siempre con la semilla en memoria, y con base de datos solo si se han incluido
+ * las tiendas demo (desarrollo). La interfaz lo usa para avisar y el SEO para no
+ * publicar esos precios como ofertas.
  */
-export const hasTestPrices = dataSource === "mock" || process.env.PRICES_ARE_REAL !== "true";
+export const hasTestPrices = dataSource === "mock" || pricingConfig.includeDemoStores;
 
 export const searchCatalog: CatalogRepository["searchCatalog"] = (query, options) =>
   getRepository().searchCatalog(query, options);

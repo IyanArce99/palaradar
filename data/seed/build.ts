@@ -257,7 +257,12 @@ export function buildSeed(now: Date): SeedTables {
     description: brand.description,
     logo_url: null,
   }));
-  const stores: StoreRow[] = storeSeeds.map((store) => ({ id: seedId(`store:${store.slug}`), ...store }));
+  // Todas las tiendas de la semilla son de demostración: las reales las crea la ingestión.
+  const stores: StoreRow[] = storeSeeds.map((store) => ({
+    id: seedId(`store:${store.slug}`),
+    ...store,
+    is_demo: true,
+  }));
   const brandBySlug = new Map(brands.map((brand) => [brand.slug, brand]));
 
   const entries = racketSpecs.flatMap((spec) => {

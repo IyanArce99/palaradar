@@ -3,10 +3,18 @@
 // `racket_price_stats` y la vista `racket_catalog` se construyen una vez, y cada
 // consulta equivale a un SELECT con WHERE, ORDER BY y LIMIT/OFFSET.
 import { CATALOG_PAGE_SIZE, DEFAULT_QUERY, type CatalogQuery, type SortId } from "@/lib/catalog/query";
-import { computePriceStats, priceFreshness } from "@/lib/pricing";
+import { computePriceStats } from "@/lib/pricing";
 import type { PricePoint, StoreOffer } from "@/types/catalog";
 import type { RacketCatalogRow } from "@/types/db";
-import { toBrand, toMonthlyDrop, toPala, toPalaSummary, toPriceStatsRow, toStoreOffer } from "./mappers";
+import {
+  currentPrice,
+  toBrand,
+  toMonthlyDrop,
+  toPala,
+  toPalaSummary,
+  toPriceStatsRow,
+  toStoreOffer,
+} from "./mappers";
 import type { CatalogRepository } from "./repository";
 import { buildSeed } from "./seed/build";
 
@@ -36,7 +44,7 @@ export function createMemoryRepository(): CatalogRepository {
     });
   }
 
-  /** Vista `racket_price_daily`: mejor precio de cada día entre todas las tiendas. */
+  /** Mejor precio de cada día entre todas las tiendas (aquí todas son de la semilla). */
   function dailyBestPrices(racketId: string): PricePoint[] {
     const byDate = new Map<string, number>();
     for (const row of tables.priceHistory) {
@@ -89,21 +97,21 @@ export function createMemoryRepository(): CatalogRepository {
 
   const catalogById = new Map(catalogRows.map((row) => [row.id, row]));
 
-  function isStale(row: RacketCatalogRow): boolean {
-    return row.price_checked_at === null || priceFreshness(row.price_checked_at, now()) === "stale";
-  }
+  /** Precio que cuenta para filtrar y ordenar: nulo si la comprobación está desactualizada. */
+  const priceOf = (row: RacketCatalogRow) => currentPrice(row, now());
 
   /** Equivalente al WHERE de la consulta del catálogo. */
   function matches(row: RacketCatalogRow, query: CatalogQuery): boolean {
     const anyOf = <T>(selected: T[], value: T | null) =>
       selected.length === 0 || (value !== null && selected.includes(value));
-    const drop = row.drop_percent ?? 0;
+    const price = priceOf(row);
+    const drop = price === null ? 0 : (row.drop_percent ?? 0);
 
     const inCollection =
       query.collection === "todas" ||
       (query.collection === "en-oferta" && drop > 0) ||
       (query.collection === "grandes-descuentos" && drop >= BIG_DISCOUNT_PERCENT) ||
-      (query.collection === "mejor-precio" && row.price_status === "good" && !isStale(row));
+      (query.collection === "mejor-precio" && row.price_status === "good" && price !== null);
 
     const matchesSearch = normalizeText(query.q)
       .split(/\s+/)
@@ -119,20 +127,23 @@ export function createMemoryRepository(): CatalogRepository {
       anyOf(query.shapes, row.shape) &&
       anyOf(query.balances, row.balance) &&
       anyOf(query.years, row.year) &&
-      (query.maxPrice === null || (row.best_price !== null && row.best_price <= query.maxPrice))
+      (query.maxPrice === null || (price !== null && price <= query.maxPrice))
     );
   }
 
   const LAST = Number.POSITIVE_INFINITY;
   const bySlug = (a: RacketCatalogRow, b: RacketCatalogRow) => a.slug.localeCompare(b.slug);
-  const distanceToMin = (row: RacketCatalogRow) =>
-    row.best_price !== null && row.min_price ? row.best_price / row.min_price : LAST;
+  const dropOf = (row: RacketCatalogRow) => (priceOf(row) === null ? -1 : (row.drop_percent ?? -1));
+  const distanceToMin = (row: RacketCatalogRow) => {
+    const price = priceOf(row);
+    return price !== null && row.min_price ? price / row.min_price : LAST;
+  };
 
-  /** Equivalente al ORDER BY; las palas sin precio van al final (NULLS LAST). */
+  /** Equivalente al ORDER BY; las palas sin precio actual van al final (NULLS LAST). */
   const orderBy: Record<SortId, (a: RacketCatalogRow, b: RacketCatalogRow) => number> = {
     popularidad: (a, b) => b.review_count - a.review_count || b.year - a.year || bySlug(a, b),
-    precio: (a, b) => (a.best_price ?? LAST) - (b.best_price ?? LAST) || bySlug(a, b),
-    descuento: (a, b) => (b.drop_percent ?? -1) - (a.drop_percent ?? -1) || bySlug(a, b),
+    precio: (a, b) => (priceOf(a) ?? LAST) - (priceOf(b) ?? LAST) || bySlug(a, b),
+    descuento: (a, b) => dropOf(b) - dropOf(a) || bySlug(a, b),
     minimo: (a, b) => distanceToMin(a) - distanceToMin(b) || bySlug(a, b),
     novedades: (a, b) => b.year - a.year || b.review_count - a.review_count || bySlug(a, b),
   };
@@ -156,7 +167,7 @@ export function createMemoryRepository(): CatalogRepository {
     },
 
     async getCatalogFacets() {
-      const maxPrice = Math.max(0, ...catalogRows.map((row) => row.best_price ?? 0));
+      const maxPrice = Math.max(0, ...catalogRows.map((row) => priceOf(row) ?? 0));
       return {
         brands: await repository.getBrands(),
         years: [...new Set(catalogRows.map((row) => row.year))].sort((a, b) => b - a),

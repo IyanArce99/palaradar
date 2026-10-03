@@ -1,7 +1,11 @@
 import type { StoreAdapter } from "../types";
 import { createPadelProShopAdapter } from "./padelproshop";
 
-/** Adaptadores de tiendas reales, por slug. */
+/**
+ * Adaptadores de tiendas reales, por slug. Una tienda nueva se añade aquí con
+ * `isDemo: false` en su adaptador; el adaptador de prueba (mock.ts) no se
+ * registra, así que `prices:ingest` nunca puede escribir datos ficticios.
+ */
 const ADAPTERS: Record<string, () => StoreAdapter> = {
   padelproshop: () => createPadelProShopAdapter(),
 };

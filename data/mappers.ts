@@ -33,11 +33,14 @@ export function toBrand(row: BrandRow): Brand {
   };
 }
 
-export function toStore(row: StoreRow): Store {
+export function toStore(row: Pick<StoreRow, "id" | "slug" | "name" | "url">): Store {
   return { id: row.id, slug: row.slug, name: row.name, url: row.url };
 }
 
-export function toStoreOffer(row: StorePriceRow, store: StoreRow): StoreOffer {
+export function toStoreOffer(
+  row: StorePriceRow,
+  store: Pick<StoreRow, "id" | "slug" | "name" | "url">,
+): StoreOffer {
   return {
     store: toStore(store),
     price: row.current_price,
@@ -80,9 +83,18 @@ export function toPriceStatsRow(racketId: string, stats: PriceStats): RacketPric
   };
 }
 
+/**
+ * Precio que un listado puede presentar como actual: el mejor precio de la
+ * pala, salvo que lleve demasiado sin comprobarse. Un precio desactualizado no
+ * se muestra en tarjetas ni cuenta para filtrar u ordenar por precio.
+ */
+export function currentPrice(row: RacketCatalogRow, now: Date): number | null {
+  if (row.best_price === null || row.price_checked_at === null) return null;
+  return priceFreshness(row.price_checked_at, now) === "stale" ? null : row.best_price;
+}
+
 export function toPalaSummary(row: RacketCatalogRow, now: Date): PalaSummary {
-  const hasPrice =
-    row.best_price !== null && row.price_status !== null && row.price_checked_at !== null;
+  const price = currentPrice(row, now);
 
   return {
     id: row.id,
@@ -95,14 +107,14 @@ export function toPalaSummary(row: RacketCatalogRow, now: Date): PalaSummary {
     description: row.description,
     rating: row.rating,
     reviewCount: row.review_count,
-    price: row.best_price,
-    previousPrice: row.previous_price,
-    dropPercent: row.drop_percent,
-    storeCount: row.store_count ?? 0,
+    price,
+    previousPrice: price === null ? null : row.previous_price,
+    dropPercent: price === null ? null : row.drop_percent,
+    storeCount: price === null ? 0 : (row.store_count ?? 0),
     priceNote:
-      hasPrice && row.best_price !== null && row.price_status !== null && row.price_checked_at
+      price !== null && row.price_status !== null && row.price_checked_at !== null
         ? priceCardNote(
-            { status: row.price_status, bestPrice: row.best_price, minPrice: row.min_price },
+            { status: row.price_status, bestPrice: price, minPrice: row.min_price },
             priceFreshness(row.price_checked_at, now),
           )
         : null,
@@ -123,7 +135,7 @@ interface PalaParts {
   racket: RacketRow;
   brand: BrandRow;
   offers: StoreOffer[];
-  /** Mejor precio de cada día (vista racket_price_daily), en orden cronológico */
+  /** Mejor precio de cada día entre las tiendas activas, en orden cronológico */
   priceHistory: PricePoint[];
   reviews: ReviewRow[];
   alternatives: Alternative[];

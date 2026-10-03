@@ -36,10 +36,12 @@ export function createPostgresIngestionRepository(sql: Sql): IngestionRepository
       return store ?? null;
     },
 
-    async ensureStore({ slug, name, url }) {
+    async ensureStore({ slug, name, url, isDemo }) {
+      // Real o demo lo declara el adaptador; es lo que separa sus precios de los reales.
       const [store] = await sql<IngestionStore[]>`
-        insert into stores (slug, name, url) values (${slug}, ${name}, ${url})
-        on conflict (slug) do update set name = excluded.name, url = excluded.url
+        insert into stores (slug, name, url, is_demo) values (${slug}, ${name}, ${url}, ${isDemo})
+        on conflict (slug) do update set
+          name = excluded.name, url = excluded.url, is_demo = excluded.is_demo
         returning id, slug, name`;
       return store;
     },

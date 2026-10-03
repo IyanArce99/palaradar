@@ -1,7 +1,8 @@
-// Carga la semilla en la base de datos de DATABASE_URL y recalcula los
-// agregados de precio. SUSTITUYE el contenido de las tablas de PalaRadar.
+// Carga el CATÁLOGO de la semilla (marcas, palas, alternativas y EAN) en la
+// base de datos de DATABASE_URL. No borra nada ni toca tiendas, precios,
+// histórico ni emparejamientos: se puede ejecutar sobre datos reales.
 //   npm run db:seed
-import { loadSeed, refreshPriceStats, schemaExists } from "@/data/db/admin";
+import { refreshPriceStats, schemaExists, upsertCatalog } from "@/data/db/admin";
 import { buildSeed } from "@/data/seed/build";
 import { runDbScript } from "./run";
 
@@ -12,14 +13,12 @@ runDbScript(async (sql) => {
 
   const now = new Date();
   const seed = buildSeed(now);
-  await loadSeed(sql, seed);
+  await upsertCatalog(sql, seed);
   const withPrice = await refreshPriceStats(sql, now);
 
   console.log(
-    `Semilla cargada: ${seed.brands.length} marcas, ${seed.rackets.length} palas, ${seed.stores.length} tiendas.`,
+    `Catálogo actualizado: ${seed.brands.length} marcas, ${seed.rackets.length} palas, ${seed.racketIdentifiers.length} EAN.`,
   );
-  console.log(
-    `Precios de prueba: ${seed.storePrices.length} ofertas y ${seed.priceHistory.length} registros de histórico.`,
-  );
+  console.log("No se han tocado tiendas, precios, histórico ni emparejamientos.");
   console.log(`Agregados de precio calculados para ${withPrice} palas.`);
 });

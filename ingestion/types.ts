@@ -34,8 +34,12 @@ export interface StoreShipping {
  * emparejar, normalizar ni guardar.
  */
 export interface StoreAdapter {
-  /** La tienda, tal como debe figurar en la tabla `stores` (se crea si no existe) */
-  store: { slug: string; name: string; url: string };
+  /**
+   * La tienda, tal como debe figurar en la tabla `stores` (se crea si no existe).
+   * `isDemo` lo declara el adaptador: true solo si sus datos son ficticios, y
+   * entonces sus precios nunca cuentan como precio real.
+   */
+  store: { slug: string; name: string; url: string; isDemo: boolean };
   shipping: StoreShipping;
   fetchProducts(): Promise<StoreListing[]>;
 }

@@ -7,6 +7,11 @@ import type { CatalogRacket, MatchResult, StoreListing } from "./types";
 //   2. Marca, modelo, variante y año iguales           → automático solo con un único candidato
 //   3. Coincidencia ambigua                            → revisión manual
 //   Vetos: EAN distinto, año distinto o variante distinta → nunca se empareja
+//
+// Colores y variantes: cada EAN es una pala distinta y nunca se fusionan aquí.
+// Si algún día se agrupan (una «familia» de producto con varios colores), será
+// un concepto por encima de `rackets` —p. ej. rackets.family_id—, sin cambiar
+// estas reglas: el emparejamiento seguirá siendo producto de tienda → pala exacta.
 
 type Listing = Pick<StoreListing, "title" | "brand" | "ean">;
 
