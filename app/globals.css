@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+/* Sistema visual V3 (README del diseño) */
+@theme {
+  --color-carbon: #15171a;
+  --color-ink: #3f443c;
+  --color-muted: #5b6058;
+  --color-mist: #f4f5f1;
+  --color-line: #e3e5df;
+  --color-line-soft: #eceee8;
+  --color-ash: #c9ccc3;
+  --color-dot-off: #d3d6cd;
+
+  --color-lime: #c6ef3a;
+  --color-lime-soft: #eefbc9;
+  --color-lime-tint: #f7fde6;
+  --color-lime-border: #9fc21f;
+  --color-lime-deep: #7fb800;
+  --color-forest: #2d3a0a;
+
+  --color-wait: #e0a32e;
+  --color-rise: #b3341f;
+  --color-rise-soft: #fbe6e1;
+
+  --animate-radar-sweep: radar-sweep 6s linear infinite;
+
+  @keyframes radar-sweep {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}
+
+@theme inline {
+  --font-sans: var(--font-archivo), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 16px;
+  }
+
+  body {
+    background: #fff;
+    color: var(--color-carbon);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-carbon);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    * {
+      animation: none !important;
+    }
+  }
+}
+
+/* Placeholder rayado hasta tener recortes de producto sobre fondo neutro */
+@utility photo-placeholder {
+  background: repeating-linear-gradient(135deg, #eef0eb 0 10px, #f6f7f3 10px 20px);
+}
+
+@utility radar-sweep {
+  background: conic-gradient(
+    from 0deg,
+    rgb(198 239 58 / 0) 0deg,
+    rgb(198 239 58 / 0) 290deg,
+    rgb(198 239 58 / 0.4) 360deg
+  );
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
