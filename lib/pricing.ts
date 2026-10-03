@@ -1,7 +1,9 @@
 import { pricingConfig } from "@/config/pricing";
-import type { PricePoint, StoreOffer } from "@/types/catalog";
+import type { PricePoint, Store, StoreOffer } from "@/types/catalog";
 import type {
   PriceFreshness,
+  PriceHistory,
+  StorePriceSeries,
   PriceStats,
   PriceStatus,
   PriceSummary,
@@ -79,6 +81,50 @@ export function usableOffers(offers: StoreOffer[], now: Date): RankedOffer[] {
   const ranked = rankOffers(offers);
   const checked = ranked.filter((offer) => priceFreshness(offer.checkedAt, now) !== "stale");
   return checked.length > 0 ? checked : ranked;
+}
+
+/** Un registro de `price_history`: el precio final de una pala en una tienda un día. */
+export interface StorePriceRecord {
+  store: Store;
+  date: string;
+  price: number;
+}
+
+/**
+ * Histórico global y por tienda a partir de los registros de una pala. El
+ * global es, cada día, el mínimo entre las tiendas con registro ese día (a
+ * igualdad de precio, la primera por orden alfabético). No inventa días: una
+ * tienda sin registro un día no aporta nada a ese día.
+ */
+export function buildPriceHistory(records: StorePriceRecord[]): PriceHistory {
+  const byStore = new Map<string, StorePriceSeries>();
+  const byDate = new Map<string, StorePriceRecord[]>();
+
+  for (const record of records) {
+    const series = byStore.get(record.store.id) ?? { store: record.store, points: [] };
+    series.points.push({ date: record.date, price: record.price });
+    byStore.set(record.store.id, series);
+
+    const day = byDate.get(record.date) ?? [];
+    day.push(record);
+    byDate.set(record.date, day);
+  }
+
+  const byDay = (a: { date: string }, b: { date: string }) => a.date.localeCompare(b.date);
+
+  return {
+    market: [...byDate.values()]
+      .map((day) => {
+        const [best] = [...day].sort(
+          (a, b) => a.price - b.price || a.store.slug.localeCompare(b.store.slug),
+        );
+        return { date: best.date, price: best.price, store: best.store, storeCount: day.length };
+      })
+      .sort(byDay),
+    byStore: [...byStore.values()]
+      .map((series) => ({ store: series.store, points: [...series.points].sort(byDay) }))
+      .sort((a, b) => a.store.slug.localeCompare(b.store.slug)),
+  };
 }
 
 function average(points: PricePoint[]): number | null {

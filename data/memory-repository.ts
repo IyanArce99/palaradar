@@ -3,7 +3,7 @@
 // `racket_price_stats` y la vista `racket_catalog` se construyen una vez, y cada
 // consulta equivale a un SELECT con WHERE, ORDER BY y LIMIT/OFFSET.
 import { CATALOG_PAGE_SIZE, DEFAULT_QUERY, type CatalogQuery, type SortId } from "@/lib/catalog/query";
-import { computePriceStats } from "@/lib/pricing";
+import { buildPriceHistory, computePriceStats } from "@/lib/pricing";
 import type { PricePoint, StoreOffer } from "@/types/catalog";
 import type { RacketCatalogRow } from "@/types/db";
 import {
@@ -13,6 +13,7 @@ import {
   toPala,
   toPalaSummary,
   toPriceStatsRow,
+  toStore,
   toStoreOffer,
 } from "./mappers";
 import type { CatalogRepository } from "./repository";
@@ -212,6 +213,20 @@ export function createMemoryRepository(): CatalogRepository {
           alternatives,
         },
         now(),
+      );
+    },
+
+    async getPriceHistory(slug) {
+      const racket = tables.rackets.find((row) => row.slug === slug);
+      if (!racket) return null;
+
+      return buildPriceHistory(
+        tables.priceHistory.flatMap((row) => {
+          const store = storesById.get(row.store_id);
+          return row.racket_id === racket.id && store
+            ? [{ store: toStore(store), date: row.price_date, price: row.price }]
+            : [];
+        }),
       );
     },
 

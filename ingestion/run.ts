@@ -266,6 +266,14 @@ async function applyListings(
   return counts;
 }
 
+/** Ya hay otra ingestión en marcha: esta no ha empezado ni ha escrito nada. */
+export class IngestionLockedError extends Error {
+  constructor() {
+    super("Ya hay una ingestión de precios en marcha. Esta ejecución se ha cancelado sin cambiar nada.");
+    this.name = "IngestionLockedError";
+  }
+}
+
 /** Duración de las dos fases de una ejecución, para medirla desde fuera. */
 export interface RunTimings {
   /** Descarga del catálogo de la tienda */
@@ -284,6 +292,10 @@ export interface RunTimings {
  * escribe fuera de ella, para que el fallo quede anotado. Con los precios sin
  * tocar, `checked_at` deja de avanzar y la web los irá marcando como «último
  * precio conocido» y «sin confirmar» por sí sola.
+ *
+ * Nunca hay dos ingestiones a la vez: toda la ejecución ocurre con el bloqueo
+ * global tomado. Si otra lo tiene, lanza IngestionLockedError sin haber escrito
+ * nada, ni siquiera el registro de la ejecución.
  */
 export async function runIngestion(
   adapter: StoreAdapter,
@@ -291,8 +303,24 @@ export async function runIngestion(
   now: Date = new Date(),
   timings: RunTimings = {},
 ): Promise<RunSummary> {
-  const store = await repository.ensureStore(adapter.store);
+  const locked = await repository.withIngestionLock(() =>
+    runLocked(adapter, repository, now, timings),
+  );
+  if (!locked.acquired) throw new IngestionLockedError();
+  return locked.value;
+}
+
+async function runLocked(
+  adapter: StoreAdapter,
+  repository: IngestionRepository,
+  now: Date,
+  timings: RunTimings,
+): Promise<RunSummary> {
   const startedAt = now.toISOString();
+  // Con el bloqueo tomado, una ejecución «en marcha» es de un proceso que murió.
+  await repository.failInterruptedRuns(startedAt);
+
+  const store = await repository.ensureStore(adapter.store);
   const runId = await repository.startRun(store.id, startedAt);
 
   const summary: RunSummary = {

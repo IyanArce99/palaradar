@@ -1,5 +1,9 @@
 import type { CatalogRacket, PublishedPrice, RunResult, StoreAdapter, StoreProduct } from "./types";
 
+export type Locked<T> = { acquired: true; value: T } | { acquired: false };
+
+export const INTERRUPTED_RUN_MESSAGE = "Ejecución interrumpida: el proceso terminó sin registrar el resultado.";
+
 export interface IngestionStore {
   id: string;
   slug: string;
@@ -28,6 +32,17 @@ export interface IngestionRepository {
    * falla, no queda escrito nada de lo que hizo.
    */
   transaction<T>(work: (repository: IngestionRepository) => Promise<T>): Promise<T>;
+  /**
+   * Ejecuta `work` con el bloqueo global de ingestión tomado. Si otra ingestión
+   * lo tiene, no espera ni ejecuta nada y devuelve `{ acquired: false }`. El
+   * bloqueo se suelta siempre al terminar `work`, también si falla.
+   */
+  withIngestionLock<T>(work: () => Promise<T>): Promise<Locked<T>>;
+  /**
+   * Da por fallidas las ejecuciones que quedaron «en marcha» porque su proceso
+   * murió. Solo se llama con el bloqueo tomado, así que ninguna está viva.
+   */
+  failInterruptedRuns(finishedAt: string): Promise<number>;
   /** Palas del catálogo con sus GTIN conocidos, para el matcher */
   loadCatalog(): Promise<CatalogRacket[]>;
 

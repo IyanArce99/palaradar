@@ -72,9 +72,13 @@ El sistema que sustituye los precios de prueba está en `ingestion/`. Cada tiend
 
 ```bash
 npm run prices:dry-run                        # simula la ingestión y muestra el emparejamiento; no escribe nada
-npm run prices:ingest -- --store=padelproshop # ingestión real, en una única transacción
+npm run prices:ingest                         # ingestión real de todas las tiendas (o -- --store=padelproshop)
+npm run prices:pending                        # productos pendientes de revisión manual; solo lectura
 npm run ingest:demo                           # flujo completo con datos ficticios, sin base de datos
+npm run db:purge-demo                         # qué datos demo hay en la base; solo borra con confirmación
 ```
+
+`prices:ingest` se puede programar con cualquier cron externo: escribe cada tienda en una transacción, nunca se solapa con otra ingestión (bloqueo en PostgreSQL) y devuelve un código de salida distinto de 0 si algo falla. Ver «Ejecución programada» en [docs/price-ingestion.md](docs/price-ingestion.md).
 
 ### Datos reales y de demostración
 

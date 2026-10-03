@@ -1,5 +1,6 @@
 import type { CatalogQuery } from "@/lib/catalog/query";
 import type { Brand, Pala, PalaSummary } from "@/types/catalog";
+import type { PriceHistory } from "@/types/pricing";
 
 export interface CatalogSearchOptions {
   /** Resultados por página; por defecto, CATALOG_PAGE_SIZE */
@@ -46,6 +47,12 @@ export interface CatalogRepository {
   getBrands(): Promise<Brand[]>;
   getBrandBySlug(slug: string): Promise<Brand | null>;
   getPalaBySlug(slug: string): Promise<Pala | null>;
+  /**
+   * Histórico de precios de una pala en sus dos lecturas: el mejor precio del
+   * mercado por día y el precio de cada tienda por día. Solo tiendas activas
+   * como fuente de precios. null si la pala no existe.
+   */
+  getPriceHistory(slug: string): Promise<PriceHistory | null>;
   getAllPalaSlugs(): Promise<string[]>;
   /** Mayores bajadas de precio de los últimos 30 días */
   getBiggestMonthlyDrops(limit: number): Promise<MonthlyDrop[]>;

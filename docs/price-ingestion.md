@@ -39,6 +39,67 @@ Diferencias con el diseño de más abajo, decididas al implementar:
 - `tests/ingestion/golden/ingestion.json` guarda el resultado de un escenario de cuatro lecturas generado con la ingestión anterior a los lotes; los tests exigen que siga saliendo exactamente lo mismo.
 - El histórico (`price_history`) no se borra nunca desde la ingestión: una pala agotada o desaparecida deja de publicarse en `store_prices`, pero conserva sus registros.
 
+### Ejecución programada
+
+`npm run prices:ingest` está pensado para lanzarse sin supervisión. Sin argumentos recorre todas las tiendas con adaptador, una tras otra; `-- --store=<slug>` limita a una.
+
+- **Atómico por tienda.** Todo lo de una tienda se escribe en una transacción. Si la tienda no responde o algo falla, no cambia ningún precio suyo, la ejecución queda en `ingestion_runs` como `failed` con su mensaje y se sigue con las demás tiendas.
+- **Precios conservados.** Un fallo no borra nada: los precios siguen publicados con su `checked_at` antiguo. Pasan solos a «último precio conocido» a las 24 h y a «sin confirmar» a las 48 h, y vuelven a ser actuales en la primera ejecución correcta.
+- **Una sola a la vez.** Toda la ejecución ocurre con un advisory lock de PostgreSQL (`data/db/lock.ts`) tomado en una transacción propia. Una segunda ingestión no espera: termina sin escribir nada. El servidor suelta el bloqueo al acabar la transacción, también si el proceso muere. Necesita `DATABASE_POOL_MAX` ≥ 2 (el valor por defecto).
+- **Ejecuciones huérfanas.** Si un proceso muere antes de registrar su resultado, su fila queda `running`; la siguiente ejecución la marca como `failed`.
+- **Salida.** Muestra duración (descarga y base de datos) y número de consultas por tienda.
+
+| Código de salida | Significado |
+|---|---|
+| 0 | Todas las tiendas correctas |
+| 1 | Alguna tienda ha fallado, o no se ha podido conectar |
+| 3 | No se ha ejecutado: ya había otra ingestión en marcha |
+
+**Cómo programarlo.** Cualquier planificador externo que ejecute un comando y avise si el código de salida no es 0: cron de un servidor, el Programador de tareas de Windows o un workflow programado de CI. Lo único que necesita es Node, el repositorio y `DATABASE_URL` como secreto. Recomendado: cada 6 horas, con lo que un fallo aislado no llega a degradar el precio (deja de ser «de hoy» a las 24 h) y hacen falta dos días de fallos para que caduque.
+
+```
+# cron: cada 6 horas
+0 */6 * * *  cd /ruta/a/palaradar && npm run prices:ingest >> /var/log/palaradar-ingest.log 2>&1
+```
+
+```yaml
+# GitHub Actions (ejemplo; no está añadido al repositorio)
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    concurrency: price-ingestion
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run prices:ingest
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+```
+
+La web regenera cada página como mucho una vez por hora (`revalidate`), así que un precio nuevo tarda hasta una hora en verse. Para vigilarlo: `select * from ingestion_runs order by started_at desc limit 20`.
+
+### Cola de revisión
+
+Los emparejamientos ambiguos se guardan con `matching_status = 'pending_review'`, sin pala asignada y sin publicar precio. `npm run prices:pending` los lista (solo lectura). Se resuelven a mano en `store_products`: `racket_id` + `matching_status = 'matched'` (o `'rejected'`) y `matching_method = 'manual'`; la ingestión no recalcula una decisión manual.
+
+### Histórico global y por tienda
+
+`price_history` guarda una fila por pala, tienda y día. De esas mismas filas salen dos lecturas (`getPriceHistory(slug)` en `data/`, `buildPriceHistory` en `lib/pricing.ts`):
+
+- **Global** (`market`): el mejor precio del mercado cada día, con la tienda que lo tenía y cuántas tiendas tienen registro ese día. Es la serie del gráfico actual.
+- **Por tienda** (`byStore`): el precio de cada tienda cada día que se comprobó.
+
+No se rellenan huecos ni se inventan días: una tienda solo tiene registro los días en que la ingestión confirmó su precio. Por eso, al añadir una tienda más barata, el global baja ese día aunque ninguna tienda haya bajado; `storeCount` permite distinguirlo.
+
+### Datos demo en una base de producción
+
+`npm run db:purge-demo` muestra cuántas filas de tiendas demo hay y no borra nada. Para borrar hay que repetirlo con `-- --confirm-database=<nombre>`, donde el nombre es el de la base conectada que muestra la primera ejecución. Borra las tiendas demo y, en cascada, sus `store_prices`, `price_history`, `store_products` e `ingestion_runs`; comprueba que los datos de tiendas reales no cambian antes de confirmar.
+
 Para probarlo: `npm test` (reglas de negocio, sin base de datos), `npm run test:db` (repositorio PostgreSQL, en una transacción que se deshace) y `npm run ingest:demo` (flujo completo con datos ficticios).
 
 ## Resumen

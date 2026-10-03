@@ -3,6 +3,7 @@
 // `racket_catalog`, nunca trayendo el catálogo para filtrarlo en memoria.
 import { pricingConfig } from "@/config/pricing";
 import { CATALOG_PAGE_SIZE, DEFAULT_QUERY, type CatalogQuery, type SortId } from "@/lib/catalog/query";
+import { buildPriceHistory } from "@/lib/pricing";
 import type { BrandRow, RacketCatalogRow, RacketRow, ReviewRow, StorePriceRow } from "@/types/db";
 import { getSql, type Sql } from "./db/client";
 import { activeStores } from "./db/sources";
@@ -97,6 +98,15 @@ function orderClause(sql: Sql, sort: SortId): Fragment {
 }
 
 interface OfferRow extends StorePriceRow {
+  store_slug: string;
+  store_name: string;
+  store_url: string;
+}
+
+interface HistoryRow {
+  price_date: string;
+  price: number;
+  store_id: string;
   store_slug: string;
   store_name: string;
   store_url: string;
@@ -212,6 +222,27 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
           })),
         },
         at,
+      );
+    },
+
+    async getPriceHistory(slug) {
+      const [racket] = await sql<{ id: string }[]>`select id from rackets where slug = ${slug}`;
+      if (!racket) return null;
+
+      // Una fila por tienda y día: de aquí salen el histórico global y el de cada tienda.
+      const rows = await sql<HistoryRow[]>`
+        select h.price_date, h.price, h.store_id,
+               s.slug as store_slug, s.name as store_name, s.url as store_url
+        from price_history h join stores s on s.id = h.store_id
+        where h.racket_id = ${racket.id} and ${activeStores(sql, "s")}
+        order by h.price_date`;
+
+      return buildPriceHistory(
+        rows.map((row) => ({
+          store: { id: row.store_id, slug: row.store_slug, name: row.store_name, url: row.store_url },
+          date: row.price_date,
+          price: row.price,
+        })),
       );
     },
 

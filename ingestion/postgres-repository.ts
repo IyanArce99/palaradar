@@ -1,7 +1,8 @@
 import { refreshPriceStats } from "@/data/db/admin";
 import { inTransaction, type Sql } from "@/data/db/client";
 import type { PriceHistoryRow, StoreProductRow, StorePriceRow } from "@/types/db";
-import type { IngestionRepository, IngestionStore } from "./repository";
+import { withPriceWriteLock } from "@/data/db/lock";
+import { INTERRUPTED_RUN_MESSAGE, type IngestionRepository, type IngestionStore } from "./repository";
 import type { CatalogRacket, StoreProduct } from "./types";
 
 function toStoreProduct(row: StoreProductRow): StoreProduct {
@@ -63,6 +64,31 @@ function chunks<T>(rows: T[]): T[][] {
   return result;
 }
 
+export interface PendingReviewProduct {
+  store: string;
+  externalId: string;
+  title: string;
+  gtin: string | null;
+  price: number | null;
+  url: string;
+  note: string | null;
+  firstSeenAt: string;
+}
+
+/**
+ * Cola de revisión manual: productos de tienda cuyo emparejamiento es ambiguo
+ * (`matching_status = 'pending_review'`). Solo lectura. Se resuelven a mano
+ * poniendo `matching_method = 'manual'`, que la ingestión ya no recalcula.
+ */
+export async function listPendingReview(sql: Sql): Promise<PendingReviewProduct[]> {
+  return sql<PendingReviewProduct[]>`
+    select s.slug as store, p.external_id as "externalId", p.title, p.gtin, p.price, p.url,
+           p.matching_note as note, p.first_seen_at as "firstSeenAt"
+    from store_products p join stores s on s.id = p.store_id
+    where p.matching_status = 'pending_review'
+    order by s.slug, p.title`;
+}
+
 /** Repositorio de ingestión sobre PostgreSQL/Supabase. */
 export function createPostgresIngestionRepository(sql: Sql): IngestionRepository {
   return {
@@ -84,6 +110,19 @@ export function createPostgresIngestionRepository(sql: Sql): IngestionRepository
 
     transaction(work) {
       return inTransaction(sql, (tx) => work(createPostgresIngestionRepository(tx)));
+    },
+
+    withIngestionLock(work) {
+      return withPriceWriteLock(sql, work);
+    },
+
+    async failInterruptedRuns(finishedAt) {
+      const rows = await sql`
+        update ingestion_runs
+        set status = 'failed', finished_at = ${finishedAt}, error_message = ${INTERRUPTED_RUN_MESSAGE}
+        where status = 'running'
+        returning id`;
+      return rows.length;
     },
 
     async loadCatalog() {

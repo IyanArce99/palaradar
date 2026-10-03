@@ -15,6 +15,7 @@ import type { RacketPriceStatsRow, RacketRow, StorePriceRow } from "@/types/db";
 import { toPriceStatsRow, toStoreOffer } from "../mappers";
 import type { SeedTables } from "../seed/build";
 import { inTransaction, type Sql } from "./client";
+import { tryPriceWriteLock } from "./lock";
 import { activeStores } from "./sources";
 
 const DB_DIR = join(process.cwd(), "db");
@@ -274,6 +275,102 @@ export async function loadDevSeed(
     for (const rows of chunks(seed.storePrices)) await tx`insert into store_prices ${tx(rows)}`;
     for (const rows of chunks(seed.priceHistory)) await tx`insert into price_history ${tx(rows)}`;
     for (const rows of chunks(seed.reviews)) await tx`insert into reviews ${tx(rows)}`;
+  });
+}
+
+/** Filas de cada tabla que pertenecen a un grupo de tiendas (demo o reales). */
+export interface StoreDataCounts {
+  stores: string[];
+  storePrices: number;
+  priceHistory: number;
+  storeProducts: number;
+  ingestionRuns: number;
+  /** Agregados cuyo mejor precio es de una de esas tiendas */
+  priceStats: number;
+}
+
+/** Cuenta, sin modificar nada, los datos de las tiendas demo (o de las reales). */
+export async function countStoreData(sql: Sql, demo: boolean): Promise<StoreDataCounts> {
+  const [stores, [counts]] = await Promise.all([
+    sql<{ slug: string }[]>`select slug from stores where is_demo = ${demo} order by slug`,
+    sql<Omit<StoreDataCounts, "stores">[]>`
+      with s as (select id from stores where is_demo = ${demo})
+      select
+        (select count(*)::int from store_prices where store_id in (select id from s)) as "storePrices",
+        (select count(*)::int from price_history where store_id in (select id from s)) as "priceHistory",
+        (select count(*)::int from store_products where store_id in (select id from s)) as "storeProducts",
+        (select count(*)::int from ingestion_runs where store_id in (select id from s)) as "ingestionRuns",
+        (select count(*)::int from racket_price_stats where best_store_id in (select id from s)) as "priceStats"`,
+  ]);
+  return { stores: stores.map((row) => row.slug), ...counts };
+}
+
+/**
+ * Nombre con el que hay que confirmar el borrado: identifica la base de datos
+ * de la URL (la referencia del proyecto en Supabase; si no, servidor y base).
+ * No incluye la contraseña.
+ */
+export function databaseLabel(databaseUrl: string): string {
+  const url = new URL(databaseUrl);
+  const project = /^postgres\.(.+)$/.exec(decodeURIComponent(url.username))?.[1];
+  return project ?? `${url.hostname}${url.pathname}`;
+}
+
+export const PURGE_DEMO_CONFIRM_FLAG = "--confirm-database";
+
+/**
+ * Motivo por el que NO se borran los datos demo, o null si se puede. Borrar
+ * exige escribir el nombre de la base de datos sobre la que se actúa: así no
+ * se ejecuta por accidente ni contra la base equivocada.
+ */
+export function purgeDemoBlocker(confirmation: string | undefined, target: string): string | null {
+  if (confirmation === undefined) {
+    return `No se ha borrado nada. Para borrar, repite con ${PURGE_DEMO_CONFIRM_FLAG}=${target}`;
+  }
+  if (confirmation !== target) {
+    return (
+      `La confirmación «${confirmation}» no coincide con la base de datos conectada («${target}»). ` +
+      "No se ha borrado nada."
+    );
+  }
+  return null;
+}
+
+/**
+ * Borra las tiendas de demostración y todo lo que cuelga de ellas: sus precios
+ * publicados, su histórico, sus productos de tienda y sus ejecuciones. No toca
+ * marcas, palas, EAN, opiniones ni nada de las tiendas reales, y lo comprueba
+ * antes de confirmar la transacción. Devuelve lo borrado.
+ */
+export async function purgeDemoData(
+  sql: Sql,
+  options: { confirmation: string | undefined; target: string; now?: Date },
+): Promise<StoreDataCounts> {
+  const blocker = purgeDemoBlocker(options.confirmation, options.target);
+  if (blocker) throw new Error(blocker);
+
+  return inTransaction(sql, async (tx) => {
+    if (!(await tryPriceWriteLock(tx))) {
+      throw new Error("Hay una ingestión de precios en marcha. Repite cuando termine; no se ha borrado nada.");
+    }
+
+    const demo = await countStoreData(tx, true);
+    const realBefore = await countStoreData(tx, false);
+
+    // racket_price_stats apunta a la tienda del mejor precio sin borrado en cascada.
+    await tx`delete from racket_price_stats where best_store_id in (select id from stores where is_demo)`;
+    // El resto (store_prices, price_history, store_products, ingestion_runs) cae en cascada.
+    await tx`delete from stores where is_demo`;
+    await refreshPriceStats(tx, options.now ?? new Date(), false);
+
+    const realAfter = await countStoreData(tx, false);
+    const untouched = (["stores", "storePrices", "priceHistory", "storeProducts", "ingestionRuns"] as const).every(
+      (key) => JSON.stringify(realAfter[key]) === JSON.stringify(realBefore[key]),
+    );
+    if (!untouched) {
+      throw new Error("El borrado habría afectado a datos de tiendas reales: se ha deshecho por completo.");
+    }
+    return demo;
   });
 }
 

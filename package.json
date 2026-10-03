@@ -14,6 +14,8 @@
     "ingest:demo": "tsx scripts/ingest-demo.ts",
     "prices:dry-run": "tsx --env-file-if-exists=.env.local scripts/prices/dry-run.ts",
     "prices:ingest": "tsx --env-file-if-exists=.env.local scripts/prices/ingest.ts",
+    "prices:pending": "tsx --env-file-if-exists=.env.local scripts/prices/pending.ts",
+    "db:purge-demo": "tsx --env-file-if-exists=.env.local scripts/db/purge-demo.ts",
     "db:migrate": "tsx --env-file-if-exists=.env.local scripts/db/migrate.ts",
     "db:seed": "tsx --env-file-if-exists=.env.local scripts/db/seed.ts",
     "db:seed:dev": "tsx --env-file-if-exists=.env.local scripts/db/seed-dev.ts",

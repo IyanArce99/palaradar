@@ -66,7 +66,9 @@ export const getCatalogFacets = () => getRepository().getCatalogFacets();
 export const getBrands = () => getRepository().getBrands();
 export const getBrandBySlug = (slug: string) => getRepository().getBrandBySlug(slug);
 export const getPalaBySlug = (slug: string) => getRepository().getPalaBySlug(slug);
-export const getAllPalaSlugs = () => getRepository().getAllPalaSlugs();
+/** Histórico global («mejor precio del mercado por día») y por tienda de una pala. */
+export const getPriceHistory = (slug: string) => getRepository().getPriceHistory(slug);
+export const getAllPalaSlugs =() => getRepository().getAllPalaSlugs();
 export const getBiggestMonthlyDrops = (limit: number) =>
   getRepository().getBiggestMonthlyDrops(limit);
 

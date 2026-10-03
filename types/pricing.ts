@@ -1,4 +1,4 @@
-import type { PricePoint, StoreOffer } from "./catalog";
+import type { PricePoint, Store, StoreOffer } from "./catalog";
 
 /** Valoración del precio actual frente a su histórico */
 export type PriceStatus = "good" | "fair" | "wait";
@@ -45,6 +45,31 @@ export interface PriceVerdict {
   detail: string;
   /** Respuesta a «¿Está barata ahora?» */
   answer: string;
+}
+
+/** Un día del histórico global: el mejor precio entre las tiendas con registro ese día */
+export interface MarketPricePoint extends PricePoint {
+  /** La tienda que tenía ese mejor precio */
+  store: Store;
+  /** Cuántas tiendas tienen registro ese día: el mínimo solo es comparable entre días con las mismas */
+  storeCount: number;
+}
+
+/** El histórico de una tienda: su precio final (con envío) cada día que se comprobó */
+export interface StorePriceSeries {
+  store: Store;
+  points: PricePoint[];
+}
+
+/**
+ * Las dos lecturas del histórico de una pala, sobre los mismos registros:
+ * - market: «mejor precio del mercado por día»
+ * - byStore: «precio de esta tienda por día»
+ * Solo contienen días con un precio realmente observado; no se rellenan huecos.
+ */
+export interface PriceHistory {
+  market: MarketPricePoint[];
+  byStore: StorePriceSeries[];
 }
 
 /** Todo lo que la ficha necesita saber del precio de una pala */

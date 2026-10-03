@@ -1,5 +1,5 @@
 import type { PriceHistoryRow } from "@/types/db";
-import type { IngestionRepository, IngestionStore } from "./repository";
+import { INTERRUPTED_RUN_MESSAGE, type IngestionRepository, type IngestionStore } from "./repository";
 import type { CatalogRacket, PublishedPrice, RunResult, StoreProduct } from "./types";
 
 interface MemoryRun extends Partial<RunResult> {
@@ -17,6 +17,8 @@ export interface MemoryIngestionState {
   priceHistory: PriceHistoryRow[];
   runs: MemoryRun[];
   statsRefreshes: number;
+  /** true mientras una ingestión tiene el bloqueo */
+  locked: boolean;
 }
 
 export interface MemoryIngestionRepository extends IngestionRepository {
@@ -38,6 +40,7 @@ export function createMemoryIngestionRepository(
     priceHistory: [],
     runs: [],
     statsRefreshes: 0,
+    locked: false,
   };
 
   const samePrice = (price: PublishedPrice, racketId: string, storeId: string) =>
@@ -73,6 +76,24 @@ export function createMemoryIngestionRepository(
         Object.assign(state, snapshot);
         throw error;
       }
+    },
+
+    async withIngestionLock(work) {
+      if (state.locked) return { acquired: false };
+      state.locked = true;
+      try {
+        return { acquired: true, value: await work() };
+      } finally {
+        state.locked = false;
+      }
+    },
+
+    async failInterruptedRuns(finishedAt) {
+      const interrupted = state.runs.filter((run) => run.status === undefined);
+      for (const run of interrupted) {
+        Object.assign(run, { status: "failed", finishedAt, errorMessage: INTERRUPTED_RUN_MESSAGE });
+      }
+      return interrupted.length;
     },
 
     async loadCatalog() {
