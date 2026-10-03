@@ -1,5 +1,5 @@
 import { PalaCard } from "@/components/pala/PalaCard";
-import type { Alternative } from "@/data";
+import type { Alternative } from "@/types/catalog";
 import { SectionTitle } from "./SectionTitle";
 
 interface AlternativesProps {

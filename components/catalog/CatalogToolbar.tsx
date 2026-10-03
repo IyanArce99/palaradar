@@ -98,38 +98,54 @@ export function ActiveFilters({ filters, className }: ActiveFiltersProps) {
 }
 
 interface PaginationProps {
-  query: CatalogQuery;
   page: number;
   pageCount: number;
+  /** URL de cada página del listado */
+  hrefFor: (page: number) => string;
   className?: string;
 }
 
-export function Pagination({ query, page, pageCount, className }: PaginationProps) {
+/** Páginas visibles: primera, última y las vecinas de la actual; null = hueco (…). */
+function pageWindow(page: number, pageCount: number): (number | null)[] {
+  const visible = [1, page - 1, page, page + 1, pageCount].filter(
+    (number, i, list) => number >= 1 && number <= pageCount && list.indexOf(number) === i,
+  );
+  visible.sort((a, b) => a - b);
+
+  return visible.flatMap((number, i) =>
+    i > 0 && number - visible[i - 1] > 1 ? [null, number] : [number],
+  );
+}
+
+export function Pagination({ page, pageCount, hrefFor, className }: PaginationProps) {
   if (pageCount <= 1) return null;
 
-  const pages = Array.from({ length: pageCount }, (_, i) => i + 1);
+  const itemClass = "grid size-11 place-items-center rounded-full font-bold";
 
   return (
     <nav aria-label="Paginación" className={className}>
       <ul className="flex flex-wrap justify-center gap-1.5">
-        {pages.map((number) => {
-          const active = number === page;
-          return (
+        {pageWindow(page, pageCount).map((number, i) =>
+          number === null ? (
+            <li key={i === 1 ? "hueco-inicio" : "hueco-final"} aria-hidden="true" className={cn(itemClass, "text-muted")}>
+              …
+            </li>
+          ) : (
             <li key={number}>
               <Link
-                href={catalogHref({ ...query, page: number })}
-                aria-current={active ? "page" : undefined}
+                href={hrefFor(number)}
+                aria-current={number === page ? "page" : undefined}
                 aria-label={`Página ${number}`}
                 className={cn(
-                  "grid size-11 place-items-center rounded-full font-bold",
-                  active ? "bg-carbon text-white" : "border border-line",
+                  itemClass,
+                  number === page ? "bg-carbon text-white" : "border border-line hover:bg-mist",
                 )}
               >
                 {number}
               </Link>
             </li>
-          );
-        })}
+          ),
+        )}
       </ul>
     </nav>
   );

@@ -1,12 +1,13 @@
 import { buttonClass } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import { formatEuro, pluralize } from "@/lib/format";
-import type { PriceStatus, PriceSummary } from "@/lib/pricing";
+import type { PriceSummary, PriceVerdict } from "@/types/pricing";
 
-const STATUS_DOT: Record<PriceStatus, string> = {
+const STATUS_DOT: Record<PriceVerdict["status"], string> = {
   good: "bg-lime-deep shadow-[0_0_0_4px_#e3f5b0]",
   fair: "bg-muted shadow-[0_0_0_4px_var(--color-line)]",
   wait: "bg-wait shadow-[0_0_0_4px_#f8e9c8]",
+  stale: "bg-ash shadow-[0_0_0_4px_var(--color-line-soft)]",
 };
 
 function PriceRow({ label, value }: { label: string; value: number }) {
@@ -32,7 +33,9 @@ export function PriceCard({ price, storesHref, className }: PriceCardProps) {
       aria-label="Mejor precio"
       className={cn("rounded-[22px] border-2 border-carbon p-5 lg:p-6", className)}
     >
-      <h2 className="text-[13px] font-bold text-muted">Mejor precio hoy</h2>
+      <h2 className="text-[13px] font-bold text-muted">
+        {price.isStale ? "Último precio conocido" : "Mejor precio hoy"}
+      </h2>
       <p className="mt-0.5 text-[44px] leading-[1.05] font-black tracking-[-0.035em] whitespace-nowrap tabular-nums">
         {formatEuro(price.current)}
       </p>

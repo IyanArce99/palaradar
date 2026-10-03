@@ -1,8 +1,8 @@
 import { buttonClass } from "@/components/ui/Button";
 import { DemoNotice } from "@/components/ui/DemoNotice";
 import { cn } from "@/lib/cn";
-import { formatEuro } from "@/lib/format";
-import type { RankedOffer } from "@/lib/pricing";
+import { formatDate, formatEuro, formatTimeAgo } from "@/lib/format";
+import type { PriceSummary, RankedOffer } from "@/types/pricing";
 import { SectionTitle } from "./SectionTitle";
 
 interface StoreRowProps {
@@ -59,20 +59,23 @@ function StoreRow({ offer, cheapest }: StoreRowProps) {
 }
 
 interface StoreListProps {
-  offers: RankedOffer[];
+  price: PriceSummary;
   id: string;
 }
 
 /** Precio por tienda, de más barata a más cara; la primera va destacada. */
-export function StoreList({ offers, id }: StoreListProps) {
+export function StoreList({ price, id }: StoreListProps) {
   return (
     <section aria-labelledby={id}>
       <SectionTitle id={id}>Precios en todas las tiendas</SectionTitle>
       <p className="mt-1.5 text-[13px] leading-[1.45] text-pretty text-muted">
-        Precio final con envío, de más barata a más cara.
+        Precio final con envío, de más barata a más cara.{" "}
+        {price.isStale
+          ? `Sin actualizar desde el ${formatDate(price.updatedAt)}.`
+          : `Actualizado ${formatTimeAgo(price.updatedAt, price.asOf)}.`}
       </p>
       <ol className="mt-3.5 overflow-hidden rounded-[18px] border border-line">
-        {offers.map((offer, i) => (
+        {price.offers.map((offer, i) => (
           <StoreRow key={offer.store.id} offer={offer} cheapest={i === 0} />
         ))}
       </ol>

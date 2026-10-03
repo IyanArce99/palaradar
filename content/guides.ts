@@ -1,5 +1,7 @@
 import type { Guide } from "@/types/catalog";
 
+// Contenido editorial: no vive en la base de datos. Las imágenes son
+// ilustraciones provisionales de scripts/generate-art.mjs.
 export const guides: Guide[] = [
   {
     slug: "mejores-palas-padel-2026",
@@ -20,3 +22,6 @@ export const guides: Guide[] = [
     image: "/img/guias/palas-menos-de-150-euros.svg",
   },
 ];
+
+/** Pala destacada en la portada */
+export const featuredPalaSlug = "bullpadel-vertex-04-2026";

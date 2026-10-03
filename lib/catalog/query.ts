@@ -18,6 +18,9 @@ export const COLLECTIONS = [
   { id: "grandes-descuentos", label: "Grandes descuentos" },
 ] as const;
 
+/** Palas por página en catálogo y páginas de marca */
+export const CATALOG_PAGE_SIZE = 24;
+
 export type SortId = (typeof SORT_OPTIONS)[number]["id"];
 export type CollectionId = (typeof COLLECTIONS)[number]["id"];
 
@@ -115,6 +118,16 @@ export function catalogHref(query: Partial<CatalogQuery> = {}): string {
 
   const qs = params.toString();
   return qs ? `${routes.catalog}?${qs}` : routes.catalog;
+}
+
+/** URL de la página `page` de un listado: la primera no lleva parámetro. */
+export function pageHref(basePath: string, page: number): string {
+  return page > 1 ? `${basePath}?${PARAMS.page}=${page}` : basePath;
+}
+
+/** true si la consulta filtra, busca u ordena: cualquier cosa que no sea paginar. */
+export function hasCatalogFilters(query: CatalogQuery): boolean {
+  return catalogHref({ ...query, page: 1 }) !== routes.catalog;
 }
 
 export interface ActiveFilter {

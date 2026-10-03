@@ -15,8 +15,12 @@ export const metadata: Metadata = pageMetadata({
   path: routes.deals,
 });
 
+export const revalidate = 3600;
+
+const MAX_DEALS = 48;
+
 export default async function DealsPage() {
-  const deals = await getDeals();
+  const deals = await getDeals(MAX_DEALS);
 
   return (
     <>

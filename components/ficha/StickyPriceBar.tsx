@@ -1,6 +1,6 @@
 import { buttonClass } from "@/components/ui/Button";
 import { formatEuro, pluralize } from "@/lib/format";
-import type { PriceSummary } from "@/lib/pricing";
+import type { PriceSummary } from "@/types/pricing";
 
 interface StickyPriceBarProps {
   price: PriceSummary;

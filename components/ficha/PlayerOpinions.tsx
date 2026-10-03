@@ -28,7 +28,7 @@ function ReviewCard({ review }: { review: Review }) {
           <p className="text-sm font-extrabold">
             {review.authorName} · Nivel {LEVEL_LABELS[review.authorLevel].toLowerCase()}
           </p>
-          <p className="text-xs text-muted">{review.authorContext}</p>
+          {review.authorContext && <p className="text-xs text-muted">{review.authorContext}</p>}
         </div>
       </div>
     </li>

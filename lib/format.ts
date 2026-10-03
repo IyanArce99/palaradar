@@ -45,9 +45,26 @@ export function formatPercent(value: number): string {
   return `${value}${NBSP}%`;
 }
 
-function parseIsoDate(iso: string): { year: number; month: number } {
-  const [year, month] = iso.split("-").map(Number);
-  return { year, month: month - 1 };
+function parseIsoDate(iso: string): { year: number; month: number; day: number } {
+  const [year, month, day] = iso.slice(0, 10).split("-").map(Number);
+  return { year, month: month - 1, day };
+}
+
+/** "2026-10-01" → "1 de octubre de 2026" */
+export function formatDate(iso: string): string {
+  const { year, month, day } = parseIsoDate(iso);
+  return `${day} de ${MONTHS[month]} de ${year}`;
+}
+
+/** Tiempo transcurrido entre dos instantes ISO: "hace 12 minutos", "hace 3 días" */
+export function formatTimeAgo(iso: string, nowIso: string): string {
+  const minutes = Math.max(0, Math.round((Date.parse(nowIso) - Date.parse(iso)) / 60_000));
+  if (minutes < 1) return "hace un momento";
+  if (minutes < 60) return `hace ${minutes} ${minutes === 1 ? "minuto" : "minutos"}`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `hace ${hours} ${hours === 1 ? "hora" : "horas"}`;
+  const days = Math.round(hours / 24);
+  return `hace ${days} ${days === 1 ? "día" : "días"}`;
 }
 
 /** "2026-10-01" → "octubre de 2026" */

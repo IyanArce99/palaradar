@@ -1,3 +1,7 @@
+// Modelos de dominio: lo que consumen páginas y componentes. La capa de datos
+// los construye a partir de las filas de la base de datos (types/db.ts).
+import type { PriceSummary } from "./pricing";
+
 export type PalaShape = "redonda" | "lagrima" | "diamante";
 export type PalaBalance = "bajo" | "medio" | "alto";
 export type PlayerLevel = "iniciacion" | "intermedio" | "avanzado" | "competicion";
@@ -8,20 +12,27 @@ export interface Brand {
   slug: string;
   name: string;
   description: string;
+  logo: string | null;
 }
 
 export interface Store {
   id: string;
+  slug: string;
   name: string;
+  url: string;
 }
 
 export interface StoreOffer {
   store: Store;
   price: number;
   shipping: number;
+  /** Precio en esta tienda antes de su último cambio */
+  previousPrice: number | null;
   availability: string;
-  /** Enlace a la tienda. null mientras no haya una oferta real detrás. */
+  /** Enlace al producto. null mientras no haya una oferta real detrás. */
   url: string | null;
+  /** Última vez que se comprobó el precio (ISO con hora) */
+  updatedAt: string;
 }
 
 export interface PricePoint {
@@ -39,11 +50,12 @@ export interface Review {
   id: string;
   /** 1–5 */
   rating: number;
+  title: string | null;
   body: string;
   authorName: string;
   authorLevel: PlayerLevel;
   /** Contexto de juego: frecuencia, lado, tiempo de uso */
-  authorContext: string;
+  authorContext: string | null;
   createdAt: string;
 }
 
@@ -69,12 +81,32 @@ export interface FaqItem {
   answer: string;
 }
 
-export interface AlternativeRef {
+/** Proyección de una pala para tarjetas y listados */
+export interface PalaSummary {
+  id: string;
   slug: string;
+  brand: Pick<Brand, "slug" | "name">;
+  model: string;
+  year: number;
+  image: string | null;
+  shape: PalaShape;
+  description: string;
+  rating: number;
+  reviewCount: number;
+  price: number | null;
+  previousPrice: number | null;
+  dropPercent: number | null;
+  storeCount: number;
+  priceNote: string | null;
+}
+
+export interface Alternative {
+  pala: PalaSummary;
   /** Por qué es alternativa: "Más control", "Más barata"… */
   reason: string;
 }
 
+/** Pala completa, tal y como la necesita la ficha */
 export interface Pala {
   id: string;
   slug: string;
@@ -98,32 +130,14 @@ export interface Pala {
   /** Lo que más repiten los jugadores */
   reviewHighlights: string[];
   reviews: Review[];
-  offers: StoreOffer[];
-  previousPrice: number | null;
+  /** null si ninguna tienda la tiene a la venta */
+  price: PriceSummary | null;
+  /** Mejor precio de cada día entre todas las tiendas, en orden cronológico */
   priceHistory: PricePoint[];
   /** Características que no cubren los campos estructurados (núcleo, caras, marco…) */
   specs: Spec[];
   faq: FaqItem[];
-  alternatives: AlternativeRef[];
-}
-
-/** Proyección de una pala para tarjetas y listados */
-export interface PalaSummary {
-  id: string;
-  slug: string;
-  brand: Pick<Brand, "slug" | "name">;
-  model: string;
-  year: number;
-  image: string | null;
-  shape: PalaShape;
-  description: string;
-  rating: number;
-  reviewCount: number;
-  price: number | null;
-  previousPrice: number | null;
-  dropPercent: number | null;
-  storeCount: number;
-  priceNote: string | null;
+  alternatives: Alternative[];
 }
 
 export interface Guide {

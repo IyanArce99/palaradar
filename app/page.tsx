@@ -19,9 +19,11 @@ import {
   getPopularPalas,
 } from "@/data";
 import { siteConfig } from "@/config/site";
-import { getPriceSummary } from "@/lib/pricing";
 import { routes } from "@/lib/routes";
 import { pageMetadata } from "@/lib/seo";
+
+// Ofertas y bajadas dependen de la fecha: la portada se regenera cada hora.
+export const revalidate = 3600;
 
 const HOME_TITLE = `${siteConfig.name}: compara palas de pádel, opiniones y precios`;
 
@@ -50,9 +52,7 @@ export default async function HomePage() {
     ),
   ]);
 
-  const featuredPrice = featuredPala ? getPriceSummary(featuredPala) : null;
-  const featured =
-    featuredPala && featuredPrice ? { pala: featuredPala, price: featuredPrice } : null;
+  const featured = featuredPala?.price ? { pala: featuredPala, price: featuredPala.price } : null;
 
   return (
     <>

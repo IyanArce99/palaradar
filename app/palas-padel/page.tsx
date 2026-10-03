@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { BrandLinks } from "@/components/catalog/BrandLinks";
 import { CatalogFilters } from "@/components/catalog/CatalogFilters";
 import {
@@ -22,6 +23,7 @@ import {
   parseCatalogQuery,
   type RawSearchParams,
 } from "@/lib/catalog/query";
+import { catalogSeo, pageSuffix } from "@/lib/catalog/seo";
 import { pluralize } from "@/lib/format";
 import { routes } from "@/lib/routes";
 import { pageMetadata } from "@/lib/seo";
@@ -34,15 +36,14 @@ interface CatalogPageProps {
 }
 
 export async function generateMetadata({ searchParams }: CatalogPageProps): Promise<Metadata> {
-  // Las variantes filtradas apuntan a la canónica y no se indexan.
-  const isFiltered = Object.keys(await searchParams).length > 0;
+  const query = parseCatalogQuery(await searchParams);
+  const seo = catalogSeo(query);
 
   return pageMetadata({
-    title: "Palas de pádel: opiniones y comparador de precios",
-    description:
-      "Catálogo de palas de pádel con opiniones de jugadores y precios en todas las tiendas. Filtra por nivel, marca, forma y presupuesto.",
-    path: routes.catalog,
-    index: !isFiltered,
+    title: `Palas de pádel: opiniones y comparador de precios${pageSuffix(query.page)}`,
+    description: `Catálogo de palas de pádel con opiniones de jugadores y precios en todas las tiendas. Filtra por nivel, marca, forma y presupuesto${pageSuffix(query.page)}.`,
+    path: seo.canonical,
+    index: seo.index,
   });
 }
 
@@ -61,6 +62,9 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
     countPalas(),
     getPopularSearches(5),
   ]);
+
+  // Una página que no existe es un 404, no una copia de la última.
+  if (query.page > result.pageCount) notFound();
 
   const brandNames = Object.fromEntries(facets.brands.map((brand) => [brand.slug, brand.name]));
   const activeFilters = getActiveFilters(query, brandNames);
@@ -133,9 +137,9 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
               <>
                 <PalaGrid palas={result.items} className="mt-5 lg:mt-6" />
                 <Pagination
-                  query={query}
                   page={result.page}
                   pageCount={result.pageCount}
+                  hrefFor={(page) => catalogHref({ ...query, page })}
                   className="mt-10"
                 />
               </>

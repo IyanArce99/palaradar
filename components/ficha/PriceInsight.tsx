@@ -1,5 +1,5 @@
-import type { PriceSummary } from "@/lib/pricing";
 import type { PricePoint } from "@/types/catalog";
+import type { PriceSummary } from "@/types/pricing";
 import { PriceHistory } from "./PriceHistory";
 import { SectionTitle } from "./SectionTitle";
 
@@ -15,8 +15,7 @@ export function PriceInsight({ price, history }: PriceInsightProps) {
       <PriceHistory
         title={<SectionTitle id="precio-historico">¿Está barata ahora?</SectionTitle>}
         history={history}
-        average90={price.average90}
-        historicalMin={price.historicalMin}
+        price={price}
       >
         <p className="mt-2.5 mb-4 text-base leading-[1.6] text-pretty text-ink lg:mb-0">
           {price.verdict.answer}

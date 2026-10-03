@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/cn";
 import type { PricePoint } from "@/types/catalog";
+import type { PriceSummary } from "@/types/pricing";
 import { PriceChart } from "./PriceChart";
 
 const RANGES = [3, 6, 12] as const;
@@ -13,20 +14,13 @@ interface PriceHistoryProps {
   /** Texto entre el titular y el gráfico */
   children: React.ReactNode;
   history: PricePoint[];
-  average90: number | null;
-  historicalMin: PricePoint | null;
+  price: PriceSummary;
 }
 
 /** Histórico de precio con selector de rango (3 / 6 / 12 meses). */
-export function PriceHistory({
-  title,
-  children,
-  history,
-  average90,
-  historicalMin,
-}: PriceHistoryProps) {
+export function PriceHistory({ title, children, history, price }: PriceHistoryProps) {
   const [months, setMonths] = useState<(typeof RANGES)[number]>(12);
-  const chart = { history, months, average90, historicalMin };
+  const chart = { history, price, months };
 
   return (
     <div className="grid lg:grid-cols-[minmax(0,1fr)_300px] lg:items-center lg:gap-x-5">

@@ -5,9 +5,9 @@ import { ScanIcon } from "@/components/ui/icons";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
 import { siteConfig } from "@/config/site";
 import { formatEuro } from "@/lib/format";
-import type { PriceSummary } from "@/lib/pricing";
 import { routes } from "@/lib/routes";
 import type { Pala } from "@/types/catalog";
+import type { PriceSummary } from "@/types/pricing";
 
 // Ilustración provisional (scripts/generate-art.mjs) hasta tener la foto de portada.
 const HERO_IMAGE = "/img/hero-palas.svg";
@@ -58,10 +58,10 @@ export function Hero({ featured }: HeroProps) {
               <span className="block text-sm font-extrabold lg:text-base">
                 {featured.pala.brand.name} {featured.pala.model}
               </span>
-              {featured.price.verdict.cardNote && (
+              {featured.price.verdict.status === "good" && (
                 <span className="block text-xs font-bold text-forest lg:text-[13px]">
                   <span aria-hidden="true">● </span>
-                  {featured.price.verdict.cardNote}
+                  {featured.price.verdict.label}
                 </span>
               )}
             </span>

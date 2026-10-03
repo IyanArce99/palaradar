@@ -1,9 +1,9 @@
 import { cn } from "@/lib/cn";
 import { formatEuro, formatEuroCompact, formatMonthYearShort } from "@/lib/format";
-import { historySince } from "@/lib/pricing";
+import { chartSeries } from "@/lib/pricing";
 import type { PricePoint } from "@/types/catalog";
+import type { PriceSummary } from "@/types/pricing";
 
-const DAYS_PER_MONTH = 30.5;
 const PAD_TOP = 26;
 const PAD_BOTTOM = 24;
 const PAD_RIGHT = 8;
@@ -17,11 +17,11 @@ const LABEL_HALO = {
 } as const;
 
 interface PriceChartProps {
+  /** Mejor precio de cada día, en orden cronológico */
   history: PricePoint[];
-  /** Meses que se muestran, contados desde el último registro */
+  price: PriceSummary;
+  /** Meses que se muestran, contados desde hoy */
   months: number;
-  average90: number | null;
-  historicalMin: PricePoint | null;
   width: number;
   height: number;
   className?: string;
@@ -29,22 +29,15 @@ interface PriceChartProps {
 
 /**
  * Evolución del precio como SVG renderizado en servidor: línea de precio,
- * media de 90 días (punteada) y mínimo histórico (discontinua).
+ * media de 90 días (punteada) y mínimo histórico (discontinua). La serie llega
+ * hasta hoy solo si el precio está al día; si no, termina en el último registro.
  */
-export function PriceChart({
-  history,
-  months,
-  average90,
-  historicalMin,
-  width,
-  height,
-  className,
-}: PriceChartProps) {
-  const points = historySince(history, Math.round(months * DAYS_PER_MONTH));
+export function PriceChart({ history, price, months, width, height, className }: PriceChartProps) {
+  const points = chartSeries(history, price, months);
   if (points.length < 2) return null;
 
   // Escala común a todos los rangos, calculada sobre el histórico completo.
-  const prices = history.map((point) => point.price);
+  const prices = [...history.map((point) => point.price), price.current];
   const low = Math.floor((Math.min(...prices) * 0.92) / 10) * 10;
   const high = Math.ceil((Math.max(...prices) * 1.03) / 10) * 10;
 
@@ -63,12 +56,18 @@ export function PriceChart({
   const last = points[points.length - 1];
   const lastX = x(points.length - 1);
   const lastY = y(last.price);
+  const endsToday = !price.isStale;
+  const { average90, historicalMin } = price;
 
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
       role="img"
-      aria-label={`Evolución del precio en los últimos ${months} meses. Hoy cuesta ${formatEuro(last.price)}.`}
+      aria-label={
+        endsToday
+          ? `Evolución del precio en los últimos ${months} meses. Hoy cuesta ${formatEuro(last.price)}.`
+          : `Evolución del precio en los últimos ${months} meses. Último precio registrado: ${formatEuro(last.price)}.`
+      }
       className={cn("w-full font-sans", className)}
     >
       <path d={area} fill="#f2f9de" />
@@ -110,7 +109,14 @@ export function PriceChart({
         </>
       )}
       <path d={line} fill="none" stroke="#15171a" strokeWidth="2.5" strokeLinejoin="round" />
-      <circle cx={lastX} cy={lastY} r="6" fill="#c6ef3a" stroke="#15171a" strokeWidth="2" />
+      <circle
+        cx={lastX}
+        cy={lastY}
+        r="6"
+        fill={endsToday ? "#c6ef3a" : "#c9ccc3"}
+        stroke="#15171a"
+        strokeWidth="2"
+      />
       <text
         x={lastX - 12}
         y={lastY - 12}
@@ -119,13 +125,13 @@ export function PriceChart({
         textAnchor="end"
         {...LABEL_HALO}
       >
-        Hoy · {formatEuro(last.price)}
+        {endsToday ? "Hoy" : "Último"} · {formatEuro(last.price)}
       </text>
       <text x="0" y={height - 4} fontSize="12" fill="#5b6058">
         {formatMonthYearShort(first.date)}
       </text>
       <text x={innerWidth} y={height - 4} fontSize="12" fill="#5b6058" textAnchor="end">
-        hoy
+        {endsToday ? "hoy" : formatMonthYearShort(last.date)}
       </text>
     </svg>
   );

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/config/site";
-import type { PriceSummary } from "@/lib/pricing";
 import type { Pala } from "@/types/catalog";
 
 export function absoluteUrl(path: string): string {
@@ -10,8 +9,8 @@ export function absoluteUrl(path: string): string {
 interface PageMetadataInput {
   title: string;
   description: string;
-  /** Ruta canónica, con barra final */
-  path: string;
+  /** Ruta canónica, con barra final; null si la página no debe declarar ninguna */
+  path: string | null;
   /** false para páginas que no deben indexarse (resultados filtrados, secciones en preparación) */
   index?: boolean;
 }
@@ -20,11 +19,11 @@ export function pageMetadata({ title, description, path, index = true }: PageMet
   return {
     title,
     description,
-    alternates: { canonical: path },
+    ...(path ? { alternates: { canonical: path } } : {}),
     openGraph: {
       title,
       description,
-      url: path,
+      ...(path ? { url: path } : {}),
       siteName: siteConfig.name,
       locale: siteConfig.locale,
       type: "website",
@@ -49,15 +48,16 @@ export function breadcrumbJsonLd(entries: { label: string; href: string }[]) {
 
 interface ProductJsonLdInput {
   pala: Pala;
-  price: PriceSummary | null;
   path: string;
   /** Con datos de ejemplo no se publican valoraciones ni ofertas. */
   includeCommercialData: boolean;
 }
 
-export function productJsonLd({ pala, price, path, includeCommercialData }: ProductJsonLdInput) {
+export function productJsonLd({ pala, path, includeCommercialData }: ProductJsonLdInput) {
+  const { price } = pala;
+  // Un precio sin comprobar tampoco se publica como oferta.
   const commercial =
-    includeCommercialData && price
+    includeCommercialData && price && !price.isStale
       ? {
           aggregateRating: {
             "@type": "AggregateRating",

@@ -15,10 +15,12 @@ import { StoreList } from "@/components/ficha/StoreList";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
-import { getAllPalaSlugs, getAlternatives, getPalaBySlug, isDemoData } from "@/data";
-import { getPriceSummary } from "@/lib/pricing";
+import { getAllPalaSlugs, getPalaBySlug, isDemoData } from "@/data";
 import { routes } from "@/lib/routes";
 import { pageMetadata, productJsonLd } from "@/lib/seo";
+
+// Precios y veredicto dependen de la fecha: la ficha se regenera cada hora.
+export const revalidate = 3600;
 
 const REVIEWS_ID = "opiniones";
 const STORES_ID = "tiendas";
@@ -49,14 +51,13 @@ export default async function PalaPage({ params }: PalaPageProps) {
   const pala = await getPalaBySlug(slug);
   if (!pala) notFound();
 
-  const price = getPriceSummary(pala);
-  const alternatives = await getAlternatives(pala);
+  const { price } = pala;
   const path = routes.pala(pala.slug);
   const fullName = `${pala.brand.name} ${pala.model} ${pala.year}`;
 
   return (
     <article>
-      <JsonLd data={productJsonLd({ pala, price, path, includeCommercialData: !isDemoData })} />
+      <JsonLd data={productJsonLd({ pala, path, includeCommercialData: !isDemoData })} />
 
       <Breadcrumbs
         mobileBack={{ label: "Palas", href: routes.catalog }}
@@ -106,11 +107,11 @@ export default async function PalaPage({ params }: PalaPageProps) {
         <div className="flex flex-col gap-9 px-5 pt-9 lg:col-start-1 lg:row-start-2 lg:gap-16 lg:px-0 lg:pt-16">
           {price && (
             <>
-              <StoreList offers={price.offers} id={STORES_ID} />
+              <StoreList price={price} id={STORES_ID} />
               <PriceInsight price={price} history={pala.priceHistory} />
             </>
           )}
-          <Alternatives alternatives={alternatives} model={pala.model} />
+          <Alternatives alternatives={pala.alternatives} model={pala.model} />
           <div className="grid gap-9 lg:grid-cols-2 lg:items-start lg:gap-10">
             <SpecsTable pala={pala} />
             <Faq items={pala.faq} />

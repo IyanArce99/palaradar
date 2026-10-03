@@ -8,9 +8,9 @@ import type { MonthlyDrop } from "@/data";
 import { catalogHref } from "@/lib/catalog/query";
 import { cn } from "@/lib/cn";
 import { formatEuro, pluralize } from "@/lib/format";
-import type { PriceSummary } from "@/lib/pricing";
 import { routes } from "@/lib/routes";
 import type { Guide, Pala, PalaSummary } from "@/types/catalog";
+import type { PriceSummary } from "@/types/pricing";
 import type { CatalogShortcut } from "@/config/navigation";
 
 const titleClass =
@@ -154,9 +154,8 @@ export function PriceWatchSection({ pala, price, className }: PriceWatchSectionP
         </span>
         <PriceChart
           history={pala.priceHistory}
+          price={price}
           months={12}
-          average90={price.average90}
-          historicalMin={price.historicalMin}
           width={340}
           height={120}
           className="mt-2"
