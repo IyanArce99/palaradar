@@ -322,6 +322,38 @@ describe("tiendas reales y de demostración", { skip: !url && "DATABASE_URL no c
     });
   });
 
+  it("una tienda sin regla de envío verificada publica el precio del producto, sin envío", async () => {
+    await rolledBack(async (tx) => {
+      const now = new Date();
+      const adapter = createMockAdapter([metalbone(CHEAPEST, now)], {
+        storeSlug: REAL_TEST_STORE,
+        isDemo: false,
+        shipping: null,
+      });
+      await runIngestion(adapter, createPostgresIngestionRepository(tx), now);
+
+      const [stored] = await tx<{ shipping_cost: number | null }[]>`
+        select sp.shipping_cost from store_prices sp join stores s on s.id = sp.store_id
+        where s.slug = ${REAL_TEST_STORE}`;
+      assert.equal(stored.shipping_cost, null);
+
+      const pala = await createPostgresRepository(tx).getPalaBySlug(METALBONE_SLUG);
+      assert.equal(pala?.price?.bestOffer.shipping, null);
+      assert.equal(pala?.price?.bestOffer.total, CHEAPEST);
+      assert.equal(await bestPrice(tx), CHEAPEST);
+    });
+  });
+
+  it("PadelProShop y Padel Nuestro son tiendas reales, y las demo siguen marcadas", async () => {
+    await rolledBack(async (tx) => {
+      const stores = await tx<{ slug: string; is_demo: boolean }[]>`select slug, is_demo from stores`;
+      const real = stores.filter((store) => !store.is_demo).map((store) => store.slug).sort();
+
+      assert.deepEqual(real, ["padelnuestro", "padelproshop"]);
+      assert.ok(stores.filter((store) => store.slug.startsWith("tienda-demo-")).every((store) => store.is_demo));
+    });
+  });
+
   it("PadelProShop es una tienda real", async () => {
     await rolledBack(async (tx) => {
       const stores = await tx<{ slug: string; is_demo: boolean }[]>`select slug, is_demo from stores`;
@@ -418,14 +450,20 @@ describe("bloqueo de ingestión en PostgreSQL", { skip: !url && "DATABASE_URL no
       const hanging = new Promise<void>((resolve) => {
         release = resolve;
       });
-      const held = createPostgresIngestionRepository(a).withIngestionLock(() => hanging);
+      let holding: () => void = () => {};
+      const hasLock = new Promise<void>((resolve) => {
+        holding = resolve;
+      });
+      const held = createPostgresIngestionRepository(a).withIngestionLock(async () => {
+        holding();
+        await hanging;
+      });
       held.catch(() => {});
 
+      // Hasta que la primera no tiene el bloqueo no se prueba la segunda: si
+      // compitieran a la vez, la primera podría perder y no quedarse con él.
+      await hasLock;
       const second = createPostgresIngestionRepository(b);
-      // Espera a que la primera tenga el bloqueo.
-      for (let i = 0; i < 50 && (await second.withIngestionLock(async () => null)).acquired; i++) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
       assert.deepEqual(await second.withIngestionLock(async () => null), { acquired: false });
 
       // Corta las conexiones del primer proceso sin terminar su transacción.

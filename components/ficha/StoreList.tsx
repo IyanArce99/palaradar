@@ -10,6 +10,12 @@ interface StoreRowProps {
   cheapest: boolean;
 }
 
+/** Sin la regla de envío de la tienda no se afirma nada sobre el envío. */
+function shippingText(shipping: number | null): string {
+  if (shipping === null) return "Envío no incluido";
+  return shipping > 0 ? `+${formatEuro(shipping)} de envío` : "Envío gratis";
+}
+
 function StoreRow({ offer, cheapest }: StoreRowProps) {
   const cta = buttonClass({ variant: cheapest ? "dark" : "outline", size: "sm" });
 
@@ -35,7 +41,7 @@ function StoreRow({ offer, cheapest }: StoreRowProps) {
         {/* En móvil, envío y disponibilidad van en líneas propias para no partirse a medias */}
         <p className="text-xs text-muted">
           <span className="block lg:inline">
-            {offer.shipping > 0 ? `+${formatEuro(offer.shipping)} de envío` : "Envío gratis"}
+            {shippingText(offer.shipping)}
           </span>
           <span className="hidden lg:inline"> · </span>
           <span className="block lg:inline">{offer.availability}</span>
@@ -69,7 +75,9 @@ export function StoreList({ price, id }: StoreListProps) {
     <section aria-labelledby={id}>
       <SectionTitle id={id}>Precios en todas las tiendas</SectionTitle>
       <p className="mt-1.5 text-[13px] leading-[1.45] text-pretty text-muted">
-        Precio final con envío, de más barata a más cara.{" "}
+        {price.offers.some((offer) => offer.shipping === null)
+          ? "De más barata a más cara. El envío solo está incluido donde se indica."
+          : "Precio final con envío, de más barata a más cara."}{" "}
         {price.freshness === "stale"
           ? `Sin comprobar desde el ${formatDate(price.checkedAt)}.`
           : `Comprobado ${formatTimeAgo(price.checkedAt, price.asOf)}.`}

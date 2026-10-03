@@ -49,6 +49,10 @@ runDbScript(async (sql) => {
     console.log(`  descarga de la tienda: ${seconds(timings.fetchMs)}`);
     console.log(`  base de datos:         ${seconds(timings.applyMs)}`);
     console.log(`Consultas a la base:    ${getQueryCount() - queriesBefore}`);
+    if (adapter.lastFetch) {
+      const { announced, downloaded, duplicates, pages } = adapter.lastFetch;
+      console.log(`Descarga:               ${downloaded} de ${announced} anunciados en ${pages} páginas · ${duplicates} duplicados`);
+    }
     console.log(`Productos vistos:       ${summary.productsSeen}`);
     console.log(`Emparejados:            ${summary.productsMatched}`);
     console.log(`Pendientes de revisión: ${summary.productsPending}`);

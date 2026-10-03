@@ -44,7 +44,7 @@ function dayTime(isoDate: string): number {
 
 export function rankOffers(offers: StoreOffer[]): RankedOffer[] {
   return offers
-    .map((offer) => ({ ...offer, total: round2(offer.price + offer.shipping) }))
+    .map((offer) => ({ ...offer, total: round2(offer.price + (offer.shipping ?? 0)) }))
     .sort((a, b) => a.total - b.total);
 }
 
@@ -179,7 +179,7 @@ export function computePriceStats(
   const average90 = average(historyWindow(history, AVERAGE_WINDOW_DAYS, now));
   const min = lowest(recorded);
   const previousPrice =
-    best.previousPrice === null ? null : round2(best.previousPrice + best.shipping);
+    best.previousPrice === null ? null : round2(best.previousPrice + (best.shipping ?? 0));
 
   return {
     bestPrice: best.total,

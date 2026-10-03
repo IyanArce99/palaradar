@@ -40,8 +40,26 @@ export interface StoreAdapter {
    * entonces sus precios nunca cuentan como precio real.
    */
   store: { slug: string; name: string; url: string; isDemo: boolean };
-  shipping: StoreShipping;
+  /**
+   * Regla de envío de la tienda, o null si todavía no la tenemos verificada:
+   * entonces se publica el precio del producto, sin envío, y así se indica.
+   */
+  shipping: StoreShipping | null;
   fetchProducts(): Promise<StoreListing[]>;
+  /** Datos de la última descarga, si el adaptador los lleva (totales, duplicados…) */
+  lastFetch?: FetchReport | null;
+}
+
+/** Lo que un adaptador sabe de su última descarga, para el dry-run y el registro. */
+export interface FetchReport {
+  /** Productos que la tienda dice tener */
+  announced: number;
+  /** Productos leídos, contando repetidos */
+  downloaded: number;
+  /** Productos distintos tras quitar repetidos */
+  unique: number;
+  duplicates: number;
+  pages: number;
 }
 
 /** Lo que el matcher necesita saber de cada pala del catálogo */
@@ -66,8 +84,9 @@ export interface MatchResult {
 export interface NormalizedOffer {
   price: number;
   listPrice: number | null;
-  shipping: number;
-  /** Precio final con envío */
+  /** null si no se conoce la regla de envío de la tienda */
+  shipping: number | null;
+  /** Precio final: con envío si se conoce; si no, el precio del producto */
   total: number;
   available: boolean;
   checkedAt: string;
@@ -101,7 +120,8 @@ export interface PublishedPrice {
   price: number;
   /** Precio anterior según NUESTRO histórico, nunca el precio de lista de la tienda */
   previousPrice: number | null;
-  shipping: number;
+  /** null si no se conoce la regla de envío de la tienda */
+  shipping: number | null;
   availability: string;
   url: string;
   checkedAt: string;

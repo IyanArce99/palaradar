@@ -85,9 +85,21 @@ async function main(): Promise<void> {
     known.catalog.map((racket) => [racket.id, `${racket.brand} ${racket.model} ${racket.year}`]),
   );
 
+  if (adapter.lastFetch) {
+    section("Descarga");
+    console.log(`Total anunciado por la tienda: ${adapter.lastFetch.announced}`);
+    console.log(`Total descargado:              ${adapter.lastFetch.downloaded}`);
+    console.log(`Productos distintos:           ${adapter.lastFetch.unique}`);
+    console.log(`Duplicados descartados:        ${adapter.lastFetch.duplicates}`);
+    console.log(`Páginas leídas:                ${adapter.lastFetch.pages}`);
+  }
+
   section("Resumen");
   console.log(`Productos encontrados:      ${summary.productsSeen}`);
+  console.log(`Productos disponibles:      ${products.filter((p) => p.listingStatus === "active").length}`);
   console.log(`Productos con EAN válido:   ${products.filter((product) => product.gtin).length}`);
+  console.log(`Productos sin EAN:          ${products.filter((product) => !product.gtin).length}`);
+  console.log(`Precios que se publicarían: ${repository.state.publishedPrices.length}`);
   console.log(`Coincidencias automáticas:  ${matched.length}`);
   console.log(`  por EAN:                  ${matched.filter((p) => p.matchingMethod === "gtin").length}`);
   console.log(`  por marca/modelo/año:     ${matched.filter((p) => p.matchingMethod === "attributes").length}`);

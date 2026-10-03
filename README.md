@@ -68,7 +68,7 @@ scripts/      db/ (migrate, seed, seed-dev, stats) · prices/ · generate-art.ts
 
 ## Ingestión de precios
 
-El sistema que sustituye los precios de prueba está en `ingestion/`. Cada tienda tiene un adaptador que devuelve sus productos en un formato común; el resto (emparejar con el catálogo, normalizar, guardar, histórico y agregados) es compartido. Hay una tienda real conectada, PadelProShop, con su autorización. Detalle, fuentes por tienda y reglas en [docs/price-ingestion.md](docs/price-ingestion.md).
+El sistema que sustituye los precios de prueba está en `ingestion/`. Cada tienda tiene un adaptador que devuelve sus productos en un formato común; el resto (emparejar con el catálogo, normalizar, guardar, histórico y agregados) es compartido. Hay dos tiendas reales conectadas, PadelProShop y Padel Nuestro, las dos con su autorización. De Padel Nuestro todavía no se incluye el envío en el precio, y la ficha lo indica. Detalle, fuentes por tienda y reglas en [docs/price-ingestion.md](docs/price-ingestion.md).
 
 ```bash
 npm run prices:dry-run                        # simula la ingestión y muestra el emparejamiento; no escribe nada

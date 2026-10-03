@@ -1,4 +1,5 @@
 import type { StoreAdapter } from "../types";
+import { createPadelNuestroAdapter } from "./padelnuestro";
 import { createPadelProShopAdapter } from "./padelproshop";
 
 /**
@@ -8,6 +9,7 @@ import { createPadelProShopAdapter } from "./padelproshop";
  */
 const ADAPTERS: Record<string, () => StoreAdapter> = {
   padelproshop: () => createPadelProShopAdapter(),
+  padelnuestro: () => createPadelNuestroAdapter(),
 };
 
 export const availableStores = Object.keys(ADAPTERS);

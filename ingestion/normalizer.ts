@@ -10,8 +10,9 @@ function round2(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-/** Coste de envío de un precio según la regla de la tienda. */
-export function shippingFor(price: number, shipping: StoreShipping): number {
+/** Coste de envío de un precio según la regla de la tienda; null si no se conoce la regla. */
+export function shippingFor(price: number, shipping: StoreShipping | null): number | null {
+  if (shipping === null) return null;
   return shipping.freeFrom !== null && price >= shipping.freeFrom ? 0 : shipping.cost;
 }
 
@@ -25,7 +26,7 @@ export function shippingFor(price: number, shipping: StoreShipping): number {
  */
 export function normalizeListing(
   listing: StoreListing,
-  shipping: StoreShipping,
+  shipping: StoreShipping | null,
   now: Date,
 ): NormalizeResult {
   const currency = (listing.currency ?? CURRENCY).toUpperCase();
@@ -51,7 +52,7 @@ export function normalizeListing(
       price,
       listPrice,
       shipping: shippingCost,
-      total: round2(price + shippingCost),
+      total: round2(price + (shippingCost ?? 0)),
       available: listing.available === true,
       // Una comprobación no puede ser posterior a la fecha actual.
       checkedAt: new Date(Math.min(checked, now.getTime())).toISOString(),

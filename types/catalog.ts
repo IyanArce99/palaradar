@@ -27,7 +27,8 @@ export interface Store {
 export interface StoreOffer {
   store: Store;
   price: number;
-  shipping: number;
+  /** Coste de envío; null si no lo conocemos (el precio final no lo incluye) */
+  shipping: number | null;
   /** Precio en esta tienda antes de su último cambio */
   previousPrice: number | null;
   availability: string;

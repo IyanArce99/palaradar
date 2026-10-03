@@ -75,7 +75,8 @@ export interface StorePriceRow {
   store_id: string;
   current_price: number;
   previous_price: number | null;
-  shipping_cost: number;
+  /** null si no se conoce la regla de envío de la tienda: el precio no lo incluye */
+  shipping_cost: number | null;
   availability: string;
   product_url: string | null;
   /** Momento en que se comprobó el precio (ISO con hora) */

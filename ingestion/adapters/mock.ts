@@ -15,7 +15,7 @@ export const GTIN_VERTEX_05_2026 = "8445402973996";
 /** Adaptador que devuelve los listados que se le pasen, o falla si se le indica. */
 export function createMockAdapter(
   listings: StoreListing[],
-  options: { fail?: string; shipping?: StoreShipping; storeSlug?: string; isDemo?: boolean } = {},
+  options: { fail?: string; shipping?: StoreShipping | null; storeSlug?: string; isDemo?: boolean } = {},
 ): StoreAdapter {
   return {
     store: {
@@ -25,7 +25,7 @@ export function createMockAdapter(
       // Datos ficticios: tienda demo salvo que un test necesite hacerla pasar por real.
       isDemo: options.isDemo ?? true,
     },
-    shipping: options.shipping ?? MOCK_SHIPPING,
+    shipping: options.shipping === undefined ? MOCK_SHIPPING : options.shipping,
     async fetchProducts() {
       if (options.fail) throw new Error(options.fail);
       return listings;

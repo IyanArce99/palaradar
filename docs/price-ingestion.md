@@ -4,7 +4,7 @@ Investigación y diseño del sistema que sustituirá los precios de prueba por p
 
 ## Estado de la implementación
 
-La ingestión está construida en `ingestion/`. **Hay una tienda real conectada: PadelProShop**, con autorización expresa de la tienda, a través del JSON de su colección de palas. Se ejecuta a mano; todavía no hay tarea programada.
+La ingestión está construida en `ingestion/`. **Hay dos tiendas reales conectadas, las dos con autorización expresa: PadelProShop**, a través del JSON de su colección de palas, **y Padel Nuestro**, a través de los datos estructurados del listado de su categoría de palas. La ingestión está preparada para ejecutarse de forma programada (ver más abajo), pero todavía no hay ninguna tarea configurada.
 
 ```bash
 npm run prices:dry-run                        # descarga, empareja y muestra el resultado; no escribe nada
@@ -23,6 +23,7 @@ npm run prices:ingest -- --store=padelproshop # ingestión real, en una única t
 | Persistencia (memoria y PostgreSQL) | `ingestion/memory-repository.ts`, `ingestion/postgres-repository.ts` |
 | Adaptador de prueba | `ingestion/adapters/mock.ts` |
 | Adaptador de PadelProShop | `ingestion/adapters/padelproshop.ts` |
+| Adaptador de Padel Nuestro | `ingestion/adapters/padelnuestro.ts` |
 | Comandos | `scripts/prices/dry-run.ts`, `scripts/prices/ingest.ts` |
 | Tablas nuevas | `db/migrations/002_price_ingestion.sql` |
 
@@ -38,6 +39,21 @@ Diferencias con el diseño de más abajo, decididas al implementar:
 - Una ejecución lee una vez lo que ya se sabe de la tienda (catálogo, productos y precios publicados), decide todo en memoria y escribe por lotes dentro de la misma transacción: una sentencia por tabla (troceada cada 500 filas) y los agregados una sola vez al final. Con PadelProShop (630 productos) son 18 consultas y unos 2 s de base de datos, frente a 696 consultas y 96 s escribiendo producto a producto. `npm run prices:ingest` muestra el tiempo y las consultas de cada ejecución.
 - `tests/ingestion/golden/ingestion.json` guarda el resultado de un escenario de cuatro lecturas generado con la ingestión anterior a los lotes; los tests exigen que siga saliendo exactamente lo mismo.
 - El histórico (`price_history`) no se borra nunca desde la ingestión: una pala agotada o desaparecida deja de publicarse en `store_prices`, pero conserva sus registros.
+
+### Padel Nuestro
+
+Segunda tienda real, con su autorización. No se usa CJ ni su API: la fuente es el listado público de su categoría de palas, que incluye los datos estructurados de cada producto.
+
+- **Fuente:** `GET https://www.padelnuestro.com/palas-padel?p=N&product_list_limit=36&product_list_order=new`. De cada página se lee solo el JSON-LD (`ItemList` con un `Product` por pala), no el HTML visible ni las fichas.
+- **Campos:** `sku` (código interno de la tienda, que se usa como identificador externo), nombre, marca, `offers.price`, `offers.priceCurrency`, `offers.availability`, URL e imagen. La imagen se lee pero no se guarda ni se muestra.
+- **Sin EAN.** La tienda no lo publica en ningún sitio de su web; el `sku` no es un EAN. El emparejamiento va por marca, modelo, variante y año exactos y únicos; lo ambiguo queda en revisión. La referencia del fabricante que aparece en algunas URL no se usa para emparejar.
+- **Paginación.** El número de páginas se calcula con el total que anuncia la primera («916 productos»). La descarga es secuencial, con 1,5 s de pausa, y es todo o nada: falla si falta una página, si después de la última esperada no hay un 404, si el número de productos leídos no coincide con el anunciado o si a un producto le falta un dato obligatorio.
+- **Orden.** Se pide el orden «Más nuevo». El orden por defecto («Más vendidos») no es estable entre páginas: en una pasada de prueba repitió 67 de 916 productos y dejó fuera otros tantos. Los repetidos se identifican por SKU (nunca por nombre), se descartan y se cuentan; más de un 2 % invalida la descarga.
+- **Stock.** Solo `InStock` es disponible. Un producto agotado se guarda con su precio, pero no se publica.
+- **Envío: no incluido.** Su coste y su umbral de envío gratis no están verificados, así que el adaptador declara `shipping: null`: se publica el precio del producto y la ficha indica «Envío no incluido» (`store_prices.shipping_cost` nulo, migración `004_unknown_shipping.sql`). Cuando se verifiquen, basta con declarar en el adaptador la regla (`cost`, `freeFrom`), igual que en PadelProShop.
+- **Precio tachado:** no se lee. El precio anterior sale de nuestro histórico.
+
+Una pasada son 27 peticiones (26 páginas y la comprobación del final) y unos 45 s.
 
 ### Ejecución programada
 

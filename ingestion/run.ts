@@ -113,7 +113,7 @@ function planPrices(
       .map((product) => {
         const price = product.price as number;
         const shipping = shippingFor(price, adapter.shipping);
-        return { product, price, shipping, total: round2(price + shipping) };
+        return { product, price, shipping, total: round2(price + (shipping ?? 0)) };
       })
       .sort((a, b) => a.total - b.total);
 
