@@ -1,8 +1,8 @@
 import { refreshPriceStats } from "@/data/db/admin";
 import { inTransaction, type Sql } from "@/data/db/client";
-import type { StoreProductRow, StorePriceRow } from "@/types/db";
+import type { PriceHistoryRow, StoreProductRow, StorePriceRow } from "@/types/db";
 import type { IngestionRepository, IngestionStore } from "./repository";
-import type { CatalogRacket, PublishedPrice, StoreProduct } from "./types";
+import type { CatalogRacket, StoreProduct } from "./types";
 
 function toStoreProduct(row: StoreProductRow): StoreProduct {
   return {
@@ -25,6 +25,42 @@ function toStoreProduct(row: StoreProductRow): StoreProduct {
     lastSeenAt: row.last_seen_at,
     missedRuns: row.missed_runs,
   };
+}
+
+/** Columnas que escribe la ingestión; `id` lo pone la base de datos. */
+type StoreProductWrite = Omit<StoreProductRow, "id">;
+
+function toStoreProductRow(p: StoreProduct): StoreProductWrite {
+  return {
+    store_id: p.storeId,
+    external_id: p.externalId,
+    racket_id: p.racketId,
+    title: p.title,
+    brand: p.brand,
+    gtin: p.gtin,
+    url: p.url,
+    matching_status: p.matchingStatus,
+    matching_method: p.matchingMethod,
+    matching_note: p.matchingNote,
+    listing_status: p.listingStatus,
+    price: p.price,
+    list_price: p.listPrice,
+    pending_price: p.pendingPrice,
+    checked_at: p.checkedAt,
+    first_seen_at: p.firstSeenAt,
+    last_seen_at: p.lastSeenAt,
+    missed_runs: p.missedRuns,
+  };
+}
+
+/** Filas por sentencia: muy por debajo del límite de 65.535 parámetros de PostgreSQL. */
+const WRITE_CHUNK = 500;
+
+/** Trocea las filas de una escritura por lotes; sin filas no hay ninguna consulta. */
+function chunks<T>(rows: T[]): T[][] {
+  const result: T[][] = [];
+  for (let i = 0; i < rows.length; i += WRITE_CHUNK) result.push(rows.slice(i, i + WRITE_CHUNK));
+  return result;
 }
 
 /** Repositorio de ingestión sobre PostgreSQL/Supabase. */
@@ -86,43 +122,34 @@ export function createPostgresIngestionRepository(sql: Sql): IngestionRepository
       return rows.map(toStoreProduct);
     },
 
-    async saveStoreProduct(p) {
-      await sql`
-        insert into store_products (
-          store_id, external_id, racket_id, title, brand, gtin, url,
-          matching_status, matching_method, matching_note, listing_status,
-          price, list_price, pending_price, checked_at, first_seen_at, last_seen_at, missed_runs
-        ) values (
-          ${p.storeId}, ${p.externalId}, ${p.racketId}, ${p.title}, ${p.brand}, ${p.gtin}, ${p.url},
-          ${p.matchingStatus}::matching_status, ${p.matchingMethod}::matching_method,
-          ${p.matchingNote}, ${p.listingStatus}::listing_status,
-          ${p.price}, ${p.listPrice}, ${p.pendingPrice}, ${p.checkedAt},
-          ${p.firstSeenAt}, ${p.lastSeenAt}, ${p.missedRuns}
-        )
-        on conflict (store_id, external_id) do update set
-          racket_id = excluded.racket_id,
-          title = excluded.title,
-          brand = excluded.brand,
-          gtin = excluded.gtin,
-          url = excluded.url,
-          matching_status = excluded.matching_status,
-          matching_method = excluded.matching_method,
-          matching_note = excluded.matching_note,
-          listing_status = excluded.listing_status,
-          price = excluded.price,
-          list_price = excluded.list_price,
-          pending_price = excluded.pending_price,
-          checked_at = excluded.checked_at,
-          last_seen_at = excluded.last_seen_at,
-          missed_runs = excluded.missed_runs`;
+    async saveStoreProducts(products) {
+      for (const batch of chunks(products.map(toStoreProductRow))) {
+        await sql`
+          insert into store_products ${sql(batch)}
+          on conflict (store_id, external_id) do update set
+            racket_id = excluded.racket_id,
+            title = excluded.title,
+            brand = excluded.brand,
+            gtin = excluded.gtin,
+            url = excluded.url,
+            matching_status = excluded.matching_status,
+            matching_method = excluded.matching_method,
+            matching_note = excluded.matching_note,
+            listing_status = excluded.listing_status,
+            price = excluded.price,
+            list_price = excluded.list_price,
+            pending_price = excluded.pending_price,
+            checked_at = excluded.checked_at,
+            last_seen_at = excluded.last_seen_at,
+            missed_runs = excluded.missed_runs`;
+      }
     },
 
-    async getPublishedPrice(racketId, storeId) {
-      const [row] = await sql<StorePriceRow[]>`
-        select * from store_prices where racket_id = ${racketId} and store_id = ${storeId}`;
-      if (!row) return null;
+    async listPublishedPrices(storeId) {
+      const rows = await sql<StorePriceRow[]>`
+        select * from store_prices where store_id = ${storeId}`;
 
-      return {
+      return rows.map((row) => ({
         racketId: row.racket_id,
         storeId: row.store_id,
         price: row.current_price,
@@ -131,36 +158,53 @@ export function createPostgresIngestionRepository(sql: Sql): IngestionRepository
         availability: row.availability,
         url: row.product_url ?? "",
         checkedAt: row.checked_at,
-      } satisfies PublishedPrice;
+      }));
     },
 
-    async publishPrice(price) {
+    async publishPrices(prices) {
+      const rows: StorePriceRow[] = prices.map((price) => ({
+        racket_id: price.racketId,
+        store_id: price.storeId,
+        current_price: price.price,
+        previous_price: price.previousPrice,
+        shipping_cost: price.shipping,
+        availability: price.availability,
+        product_url: price.url,
+        checked_at: price.checkedAt,
+      }));
+
+      for (const batch of chunks(rows)) {
+        await sql`
+          insert into store_prices ${sql(batch)}
+          on conflict (racket_id, store_id) do update set
+            current_price = excluded.current_price,
+            previous_price = excluded.previous_price,
+            shipping_cost = excluded.shipping_cost,
+            availability = excluded.availability,
+            product_url = excluded.product_url,
+            checked_at = excluded.checked_at`;
+      }
+    },
+
+    async unpublishPrices(storeId, racketIds) {
+      if (racketIds.length === 0) return;
       await sql`
-        insert into store_prices (
-          racket_id, store_id, current_price, previous_price, shipping_cost,
-          availability, product_url, checked_at
-        ) values (
-          ${price.racketId}, ${price.storeId}, ${price.price}, ${price.previousPrice},
-          ${price.shipping}, ${price.availability}, ${price.url}, ${price.checkedAt}
-        )
-        on conflict (racket_id, store_id) do update set
-          current_price = excluded.current_price,
-          previous_price = excluded.previous_price,
-          shipping_cost = excluded.shipping_cost,
-          availability = excluded.availability,
-          product_url = excluded.product_url,
-          checked_at = excluded.checked_at`;
+        delete from store_prices where store_id = ${storeId} and racket_id in ${sql(racketIds)}`;
     },
 
-    async unpublishPrice(racketId, storeId) {
-      await sql`delete from store_prices where racket_id = ${racketId} and store_id = ${storeId}`;
-    },
+    async recordHistory(entries) {
+      const rows: PriceHistoryRow[] = entries.map((entry) => ({
+        racket_id: entry.racketId,
+        store_id: entry.storeId,
+        price: entry.total,
+        price_date: entry.priceDate,
+      }));
 
-    async recordHistory(racketId, storeId, priceDate, total) {
-      await sql`
-        insert into price_history (racket_id, store_id, price, price_date)
-        values (${racketId}, ${storeId}, ${total}, ${priceDate})
-        on conflict (racket_id, store_id, price_date) do update set price = excluded.price`;
+      for (const batch of chunks(rows)) {
+        await sql`
+          insert into price_history ${sql(batch)}
+          on conflict (racket_id, store_id, price_date) do update set price = excluded.price`;
+      }
     },
 
     async refreshStats(now) {

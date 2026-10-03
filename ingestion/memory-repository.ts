@@ -94,39 +94,45 @@ export function createMemoryIngestionRepository(
       return state.storeProducts.filter((product) => product.storeId === storeId);
     },
 
-    async saveStoreProduct(product) {
-      const index = state.storeProducts.findIndex(
-        (item) => item.storeId === product.storeId && item.externalId === product.externalId,
-      );
-      if (index >= 0) state.storeProducts[index] = product;
-      else state.storeProducts.push(product);
+    async saveStoreProducts(products) {
+      for (const product of products) {
+        const index = state.storeProducts.findIndex(
+          (item) => item.storeId === product.storeId && item.externalId === product.externalId,
+        );
+        if (index >= 0) state.storeProducts[index] = product;
+        else state.storeProducts.push(product);
+      }
     },
 
-    async getPublishedPrice(racketId, storeId) {
-      return state.publishedPrices.find((price) => samePrice(price, racketId, storeId)) ?? null;
+    async listPublishedPrices(storeId) {
+      return state.publishedPrices.filter((price) => price.storeId === storeId);
     },
 
-    async publishPrice(price) {
-      state.publishedPrices = [
-        ...state.publishedPrices.filter((item) => !samePrice(item, price.racketId, price.storeId)),
-        price,
-      ];
+    async publishPrices(prices) {
+      for (const price of prices) {
+        state.publishedPrices = [
+          ...state.publishedPrices.filter((item) => !samePrice(item, price.racketId, price.storeId)),
+          price,
+        ];
+      }
     },
 
-    async unpublishPrice(racketId, storeId) {
+    async unpublishPrices(storeId, racketIds) {
       state.publishedPrices = state.publishedPrices.filter(
-        (price) => !samePrice(price, racketId, storeId),
+        (price) => !(price.storeId === storeId && racketIds.includes(price.racketId)),
       );
     },
 
-    async recordHistory(racketId, storeId, priceDate, total) {
-      state.priceHistory = [
-        ...state.priceHistory.filter(
-          (row) =>
-            !(row.racket_id === racketId && row.store_id === storeId && row.price_date === priceDate),
-        ),
-        { racket_id: racketId, store_id: storeId, price_date: priceDate, price: total },
-      ];
+    async recordHistory(entries) {
+      for (const { racketId, storeId, priceDate, total } of entries) {
+        state.priceHistory = [
+          ...state.priceHistory.filter(
+            (row) =>
+              !(row.racket_id === racketId && row.store_id === storeId && row.price_date === priceDate),
+          ),
+          { racket_id: racketId, store_id: storeId, price_date: priceDate, price: total },
+        ];
+      }
     },
 
     async refreshStats() {

@@ -1,11 +1,12 @@
 import { normalizeGtin } from "./gtin";
 import { matchProduct } from "./matcher";
 import { normalizeListing, shippingFor } from "./normalizer";
-import type { IngestionRepository, IngestionStore } from "./repository";
+import type { HistoryEntry, IngestionRepository, IngestionStore } from "./repository";
 import type {
   CatalogRacket,
   MatchResult,
   NormalizedOffer,
+  PublishedPrice,
   RunSummary,
   StoreAdapter,
   StoreListing,
@@ -68,25 +69,42 @@ function acceptPrice(offer: NormalizedOffer, previous: StoreProduct | undefined)
   return { price: offer.price, pendingPrice: null, checkedAt: offer.checkedAt, held: false };
 }
 
+interface PricePlan {
+  publish: PublishedPrice[];
+  /** Palas que dejan de publicarse en la tienda */
+  unpublish: string[];
+  history: HistoryEntry[];
+  /** Cuántos precios han cambiado */
+  updated: number;
+}
+
 /**
- * Publica en `store_prices` el mejor producto disponible de cada pala en esta
- * tienda y registra el histórico. Devuelve cuántos precios han cambiado.
+ * Decide, sin tocar la base de datos, qué se publica en `store_prices` y qué se
+ * anota en el histórico: el mejor producto disponible de cada pala en esta tienda.
  */
-async function publishPrices(
-  repository: IngestionRepository,
+function planPrices(
   adapter: StoreAdapter,
   storeId: string,
   products: StoreProduct[],
   racketIds: Set<string>,
+  publishedPrices: PublishedPrice[],
   runStartedAt: string,
-): Promise<number> {
-  let updated = 0;
+): PricePlan {
+  const plan: PricePlan = { publish: [], unpublish: [], history: [], updated: 0 };
+  const publishedByRacket = new Map(publishedPrices.map((price) => [price.racketId, price]));
+
+  const productsByRacket = new Map<string, StoreProduct[]>();
+  for (const product of products) {
+    if (product.racketId === null) continue;
+    const group = productsByRacket.get(product.racketId) ?? [];
+    group.push(product);
+    productsByRacket.set(product.racketId, group);
+  }
 
   for (const racketId of racketIds) {
-    const offers = products
+    const offers = (productsByRacket.get(racketId) ?? [])
       .filter(
         (product) =>
-          product.racketId === racketId &&
           product.matchingStatus === "matched" &&
           product.listingStatus === "active" &&
           product.price !== null &&
@@ -100,23 +118,23 @@ async function publishPrices(
       .sort((a, b) => a.total - b.total);
 
     const best = offers[0];
-    const published = await repository.getPublishedPrice(racketId, storeId);
+    const published = publishedByRacket.get(racketId);
 
     if (!best) {
       // Agotada, desaparecida o ya sin emparejar: deja de publicarse. El histórico se conserva.
-      if (published) await repository.unpublishPrice(racketId, storeId);
+      if (published) plan.unpublish.push(racketId);
       continue;
     }
 
     const checkedAt = best.product.checkedAt as string;
     const priceChanged = !published || published.price !== best.price;
-    if (priceChanged) updated++;
+    if (priceChanged) plan.updated++;
 
     // Nuestro propio precio anterior: el que teníamos publicado antes del cambio.
     let previousPrice: number | null = null;
     if (published) previousPrice = priceChanged ? published.price : published.previousPrice;
 
-    await repository.publishPrice({
+    plan.publish.push({
       racketId,
       storeId,
       price: best.price,
@@ -132,11 +150,11 @@ async function publishPrices(
     const confirmedNow =
       best.product.lastSeenAt === runStartedAt && best.product.pendingPrice === null;
     if (confirmedNow) {
-      await repository.recordHistory(racketId, storeId, checkedAt.slice(0, 10), best.total);
+      plan.history.push({ racketId, storeId, priceDate: checkedAt.slice(0, 10), total: best.total });
     }
   }
 
-  return updated;
+  return plan;
 }
 
 type Counts = Pick<
@@ -144,7 +162,12 @@ type Counts = Pick<
   "productsMatched" | "productsPending" | "pricesUpdated" | "productsInvalid" | "pricesHeld"
 >;
 
-/** Aplica los listados de una tienda: productos, precios publicados, histórico y agregados. */
+/**
+ * Aplica los listados de una tienda: productos, precios publicados, histórico y
+ * agregados. Lee una vez lo que ya se sabe de la tienda, decide todo en memoria
+ * y escribe por lotes: el número de consultas no depende de cuántos productos
+ * tenga la tienda.
+ */
 async function applyListings(
   repository: IngestionRepository,
   adapter: StoreAdapter,
@@ -161,9 +184,10 @@ async function applyListings(
     pricesHeld: 0,
   };
 
-  const [catalog, known] = await Promise.all([
+  const [catalog, known, publishedPrices] = await Promise.all([
     repository.loadCatalog(),
     repository.listStoreProducts(store.id),
+    repository.listPublishedPrices(store.id),
   ]);
   const previousById = new Map(known.map((product) => [product.externalId, product]));
   const current = new Map(previousById);
@@ -208,8 +232,8 @@ async function applyListings(
       lastSeenAt: startedAt,
       missedRuns: 0,
     };
+    // Si la tienda repite un producto en la misma lectura, vale el último.
     current.set(product.externalId, product);
-    await repository.saveStoreProduct(product);
   }
 
   // Productos que la tienda ya no devuelve. A la primera ausencia se conserva
@@ -225,20 +249,29 @@ async function applyListings(
     };
     current.set(updated.externalId, updated);
     if (updated.racketId) affectedRackets.add(updated.racketId);
-    await repository.saveStoreProduct(updated);
   }
 
-  counts.pricesUpdated = await publishPrices(
-    repository,
-    adapter,
-    store.id,
-    [...current.values()],
-    affectedRackets,
-    startedAt,
-  );
+  // `current` contiene todos los productos de la tienda, vistos o no, una vez cada uno.
+  const products = [...current.values()];
+  const plan = planPrices(adapter, store.id, products, affectedRackets, publishedPrices, startedAt);
+  counts.pricesUpdated = plan.updated;
+
+  await repository.saveStoreProducts(products);
+  await repository.unpublishPrices(store.id, plan.unpublish);
+  await repository.publishPrices(plan.publish);
+  await repository.recordHistory(plan.history);
+  // Los agregados se recalculan una sola vez, con todo ya escrito.
   await repository.refreshStats(now);
 
   return counts;
+}
+
+/** Duración de las dos fases de una ejecución, para medirla desde fuera. */
+export interface RunTimings {
+  /** Descarga del catálogo de la tienda */
+  fetchMs?: number;
+  /** Emparejamiento y escritura en la base de datos */
+  applyMs?: number;
 }
 
 /**
@@ -256,6 +289,7 @@ export async function runIngestion(
   adapter: StoreAdapter,
   repository: IngestionRepository,
   now: Date = new Date(),
+  timings: RunTimings = {},
 ): Promise<RunSummary> {
   const store = await repository.ensureStore(adapter.store);
   const startedAt = now.toISOString();
@@ -277,12 +311,16 @@ export async function runIngestion(
 
   try {
     // La descarga ocurre antes de abrir la transacción: nada de red con ella abierta.
+    const fetchStarted = performance.now();
     const listings = await adapter.fetchProducts();
+    timings.fetchMs = performance.now() - fetchStarted;
     summary.productsSeen = listings.length;
 
+    const applyStarted = performance.now();
     const counts = await repository.transaction((tx) =>
       applyListings(tx, adapter, store, listings, now),
     );
+    timings.applyMs = performance.now() - applyStarted;
     Object.assign(summary, counts);
   } catch (error) {
     summary.status = "failed";

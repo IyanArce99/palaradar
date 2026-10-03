@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, it } from "node:test";
 import { createMockAdapter, GTIN_METALBONE_34_2025, mockScenario } from "@/ingestion/adapters/mock";
 import { runIngestion } from "@/ingestion/run";
 import type { StoreListing } from "@/ingestion/types";
 import { createRepository, DAY_1, DAY_2, DAY_3, listing, STORE } from "./fixtures";
+import { GOLDEN_DAYS, goldenResult, goldenRuns } from "./golden-scenario";
 
 const METALBONE = "metalbone-34-2025";
 
@@ -335,6 +338,52 @@ describe("fallo a mitad de la ejecución", () => {
     assert.deepEqual(repository.state.storeProducts, before.products);
     assert.deepEqual(repository.state.publishedPrices, before.prices);
     assert.deepEqual(repository.state.priceHistory, before.history);
+  });
+});
+
+describe("escrituras por lotes", () => {
+  it("produce exactamente el mismo resultado que la ingestión producto a producto", async () => {
+    const repository = createRepository();
+    const summaries = [];
+    for (const [index, listings] of goldenRuns().entries()) {
+      summaries.push(await ingest(repository, listings, GOLDEN_DAYS[index]));
+    }
+
+    const golden: unknown = JSON.parse(
+      readFileSync(join(process.cwd(), "tests/ingestion/golden/ingestion.json"), "utf8"),
+    );
+    assert.deepEqual(goldenResult(summaries, repository.state), golden);
+  });
+
+  it("no hace una escritura por producto: una llamada por tabla y los agregados una vez", async () => {
+    const repository = createRepository();
+    const calls: Record<string, number> = {};
+    for (const method of ["saveStoreProducts", "publishPrices", "unpublishPrices", "recordHistory", "refreshStats", "listStoreProducts", "listPublishedPrices", "loadCatalog"] as const) {
+      const original = repository[method].bind(repository) as (...args: unknown[]) => Promise<unknown>;
+      (repository as unknown as Record<string, unknown>)[method] = (...args: unknown[]) => {
+        calls[method] = (calls[method] ?? 0) + 1;
+        return original(...args);
+      };
+    }
+
+    const listings = Array.from({ length: 300 }, (_, i) =>
+      metalbone(249.95 + i, DAY_1, { externalId: `MB34-${i}` }),
+    );
+    const summary = await ingest(repository, listings, DAY_1);
+
+    assert.equal(summary.productsMatched, 300);
+    assert.equal(repository.state.storeProducts.length, 300);
+    assert.equal(repository.state.publishedPrices[0].price, 249.95);
+    assert.deepEqual(calls, {
+      loadCatalog: 1,
+      listStoreProducts: 1,
+      listPublishedPrices: 1,
+      saveStoreProducts: 1,
+      unpublishPrices: 1,
+      publishPrices: 1,
+      recordHistory: 1,
+      refreshStats: 1,
+    });
   });
 });
 

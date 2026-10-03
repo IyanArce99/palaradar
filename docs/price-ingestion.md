@@ -35,6 +35,8 @@ Diferencias con el diseño de más abajo, decididas al implementar:
 - Una pala con el mismo nombre pero otro EAN (otro color, por ejemplo) no se empareja. Para aceptarla hay que añadir ese segundo EAN a `racket_identifiers`.
 - Cada adaptador declara si su tienda es real o de demostración (`store.isDemo`, guardado en `stores.is_demo`, migración `003_demo_stores.sql`). Los precios de las tiendas demo no cuentan en nada de lo que ve el usuario; el filtro está en `data/db/sources.ts`.
 - `npm run db:seed` solo crea o actualiza el catálogo y no borra nada. El seed destructivo es `npm run db:seed:dev`, que no se ejecuta en producción y se niega si hay datos de tiendas reales.
+- Una ejecución lee una vez lo que ya se sabe de la tienda (catálogo, productos y precios publicados), decide todo en memoria y escribe por lotes dentro de la misma transacción: una sentencia por tabla (troceada cada 500 filas) y los agregados una sola vez al final. Con PadelProShop (630 productos) son 18 consultas y unos 2 s de base de datos, frente a 696 consultas y 96 s escribiendo producto a producto. `npm run prices:ingest` muestra el tiempo y las consultas de cada ejecución.
+- `tests/ingestion/golden/ingestion.json` guarda el resultado de un escenario de cuatro lecturas generado con la ingestión anterior a los lotes; los tests exigen que siga saliendo exactamente lo mismo.
 - El histórico (`price_history`) no se borra nunca desde la ingestión: una pala agotada o desaparecida deja de publicarse en `store_prices`, pero conserva sus registros.
 
 Para probarlo: `npm test` (reglas de negocio, sin base de datos), `npm run test:db` (repositorio PostgreSQL, en una transacción que se deshace) y `npm run ingest:demo` (flujo completo con datos ficticios).

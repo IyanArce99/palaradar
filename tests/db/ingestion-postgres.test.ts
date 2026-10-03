@@ -4,13 +4,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { loadDevSeed, refreshPriceStats, upsertCatalog } from "@/data/db/admin";
-import { createSql, getDatabaseUrl, type Sql } from "@/data/db/client";
+import { createSql, getDatabaseUrl, getQueryCount, type Sql } from "@/data/db/client";
 import { createPostgresRepository } from "@/data/postgres-repository";
 import { buildSeed } from "@/data/seed/build";
 import { createMockAdapter, GTIN_METALBONE_34_2025, MOCK_STORE_SLUG, mockScenario } from "@/ingestion/adapters/mock";
+import { createMemoryIngestionRepository } from "@/ingestion/memory-repository";
 import { createPostgresIngestionRepository } from "@/ingestion/postgres-repository";
 import { runIngestion } from "@/ingestion/run";
 import type { StoreListing } from "@/ingestion/types";
+import { GOLDEN_DAYS, goldenRuns } from "../ingestion/golden-scenario";
 
 const url = getDatabaseUrl();
 const ROLLBACK = new Error("rollback");
@@ -148,6 +150,85 @@ describe("ingestión sobre PostgreSQL", { skip: !url && "DATABASE_URL no configu
       assert.equal(state.listing_status, "missing");
       assert.equal(state.published, 0);
       assert.equal(state.history, 1);
+    });
+  });
+});
+
+describe("ingestión por lotes sobre PostgreSQL", { skip: !url && "DATABASE_URL no configurada" }, () => {
+  const store = { storeSlug: REAL_TEST_STORE, isDemo: false };
+  const byKey = <T>(key: (item: T) => string) => (a: T, b: T) => key(a).localeCompare(key(b));
+
+  it("deja en la base de datos lo mismo que el repositorio en memoria", async () => {
+    await rolledBack(async (tx) => {
+      const postgres = createPostgresIngestionRepository(tx);
+      // Mismo catálogo y misma tienda en los dos repositorios.
+      const storeRow = await postgres.ensureStore(createMockAdapter([], store).store);
+      const memory = createMemoryIngestionRepository([storeRow], await postgres.loadCatalog());
+
+      for (const [index, listings] of goldenRuns().entries()) {
+        const adapter = createMockAdapter(listings, store);
+        const inMemory = await runIngestion(adapter, memory, GOLDEN_DAYS[index]);
+        const inPostgres = await runIngestion(adapter, postgres, GOLDEN_DAYS[index]);
+
+        assert.equal(inPostgres.status, "success", inPostgres.errorMessage ?? "");
+        for (const field of ["productsSeen", "productsMatched", "productsPending", "pricesUpdated", "productsInvalid", "pricesHeld"] as const) {
+          assert.equal(inPostgres[field], inMemory[field], `${field} en la lectura ${index + 1}`);
+        }
+      }
+
+      const products = await postgres.listStoreProducts(storeRow.id);
+      assert.ok(products.length >= 9);
+      assert.deepEqual(
+        products.sort(byKey((product) => product.externalId)),
+        [...memory.state.storeProducts].sort(byKey((product) => product.externalId)),
+      );
+
+      assert.deepEqual(
+        (await postgres.listPublishedPrices(storeRow.id)).sort(byKey((price) => price.racketId)),
+        [...memory.state.publishedPrices].sort(byKey((price) => price.racketId)),
+      );
+
+      const history = await tx<{ racket_id: string; store_id: string; price: number; price_date: string }[]>`
+        select racket_id, store_id, price, price_date from price_history where store_id = ${storeRow.id}`;
+      const historyKey = byKey((row: { racket_id: string; price_date: string }) => `${row.racket_id} ${row.price_date}`);
+      assert.deepEqual(
+        history.map((row) => ({ ...row })).sort(historyKey),
+        [...memory.state.priceHistory].sort(historyKey),
+      );
+    });
+  });
+
+  it("el número de consultas no depende del número de productos", async () => {
+    await rolledBack(async (tx) => {
+      const repository = createPostgresIngestionRepository(tx);
+      const now = new Date();
+      // Más productos que el tamaño de un lote, para ejercitar el troceado.
+      const listings: StoreListing[] = Array.from({ length: 1200 }, (_, i) => ({
+        externalId: `SYN-${i}`,
+        title: `Pala Marca Inventada Modelo ${i} 2026`,
+        brand: "Marca Inventada",
+        ean: null,
+        url: `https://example.com/producto/SYN-${i}`,
+        price: 100 + i,
+        listPrice: null,
+        available: true,
+        checkedAt: now.toISOString(),
+      }));
+      listings.push(metalbone(249.95, now));
+
+      const before = getQueryCount();
+      const summary = await runIngestion(createMockAdapter(listings, store), repository, now);
+      const queries = getQueryCount() - before;
+
+      assert.equal(summary.status, "success", summary.errorMessage ?? "");
+      assert.equal(summary.productsSeen, 1201);
+      assert.equal(summary.productsMatched, 1);
+
+      const [{ count }] = await tx<{ count: number }[]>`
+        select count(*)::int as count from store_products p
+        join stores s on s.id = p.store_id where s.slug = ${REAL_TEST_STORE}`;
+      assert.equal(count, 1201);
+      assert.ok(queries <= 25, `la ejecución ha hecho ${queries} consultas`);
     });
   });
 });

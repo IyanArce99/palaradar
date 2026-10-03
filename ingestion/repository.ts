@@ -6,6 +6,15 @@ export interface IngestionStore {
   name: string;
 }
 
+/** Un registro del histórico: precio final (con envío) de una pala en una tienda un día. */
+export interface HistoryEntry {
+  racketId: string;
+  storeId: string;
+  /** Día al que corresponde el precio (AAAA-MM-DD) */
+  priceDate: string;
+  total: number;
+}
+
 /**
  * Persistencia de la ingestión. La implementación en memoria sirve para los
  * tests y la de PostgreSQL para producción; `runIngestion` no distingue.
@@ -25,17 +34,26 @@ export interface IngestionRepository {
   startRun(storeId: string, startedAt: string): Promise<string>;
   finishRun(runId: string, result: RunResult): Promise<void>;
 
-  listStoreProducts(storeId: string): Promise<StoreProduct[]>;
-  /** Crea el producto de tienda o lo actualiza (clave: tienda + identificador externo) */
-  saveStoreProduct(product: StoreProduct): Promise<void>;
+  // Las lecturas y escrituras de una ejecución van por lotes: una consulta por
+  // tabla (o por bloque de filas), no una por producto. Con cientos de productos
+  // y la base de datos en red, la diferencia es de minutos a segundos.
 
-  getPublishedPrice(racketId: string, storeId: string): Promise<PublishedPrice | null>;
-  /** Crea o actualiza la fila de `store_prices` de esa pala en esa tienda */
-  publishPrice(price: PublishedPrice): Promise<void>;
-  unpublishPrice(racketId: string, storeId: string): Promise<void>;
+  listStoreProducts(storeId: string): Promise<StoreProduct[]>;
+  /**
+   * Crea los productos de tienda o los actualiza (clave: tienda + identificador
+   * externo). Cada producto aparece una sola vez en la lista.
+   */
+  saveStoreProducts(products: StoreProduct[]): Promise<void>;
+
+  /** Todos los precios publicados de la tienda en `store_prices` */
+  listPublishedPrices(storeId: string): Promise<PublishedPrice[]>;
+  /** Crea o actualiza las filas de `store_prices` (clave: pala + tienda) */
+  publishPrices(prices: PublishedPrice[]): Promise<void>;
+  /** Retira de `store_prices` los precios de esas palas en la tienda. No toca el histórico */
+  unpublishPrices(storeId: string, racketIds: string[]): Promise<void>;
 
   /** Una fila por pala, tienda y día: el último precio final observado ese día */
-  recordHistory(racketId: string, storeId: string, priceDate: string, total: number): Promise<void>;
+  recordHistory(entries: HistoryEntry[]): Promise<void>;
 
   /** Recalcula `racket_price_stats` para que el catálogo refleje los precios nuevos */
   refreshStats(now: Date): Promise<void>;

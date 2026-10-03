@@ -1,0 +1,351 @@
+{
+  "summaries": [
+    {
+      "runId": "run-1",
+      "storeSlug": "tienda-demo-1",
+      "status": "success",
+      "productsSeen": 5,
+      "productsMatched": 4,
+      "productsPending": 0,
+      "pricesUpdated": 3,
+      "productsInvalid": 0,
+      "pricesHeld": 0,
+      "errorMessage": null
+    },
+    {
+      "runId": "run-2",
+      "storeSlug": "tienda-demo-1",
+      "status": "success",
+      "productsSeen": 5,
+      "productsMatched": 4,
+      "productsPending": 0,
+      "pricesUpdated": 2,
+      "productsInvalid": 0,
+      "pricesHeld": 0,
+      "errorMessage": null
+    },
+    {
+      "runId": "run-3",
+      "storeSlug": "tienda-demo-1",
+      "status": "success",
+      "productsSeen": 11,
+      "productsMatched": 6,
+      "productsPending": 1,
+      "pricesUpdated": 3,
+      "productsInvalid": 2,
+      "pricesHeld": 1,
+      "errorMessage": null
+    },
+    {
+      "runId": "run-4",
+      "storeSlug": "tienda-demo-1",
+      "status": "success",
+      "productsSeen": 5,
+      "productsMatched": 4,
+      "productsPending": 0,
+      "pricesUpdated": 2,
+      "productsInvalid": 0,
+      "pricesHeld": 0,
+      "errorMessage": null
+    }
+  ],
+  "storeProducts": [
+    {
+      "storeId": "store-1",
+      "externalId": "DRAX",
+      "racketId": "drax-plus-2027",
+      "title": "Pala StarVie Drax + 2027",
+      "brand": "StarVie",
+      "gtin": null,
+      "url": "https://example.com/producto/DRAX",
+      "matchingStatus": "matched",
+      "matchingMethod": "attributes",
+      "matchingNote": null,
+      "listingStatus": "active",
+      "price": 179.95,
+      "listPrice": null,
+      "pendingPrice": null,
+      "checkedAt": "2026-10-08T06:00:00.000Z",
+      "firstSeenAt": "2026-10-05T06:00:00.000Z",
+      "lastSeenAt": "2026-10-08T06:00:00.000Z",
+      "missedRuns": 0
+    },
+    {
+      "storeId": "store-1",
+      "externalId": "EQ-SIN",
+      "racketId": null,
+      "title": "Pala Nox Equation Hard Advanced",
+      "brand": "Nox",
+      "gtin": null,
+      "url": "https://example.com/producto/EQ-SIN",
+      "matchingStatus": "pending_review",
+      "matchingMethod": null,
+      "matchingNote": "El título no indica el año.",
+      "listingStatus": "active",
+      "price": 105,
+      "listPrice": null,
+      "pendingPrice": null,
+      "checkedAt": "2026-10-07T06:00:00.000Z",
+      "firstSeenAt": "2026-10-07T06:00:00.000Z",
+      "lastSeenAt": "2026-10-07T06:00:00.000Z",
+      "missedRuns": 1
+    },
+    {
+      "storeId": "store-1",
+      "externalId": "EQ27",
+      "racketId": "equation-hard-advanced-2027",
+      "title": "Pala Nox Equation Hard Advanced 2027",
+      "brand": "Nox",
+      "gtin": null,
+      "url": "https://example.com/producto/EQ27",
+      "matchingStatus": "matched",
+      "matchingMethod": "attributes",
+      "matchingNote": null,
+      "listingStatus": "active",
+      "price": 119.95,
+      "listPrice": null,
+      "pendingPrice": null,
+      "checkedAt": "2026-10-07T06:00:00.000Z",
+      "firstSeenAt": "2026-10-05T06:00:00.000Z",
+      "lastSeenAt": "2026-10-07T06:00:00.000Z",
+      "missedRuns": 1
+    },
+    {
+      "storeId": "store-1",
+      "externalId": "FENIX",
+      "racketId": "fenix-pro-2026",
+      "title": "Pala Siux Fenix Pro 2026",
+      "brand": "Siux",
+      "gtin": null,
+      "url": "https://example.com/producto/FENIX",
+      "matchingStatus": "matched",
+      "matchingMethod": "attributes",
+      "matchingNote": null,
+      "listingStatus": "active",
+      "price": 279.95,
+      "listPrice": null,
+      "pendingPrice": null,
+      "checkedAt": "2026-10-08T06:00:00.000Z",
+      "firstSeenAt": "2026-10-06T06:00:00.000Z",
+      "lastSeenAt": "2026-10-08T06:00:00.000Z",
+      "missedRuns": 0
+    },
+    {
+      "storeId": "store-1",
+      "externalId": "KYRA",
+      "racketId": "kyra-2027",
+      "title": "Pala StarVie Kyra 2027",
+      "brand": "StarVie",
+      "gtin": null,
+      "url": "https://example.com/producto/KYRA",
+      "matchingStatus": "matched",
+      "matchingMethod": "attributes",
+      "matchingNote": null,
+      "listingStatus": "out_of_stock",
+      "price": 84.95,
+      "listPrice": null,
+      "pendingPrice": null,
+      "checkedAt": "2026-10-08T06:00:00.000Z",
+      "firstSeenAt": "2026-10-05T06:00:00.000Z",
+      "lastSeenAt": "2026-10-08T06:00:00.000Z",
+      "missedRuns": 0
+    },
+    {
+      "storeId": "store-1",
+      "externalId": "MB34",
+      "racketId": "metalbone-34-2025",
+      "title": "Pala Adidas Metalbone 3.4 2025",
+      "brand": "Adidas",
+      "gtin": "08435739402740",
+      "url": "https://example.com/producto/MB34",
+      "matchingStatus": "matched",
+      "matchingMethod": "gtin",
+      "matchingNote": null,
+      "listingStatus": "active",
+      "price": 99.95,
+      "listPrice": null,
+      "pendingPrice": null,
+      "checkedAt": "2026-10-08T06:00:00.000Z",
+      "firstSeenAt": "2026-10-05T06:00:00.000Z",
+      "lastSeenAt": "2026-10-08T06:00:00.000Z",
+      "missedRuns": 0
+    },
+    {
+      "storeId": "store-1",
+      "externalId": "MB34-B",
+      "racketId": "metalbone-34-2025",
+      "title": "Pala Adidas Metalbone 3.4 2025",
+      "brand": "Adidas",
+      "gtin": "08435739402740",
+      "url": "https://example.com/producto/MB34-B",
+      "matchingStatus": "matched",
+      "matchingMethod": "gtin",
+      "matchingNote": null,
+      "listingStatus": "active",
+      "price": 239.95,
+      "listPrice": null,
+      "pendingPrice": null,
+      "checkedAt": "2026-10-07T06:00:00.000Z",
+      "firstSeenAt": "2026-10-07T06:00:00.000Z",
+      "lastSeenAt": "2026-10-07T06:00:00.000Z",
+      "missedRuns": 1
+    },
+    {
+      "storeId": "store-1",
+      "externalId": "PACK",
+      "racketId": null,
+      "title": "Pack Pala Siux Fenix Pro 2026 + Paletero",
+      "brand": "Siux",
+      "gtin": null,
+      "url": "https://example.com/producto/PACK",
+      "matchingStatus": "rejected",
+      "matchingMethod": null,
+      "matchingNote": "Variante distinta.",
+      "listingStatus": "active",
+      "price": 310,
+      "listPrice": null,
+      "pendingPrice": null,
+      "checkedAt": "2026-10-07T06:00:00.000Z",
+      "firstSeenAt": "2026-10-07T06:00:00.000Z",
+      "lastSeenAt": "2026-10-07T06:00:00.000Z",
+      "missedRuns": 1
+    },
+    {
+      "storeId": "store-1",
+      "externalId": "V04",
+      "racketId": null,
+      "title": "Pala Bullpadel Vertex 04 2025",
+      "brand": "Bullpadel",
+      "gtin": "08445402973996",
+      "url": "https://example.com/producto/V04",
+      "matchingStatus": "rejected",
+      "matchingMethod": null,
+      "matchingNote": "EAN distinto al de la pala del catálogo.",
+      "listingStatus": "active",
+      "price": 199.95,
+      "listPrice": null,
+      "pendingPrice": null,
+      "checkedAt": "2026-10-08T06:00:00.000Z",
+      "firstSeenAt": "2026-10-05T06:00:00.000Z",
+      "lastSeenAt": "2026-10-08T06:00:00.000Z",
+      "missedRuns": 0
+    }
+  ],
+  "publishedPrices": [
+    {
+      "racketId": "drax-plus-2027",
+      "storeId": "store-1",
+      "price": 179.95,
+      "previousPrice": null,
+      "shipping": 0,
+      "availability": "En stock",
+      "url": "https://example.com/producto/DRAX",
+      "checkedAt": "2026-10-08T06:00:00.000Z"
+    },
+    {
+      "racketId": "equation-hard-advanced-2027",
+      "storeId": "store-1",
+      "price": 119.95,
+      "previousPrice": 112.95,
+      "shipping": 0,
+      "availability": "En stock",
+      "url": "https://example.com/producto/EQ27",
+      "checkedAt": "2026-10-07T06:00:00.000Z"
+    },
+    {
+      "racketId": "fenix-pro-2026",
+      "storeId": "store-1",
+      "price": 279.95,
+      "previousPrice": 289.95,
+      "shipping": 0,
+      "availability": "En stock",
+      "url": "https://example.com/producto/FENIX",
+      "checkedAt": "2026-10-08T06:00:00.000Z"
+    },
+    {
+      "racketId": "metalbone-34-2025",
+      "storeId": "store-1",
+      "price": 99.95,
+      "previousPrice": 229.95,
+      "shipping": 0,
+      "availability": "En stock",
+      "url": "https://example.com/producto/MB34",
+      "checkedAt": "2026-10-08T06:00:00.000Z"
+    }
+  ],
+  "priceHistory": [
+    {
+      "racket_id": "drax-plus-2027",
+      "store_id": "store-1",
+      "price_date": "2026-10-05",
+      "price": 184.95
+    },
+    {
+      "racket_id": "drax-plus-2027",
+      "store_id": "store-1",
+      "price_date": "2026-10-08",
+      "price": 179.95
+    },
+    {
+      "racket_id": "equation-hard-advanced-2027",
+      "store_id": "store-1",
+      "price_date": "2026-10-05",
+      "price": 112.95
+    },
+    {
+      "racket_id": "equation-hard-advanced-2027",
+      "store_id": "store-1",
+      "price_date": "2026-10-06",
+      "price": 112.95
+    },
+    {
+      "racket_id": "equation-hard-advanced-2027",
+      "store_id": "store-1",
+      "price_date": "2026-10-07",
+      "price": 119.95
+    },
+    {
+      "racket_id": "fenix-pro-2026",
+      "store_id": "store-1",
+      "price_date": "2026-10-06",
+      "price": 289.95
+    },
+    {
+      "racket_id": "fenix-pro-2026",
+      "store_id": "store-1",
+      "price_date": "2026-10-07",
+      "price": 279.95
+    },
+    {
+      "racket_id": "fenix-pro-2026",
+      "store_id": "store-1",
+      "price_date": "2026-10-08",
+      "price": 279.95
+    },
+    {
+      "racket_id": "kyra-2027",
+      "store_id": "store-1",
+      "price_date": "2026-10-07",
+      "price": 84.95
+    },
+    {
+      "racket_id": "metalbone-34-2025",
+      "store_id": "store-1",
+      "price_date": "2026-10-05",
+      "price": 249.95
+    },
+    {
+      "racket_id": "metalbone-34-2025",
+      "store_id": "store-1",
+      "price_date": "2026-10-06",
+      "price": 229.95
+    },
+    {
+      "racket_id": "metalbone-34-2025",
+      "store_id": "store-1",
+      "price_date": "2026-10-08",
+      "price": 99.95
+    }
+  ],
+  "statsRefreshes": 4
+}

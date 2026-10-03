@@ -12,6 +12,13 @@ export function getDatabaseUrl(): string | null {
   return url;
 }
 
+let queryCount = 0;
+
+/** Consultas enviadas por este proceso: cada una es un viaje de ida y vuelta a la base de datos. */
+export function getQueryCount(): number {
+  return queryCount;
+}
+
 function isLocalHost(url: string): boolean {
   return /@(localhost|127\.0\.0\.1)[:/]/.test(url);
 }
@@ -25,6 +32,9 @@ export function createSql(url: string, max: number) {
     connect_timeout: 15,
     ssl: isLocalHost(url) ? false : "require",
     onnotice: () => {},
+    debug: () => {
+      queryCount++;
+    },
     // Los tipos de fila (types/db.ts) esperan números y fechas ISO, no los
     // valores por defecto del driver (numeric como texto, fechas como Date).
     types: {

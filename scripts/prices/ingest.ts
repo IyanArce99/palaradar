@@ -2,9 +2,10 @@
 // Todos los datos se escriben en una única transacción: si falla, no cambia
 // ningún precio y la ejecución queda registrada como fallida.
 //   npm run prices:ingest -- --store=padelproshop
+import { getQueryCount } from "@/data/db/client";
 import { getAdapter } from "@/ingestion/adapters";
 import { createPostgresIngestionRepository } from "@/ingestion/postgres-repository";
-import { runIngestion } from "@/ingestion/run";
+import { runIngestion, type RunTimings } from "@/ingestion/run";
 import { runDbScript } from "../db/run";
 import { storeFromArgs } from "./shared";
 
@@ -13,7 +14,16 @@ const adapter = getAdapter(storeSlug);
 
 runDbScript(async (sql) => {
   console.log(`Ingestión de ${adapter.store.name}…`);
-  const summary = await runIngestion(adapter, createPostgresIngestionRepository(sql));
+  const timings: RunTimings = {};
+  const queriesBefore = getQueryCount();
+  const startedAt = performance.now();
+  const summary = await runIngestion(adapter, createPostgresIngestionRepository(sql), new Date(), timings);
+  const seconds = (ms: number | undefined) => `${((ms ?? 0) / 1000).toFixed(1)} s`;
+
+  console.log(`Tiempo total:           ${seconds(performance.now() - startedAt)}`);
+  console.log(`  descarga de la tienda: ${seconds(timings.fetchMs)}`);
+  console.log(`  base de datos:         ${seconds(timings.applyMs)}`);
+  console.log(`Consultas a la base:    ${getQueryCount() - queriesBefore}`);
 
   console.log(`Resultado:              ${summary.status}`);
   console.log(`Productos vistos:       ${summary.productsSeen}`);
