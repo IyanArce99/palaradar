@@ -1,11 +1,18 @@
-import type { StoreRow } from "@/types/db";
+/**
+ * Tiendas de PRUEBA para los precios seed. Son nombres ficticios: mientras no
+ * haya precios reales no se atribuyen precios inventados a tiendas reales.
+ */
+export interface StoreSeed {
+  slug: string;
+  name: string;
+  url: string;
+}
 
-// Tiendas de ejemplo. Las URL son de marcador: no hay acuerdos ni enlaces reales.
-export const stores: StoreRow[] = [
-  { id: "st_padelnuestro", slug: "padelnuestro", name: "PadelNuestro", url: "https://example.com/padelnuestro" },
-  { id: "st_padelproshop", slug: "padelproshop", name: "PadelProShop", url: "https://example.com/padelproshop" },
-  { id: "st_padeltienda", slug: "padel-tienda", name: "Padel.tienda", url: "https://example.com/padel-tienda" },
-  { id: "st_zonadepadel", slug: "zona-de-padel", name: "Zona de Padel", url: "https://example.com/zona-de-padel" },
-  { id: "st_amazon", slug: "amazon", name: "Amazon", url: "https://example.com/amazon" },
-  { id: "st_elcorteingles", slug: "el-corte-ingles", name: "El Corte Inglés", url: "https://example.com/el-corte-ingles" },
+export const storeSeeds: StoreSeed[] = [
+  { slug: "tienda-demo-1", name: "Tienda demo 1", url: "https://example.com/tienda-demo-1" },
+  { slug: "tienda-demo-2", name: "Tienda demo 2", url: "https://example.com/tienda-demo-2" },
+  { slug: "tienda-demo-3", name: "Tienda demo 3", url: "https://example.com/tienda-demo-3" },
+  { slug: "tienda-demo-4", name: "Tienda demo 4", url: "https://example.com/tienda-demo-4" },
+  { slug: "tienda-demo-5", name: "Tienda demo 5", url: "https://example.com/tienda-demo-5" },
+  { slug: "tienda-demo-6", name: "Tienda demo 6", url: "https://example.com/tienda-demo-6" },
 ];

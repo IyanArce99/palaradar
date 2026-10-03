@@ -6,6 +6,8 @@ export type PalaShape = "redonda" | "lagrima" | "diamante";
 export type PalaBalance = "bajo" | "medio" | "alto";
 export type PlayerLevel = "iniciacion" | "intermedio" | "avanzado" | "competicion";
 export type PlayStyle = "control" | "polivalente" | "potencia";
+/** draft: borrador a partir de los datos del fabricante, pendiente de revisión */
+export type EditorialStatus = "draft" | "reviewed";
 
 export interface Brand {
   id: string;
@@ -31,8 +33,8 @@ export interface StoreOffer {
   availability: string;
   /** Enlace al producto. null mientras no haya una oferta real detrás. */
   url: string | null;
-  /** Última vez que se comprobó el precio (ISO con hora) */
-  updatedAt: string;
+  /** Momento en que se comprobó el precio en la tienda (ISO con hora) */
+  checkedAt: string;
 }
 
 export interface PricePoint {
@@ -60,6 +62,7 @@ export interface Review {
 }
 
 export interface Editorial {
+  status: EditorialStatus;
   summary: string;
   pros: string[];
   cons: string[];
@@ -115,11 +118,11 @@ export interface Pala {
   year: number;
   images: string[];
   shape: PalaShape;
-  /** Gramos */
-  weight: { min: number; max: number };
-  balance: PalaBalance;
+  /** Gramos. null si el fabricante no lo declara */
+  weight: { min: number; max: number } | null;
+  balance: PalaBalance | null;
   levels: PlayerLevel[];
-  playStyle: PlayStyle;
+  playStyle: PlayStyle | null;
   /** Frase corta para tarjetas y listados */
   description: string;
   editorial: Editorial;
@@ -136,6 +139,8 @@ export interface Pala {
   priceHistory: PricePoint[];
   /** Características que no cubren los campos estructurados (núcleo, caras, marco…) */
   specs: Spec[];
+  /** Página de la que se verificaron las especificaciones */
+  specsSourceUrl: string | null;
   faq: FaqItem[];
   alternatives: Alternative[];
 }

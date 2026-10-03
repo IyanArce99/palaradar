@@ -49,21 +49,35 @@ export function breadcrumbJsonLd(entries: { label: string; href: string }[]) {
 interface ProductJsonLdInput {
   pala: Pala;
   path: string;
-  /** Con datos de ejemplo no se publican valoraciones ni ofertas. */
-  includeCommercialData: boolean;
+  /** false mientras los precios sean de prueba: no se publican como ofertas. */
+  includeOffers: boolean;
 }
 
-export function productJsonLd({ pala, path, includeCommercialData }: ProductJsonLdInput) {
+/** Las ilustraciones propias no son imagen del producto y no se publican como tal. */
+function isProductPhoto(src: string): boolean {
+  return !src.startsWith("/img/palas/");
+}
+
+export function productJsonLd({ pala, path, includeOffers }: ProductJsonLdInput) {
   const { price } = pala;
-  // Un precio sin comprobar tampoco se publica como oferta.
-  const commercial =
-    includeCommercialData && price && !price.isStale
+  const photos = pala.images.filter(isProductPhoto);
+
+  // Sin opiniones no hay valoración que publicar.
+  const rating =
+    pala.reviewCount > 0
       ? {
           aggregateRating: {
             "@type": "AggregateRating",
             ratingValue: pala.rating,
             reviewCount: pala.reviewCount,
           },
+        }
+      : {};
+
+  // Un precio desactualizado tampoco se publica como oferta.
+  const offers =
+    includeOffers && price && price.freshness !== "stale"
+      ? {
           offers: {
             "@type": "AggregateOffer",
             priceCurrency: "EUR",
@@ -83,7 +97,8 @@ export function productJsonLd({ pala, path, includeCommercialData }: ProductJson
     brand: { "@type": "Brand", name: pala.brand.name },
     model: pala.model,
     url: absoluteUrl(path),
-    ...(pala.images.length > 0 ? { image: pala.images } : {}),
-    ...commercial,
+    ...(photos.length > 0 ? { image: photos } : {}),
+    ...rating,
+    ...offers,
   };
 }

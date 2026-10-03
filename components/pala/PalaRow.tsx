@@ -30,7 +30,11 @@ export function PalaRow({ pala }: PalaRowProps) {
         </h3>
         <p className="mt-[3px] text-sm leading-[1.35] text-ink">{pala.description}</p>
         <div className="mt-1.5 flex items-baseline justify-between text-[13px]">
-          <RatingInline rating={pala.rating} reviewCount={pala.reviewCount} />
+          {pala.reviewCount > 0 ? (
+            <RatingInline rating={pala.rating} reviewCount={pala.reviewCount} />
+          ) : (
+            <span />
+          )}
           {pala.price !== null && (
             <span className="whitespace-nowrap text-muted">
               desde{" "}

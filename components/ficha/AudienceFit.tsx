@@ -8,6 +8,8 @@ interface AudienceFitProps {
 
 /** ¿Para quién es? Ideal para / puede no ser para ti. */
 export function AudienceFit({ editorial }: AudienceFitProps) {
+  if (editorial.idealFor.length === 0 && editorial.notFor.length === 0) return null;
+
   return (
     <section aria-labelledby="para-quien">
       <SectionTitle id="para-quien">¿Para quién es?</SectionTitle>

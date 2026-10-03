@@ -8,6 +8,9 @@ interface PlayFeelProps {
 
 /** ¿Cómo se siente jugando? Sensaciones en puntos, sin gráficos. */
 export function PlayFeel({ editorial }: PlayFeelProps) {
+  // Las sensaciones son juicio de uso real: sin ellas no hay sección.
+  if (editorial.feel.length === 0) return null;
+
   return (
     <section aria-labelledby="sensaciones">
       <SectionTitle id="sensaciones">¿Cómo se siente jugando?</SectionTitle>

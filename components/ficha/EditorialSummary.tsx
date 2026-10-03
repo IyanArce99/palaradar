@@ -19,7 +19,10 @@ export function EditorialSummary({ editorial, className }: EditorialSummaryProps
         <CheckList title="Lo menos bueno" items={editorial.cons} tone="negative" />
       </div>
       <p className="mt-4 text-xs text-muted">
-        Resumen del equipo de PalaRadar · actualizado en {formatMonthYear(editorial.updatedAt)}
+        {editorial.status === "draft"
+          ? "Borrador a partir de la información publicada sobre esta pala, pendiente de revisión por el equipo de PalaRadar"
+          : "Resumen del equipo de PalaRadar"}{" "}
+        · actualizado en {formatMonthYear(editorial.updatedAt)}
       </p>
     </section>
   );

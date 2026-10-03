@@ -1,6 +1,7 @@
 // Filas de la base de datos, una interfaz por tabla o vista de db/schema.sql.
 // Los nombres van en snake_case para coincidir con las columnas de PostgreSQL.
 import type {
+  EditorialStatus,
   FaqItem,
   PalaBalance,
   PalaShape,
@@ -27,13 +28,14 @@ export interface RacketRow {
   year: number;
   images: string[];
   shape: PalaShape;
-  balance: PalaBalance;
-  play_style: PlayStyle;
+  balance: PalaBalance | null;
+  play_style: PlayStyle | null;
   levels: PlayerLevel[];
-  weight_min: number;
-  weight_max: number;
+  weight_min: number | null;
+  weight_max: number | null;
   description: string;
   editorial_summary: string;
+  editorial_status: EditorialStatus;
   pros: string[];
   cons: string[];
   ideal_for: string[];
@@ -48,6 +50,7 @@ export interface RacketRow {
   review_highlights: string[];
   technical_specs: Spec[];
   faq: FaqItem[];
+  specs_source_url: string | null;
 }
 
 export interface RacketAlternativeRow {
@@ -73,7 +76,8 @@ export interface StorePriceRow {
   shipping_cost: number;
   availability: string;
   product_url: string | null;
-  last_updated: string;
+  /** Momento en que se comprobó el precio (ISO con hora) */
+  checked_at: string;
 }
 
 /** Precio final (con envío) de una pala en una tienda un día concreto */
@@ -81,7 +85,8 @@ export interface PriceHistoryRow {
   racket_id: string;
   store_id: string;
   price: number;
-  date: string;
+  /** Día al que corresponde el precio (YYYY-MM-DD) */
+  price_date: string;
 }
 
 export interface ReviewRow {
@@ -108,7 +113,7 @@ export interface RacketPriceStatsRow {
   min_price_date: string | null;
   price_30d_ago: number | null;
   price_status: PriceStatus;
-  price_updated_at: string;
+  price_checked_at: string;
   computed_at: string;
 }
 
@@ -123,8 +128,8 @@ export interface RacketCatalogRow {
   year: number;
   images: string[];
   shape: PalaShape;
-  balance: PalaBalance;
-  play_style: PlayStyle;
+  balance: PalaBalance | null;
+  play_style: PlayStyle | null;
   levels: PlayerLevel[];
   description: string;
   rating: number;
@@ -141,5 +146,5 @@ export interface RacketCatalogRow {
   min_price: number | null;
   price_30d_ago: number | null;
   price_status: PriceStatus | null;
-  price_updated_at: string | null;
+  price_checked_at: string | null;
 }

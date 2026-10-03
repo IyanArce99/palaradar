@@ -105,8 +105,13 @@ export function PalaCard({
               </Link>
             </h3>
             <p className="mt-0.5 text-[13px] text-muted">
-              <span aria-hidden="true">★ </span>
-              {formatRating(pala.rating)} · {SHAPE_LABELS[pala.shape]}
+              {pala.reviewCount > 0 && (
+                <>
+                  <span aria-hidden="true">★ </span>
+                  {formatRating(pala.rating)} ·{" "}
+                </>
+              )}
+              {SHAPE_LABELS[pala.shape]}
             </p>
           </>
         ) : (
@@ -115,7 +120,9 @@ export function PalaCard({
               <span className="text-muted">
                 {pala.brand.name} · {pala.year}
               </span>
-              <RatingInline rating={pala.rating} reviewCount={pala.reviewCount} />
+              {pala.reviewCount > 0 && (
+                <RatingInline rating={pala.rating} reviewCount={pala.reviewCount} />
+              )}
             </div>
             <h3 className="mt-0.5 text-[15px] leading-[1.2] font-extrabold lg:text-[17px]">
               <Link href={routes.pala(pala.slug)} className={cardLinkClass}>

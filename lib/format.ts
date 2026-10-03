@@ -62,7 +62,8 @@ export function formatTimeAgo(iso: string, nowIso: string): string {
   if (minutes < 1) return "hace un momento";
   if (minutes < 60) return `hace ${minutes} ${minutes === 1 ? "minuto" : "minutos"}`;
   const hours = Math.round(minutes / 60);
-  if (hours < 24) return `hace ${hours} ${hours === 1 ? "hora" : "horas"}`;
+  // Hasta dos días se cuenta en horas: «hace 30 horas» dice más que «hace 1 día».
+  if (hours < 48) return `hace ${hours} ${hours === 1 ? "hora" : "horas"}`;
   const days = Math.round(hours / 24);
   return `hace ${days} ${days === 1 ? "día" : "días"}`;
 }

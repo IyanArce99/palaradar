@@ -1,6 +1,6 @@
 import { buttonClass } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
-import { formatEuro, pluralize } from "@/lib/format";
+import { formatEuro, formatTimeAgo, pluralize } from "@/lib/format";
 import type { PriceSummary, PriceVerdict } from "@/types/pricing";
 
 const STATUS_DOT: Record<PriceVerdict["status"], string> = {
@@ -34,7 +34,7 @@ export function PriceCard({ price, storesHref, className }: PriceCardProps) {
       className={cn("rounded-[22px] border-2 border-carbon p-5 lg:p-6", className)}
     >
       <h2 className="text-[13px] font-bold text-muted">
-        {price.isStale ? "Último precio conocido" : "Mejor precio hoy"}
+        {price.freshness === "current" ? "Mejor precio hoy" : "Último precio conocido"}
       </h2>
       <p className="mt-0.5 text-[44px] leading-[1.05] font-black tracking-[-0.035em] whitespace-nowrap tabular-nums">
         {formatEuro(price.current)}
@@ -42,6 +42,8 @@ export function PriceCard({ price, storesHref, className }: PriceCardProps) {
       <p className="text-sm text-ink">
         en {price.bestOffer.store.name} · comparado en{" "}
         {pluralize(price.storeCount, "tienda", "tiendas")}
+        {price.freshness !== "current" &&
+          ` · comprobado ${formatTimeAgo(price.checkedAt, price.asOf)}`}
       </p>
 
       <div className="mt-4 border-t border-line pt-4">

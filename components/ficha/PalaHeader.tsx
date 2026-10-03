@@ -21,13 +21,15 @@ export function PalaHeader({ pala, reviewsHref }: PalaHeaderProps) {
           {pala.model}
         </span>
       </h1>
-      <p className="mt-2.5 flex items-center gap-2 text-sm">
-        <Stars rating={pala.rating} className="text-base" />
-        <strong aria-hidden="true">{formatRating(pala.rating)}</strong>
-        <a href={reviewsHref} className="text-muted underline">
-          {formatCount(pala.reviewCount)} opiniones
-        </a>
-      </p>
+      {pala.reviewCount > 0 && (
+        <p className="mt-2.5 flex items-center gap-2 text-sm">
+          <Stars rating={pala.rating} className="text-base" />
+          <strong aria-hidden="true">{formatRating(pala.rating)}</strong>
+          <a href={reviewsHref} className="text-muted underline">
+            {formatCount(pala.reviewCount)} opiniones
+          </a>
+        </p>
+      )}
     </header>
   );
 }

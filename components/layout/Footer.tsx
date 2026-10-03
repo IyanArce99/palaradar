@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Logo } from "@/components/ui/icons";
 import { catalogShortcuts, mainNav } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
-import { getBrands, isDemoData } from "@/data";
+import { getBrands, hasTestPrices } from "@/data";
 import { catalogHref } from "@/lib/catalog/query";
 import { routes } from "@/lib/routes";
 
@@ -43,10 +43,10 @@ export async function Footer() {
             El lugar al que vas antes de comprar una pala: opiniones, comparativas y precios en
             todas las tiendas.
           </p>
-          {isDemoData && (
+          {hasTestPrices && (
             <p className="mt-3 max-w-[320px]">
-              Versión de demostración: los precios, las tiendas y las opiniones que ves son datos
-              de ejemplo.
+              Versión en pruebas: las tiendas y los precios que ves son datos de prueba, no
+              ofertas reales.
             </p>
           )}
         </div>

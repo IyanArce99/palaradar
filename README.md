@@ -1,92 +1,119 @@
 # PalaRadar
 
-El lugar al que vas antes de comprar una pala de pádel: catálogo, opiniones de jugadores, para quién es cada pala, precios por tienda e histórico. Español de España, mobile-first.
+El lugar al que vas antes de comprar una pala de pádel: catálogo, para quién es cada pala, precios por tienda e histórico. Español de España, mobile-first.
 
-**Objetivo:** convertir el diseño V3 en un producto real. La interfaz está implementada; la capa de datos está preparada para PostgreSQL/Supabase pero hoy funciona con una semilla de ejemplo. Precios, tiendas y opiniones son **ficticios**.
+**Estado:** interfaz V3 implementada sobre PostgreSQL/Supabase, con un catálogo pequeño de palas reales. Las especificaciones son reales y trazables a su fuente; **los precios y las tiendas son de prueba** y todavía no hay opiniones.
 
 ## Stack
 
-Next.js 16 (App Router) · React 19 · TypeScript estricto · Tailwind CSS 4. Sin más dependencias de ejecución.
+Next.js 16 (App Router) · React 19 · TypeScript estricto · Tailwind CSS 4 · PostgreSQL (driver `postgres`).
 
 ## Ejecutar
 
 ```bash
 npm install
-npm run dev      # http://localhost:3000
-npm run build    # build de producción
+npm run dev        # http://localhost:3000
+npm run build
 npm run lint
-npx tsc --noEmit # comprobación de tipos
+npm run typecheck
 ```
 
-Variables de entorno (opcionales):
+Sin configurar nada, el proyecto arranca con los datos seed en memoria.
 
-| Variable | Uso |
+### Con base de datos
+
+1. Copia `.env.example` como `.env.local` y pon tu `DATABASE_URL` (en Supabase: Project Settings → Database → Connection string).
+2. `npm run db:migrate` — crea tablas, índices y vistas (`db/schema.sql`). No hace nada si ya existen; `-- --reset` las borra y recrea.
+3. `npm run db:seed` — carga las palas y los precios de prueba, y calcula los agregados de precio. Sustituye el contenido de las tablas de PalaRadar.
+4. `npm run db:stats` — recalcula los agregados después de cambiar precios a mano.
+
+### Cambiar entre mock y base de datos
+
+| `DATA_SOURCE` | Resultado |
 |---|---|
-| `NEXT_PUBLIC_SITE_URL` | Dominio para canónicas y sitemap. Por defecto `https://palaradar.es` |
-| `NEXT_PUBLIC_ALLOW_INDEXING` | `true` para permitir la indexación. Sin ella, todo el sitio va con `noindex` y `robots.txt` lo bloquea |
+| sin definir | Base de datos si `DATABASE_URL` está configurada; si no, seed en memoria |
+| `mock` | Seed en memoria, aunque haya base de datos |
+| `database` | Base de datos; falla al arrancar si no está configurada |
+
+Las demás variables (umbrales de antigüedad del precio, `PRICES_ARE_REAL`, dominio, indexación) están documentadas en `.env.example`.
 
 ## Estructura
 
 ```
 app/          Rutas, metadata, sitemap y robots
 components/   layout/ · ui/ · pala/ · catalog/ · ficha/ · home/ · seo/
-config/       Sitio y navegación
+config/       Sitio, navegación y umbrales de precio
 content/      Contenido editorial que no vive en base de datos (guías)
 data/         Capa de acceso a datos (lo único que importan las páginas)
-  repository.ts         Contrato CatalogRepository
-  memory-repository.ts  Implementación en memoria sobre la semilla
-  mappers.ts            Filas de BD → modelos de dominio
-  seed/                 Semilla de ejemplo con la forma de las tablas
+  index.ts                Elige el origen de datos
+  repository.ts           Contrato CatalogRepository
+  postgres-repository.ts  Implementación sobre PostgreSQL/Supabase
+  memory-repository.ts    Implementación en memoria sobre el seed
+  mappers.ts              Filas de BD → modelos de dominio
+  db/                     Conexión y operaciones de administración
+  seed/                   Palas reales, marcas, tiendas de prueba y generador de filas
 db/schema.sql PostgreSQL: tablas, índices y vistas
 lib/          Lógica pura: precios, formato, consulta del catálogo, SEO
 types/        catalog.ts y pricing.ts (dominio) · db.ts (filas de BD)
-scripts/      generate-art.mjs
+scripts/      db/ (migrate, seed, stats) · generate-art.ts
 ```
-
-## Rutas
-
-| Ruta | Render | Estado |
-|---|---|---|
-| `/` | Estática, se regenera cada hora | Completa |
-| `/palas-padel/` | Servidor (filtros en la URL) | Completa |
-| `/palas-padel/[marca]/` | Servidor (paginación) | Completa |
-| `/pala/[slug]/` | Estática por pala, se regenera cada hora | Completa |
-| `/ofertas/` | Estática, se regenera cada hora | Completa |
-| `/comparar/`, `/guias/`, `/escanear/` | Estática | Preparadas, sin funcionalidad |
 
 ## Arquitectura de datos
 
 ```
-páginas → @/data → CatalogRepository → memory-repository (hoy) | Supabase (siguiente fase)
+UI → data/index.ts → CatalogRepository → postgres-repository → PostgreSQL/Supabase
+                                       ↘ memory-repository  → seed en memoria
 ```
 
-- **Dos familias de tipos.** `types/db.ts` describe las filas tal y como están en PostgreSQL (snake_case). `types/catalog.ts` describe lo que consumen los componentes (`Pala`, `PalaSummary`). `data/mappers.ts` convierte de unas a otras y lo reutiliza cualquier repositorio.
-- **Tablas** (`db/schema.sql`): `brands`, `rackets`, `stores`, `store_prices` (precio actual por pala y tienda), `price_history` (precio por pala, tienda y día), `reviews`, `racket_alternatives` y `racket_price_stats`.
-- **`racket_price_stats`** guarda una fila por pala con sus agregados (mejor precio, descuento, media de 90 días, mínimo, precio de hace 30 días, estado). Existe para que el catálogo filtre y ordene por precio en SQL sin recorrer el histórico. La recalcula el proceso que actualice precios, con `computePriceStats` de `lib/pricing.ts`.
-- **El catálogo consulta una vista**, `racket_catalog`. Filtros, búsqueda, orden y paginación se resuelven dentro de `searchCatalog`, que devuelve solo la página pedida y el total.
-- **Pasar a Supabase:** implementar `CatalogRepository` contra las tablas y asignarlo en `data/index.ts`. Páginas y componentes no cambian.
+Ningún componente importa la base de datos: solo `data/`.
 
-### Datos de ejemplo
+- **Dos familias de tipos.** `types/db.ts` describe las filas (snake_case); `types/catalog.ts`, lo que consumen los componentes. `data/mappers.ts` convierte de unas a otras para ambos repositorios.
+- **El catálogo consulta la vista `racket_catalog`.** Búsqueda, filtros, orden y paginación se resuelven en SQL; se devuelve solo la página pedida y el total.
+- **`racket_price_stats`** guarda los agregados de precio de cada pala para que esa consulta pueda filtrar y ordenar por precio sin recorrer el histórico. Se recalcula con `npm run db:stats`.
+- **La ficha no depende de esa tabla:** calcula el resumen de precio sobre `store_prices` y `price_history` en cada render.
 
-`data/seed/` contiene siete palas con la misma forma que las tablas. `data/seed/index.ts` genera a partir de ellas las filas de precios, histórico, opiniones y alternativas. `memory-repository.ts` construye al cargar los agregados y la vista, y responde a cada consulta como lo haría un `SELECT`.
+### Qué tablas usa cada pantalla
 
-Mientras se use la semilla, `isDemoData` es `true`: la interfaz avisa de que los datos son de ejemplo y el JSON-LD no publica valoraciones ni ofertas.
+| Pantalla | Tablas y vistas |
+|---|---|
+| Catálogo, marca, ofertas, portada (listados) | `racket_catalog` (= `rackets` + `brands` + `racket_price_stats`) |
+| Filtros del catálogo | `brands`, `rackets`, `racket_price_stats` |
+| Ficha | `rackets`, `brands`, `store_prices`, `stores`, `racket_price_daily` (sobre `price_history`), `reviews`, `racket_alternatives` + `racket_catalog` |
+| Sitemap | `rackets`, `brands` |
 
 ### Fechas y precios
 
-La fecha actual es un dato de entrada, no "el último registro del histórico":
+Tres fechas distintas que no se mezclan:
 
-- **Reloj.** Cada repositorio define su `now()`. Con datos reales es la hora actual; con la semilla se fija en `SEED_SNAPSHOT_AT` para que los precios de ejemplo no caduquen.
-- **Última actualización.** Cada precio lleva `last_updated`. Si pasan más de 48 horas (`PRICE_STALE_AFTER_HOURS`), el precio se considera desactualizado: no se emite veredicto, el gráfico termina en el último registro y no se publica como oferta.
-- **Histórico.** Las ventanas (media de 90 días, bajada del mes) se cuentan desde hoy. Si el precio está al día y aún no hay registro de hoy, el gráfico añade el precio actual como último punto.
+- **Fecha actual:** la del servidor; toda la lógica de `lib/pricing.ts` la recibe como parámetro.
+- **`checked_at`:** cuándo se comprobó un precio en la tienda.
+- **`price_date`:** el día al que corresponde un registro del histórico.
+
+Según la antigüedad de `checked_at`, el precio se presenta como:
+
+| Antigüedad | Estado | En pantalla |
+|---|---|---|
+| hasta 24 h (`PRICE_CURRENT_HOURS`) | actual | «Mejor precio hoy», el gráfico llega a hoy |
+| hasta 48 h (`PRICE_STALE_AFTER_HOURS`) | reciente | «Último precio conocido · comprobado hace N horas» |
+| más de 48 h | desactualizado | «Precio sin confirmar», sin veredicto |
+
+### Seed
+
+`data/seed/rackets.ts` contiene 28 palas reales de 8 marcas. Cada una indica la página de la que salen sus datos; lo que la fuente no declara, o declara de forma ambigua, va en nulo. El campo `pending` recoge las dudas por revisar a mano. Varias marcas bloquean el acceso automático a su web, así que sus palas proceden de la ficha de una tienda (`source: "tienda"`) y conviene revisarlas.
+
+- **Editorial:** borrador que resume lo que declara la fuente (`editorial_status = 'draft'`). Sin pros y contras ni puntuaciones de sensaciones.
+- **Opiniones:** ninguna. Valoración y número de opiniones a cero.
+- **Precios:** de prueba, generados de forma determinista a partir del precio de referencia y repartidos en tiendas ficticias. Se comprueban «ahora» al ejecutar el seed, salvo unas pocas palas que quedan a 30 horas y a 6 días para ver los tres estados. Caducan a las 48 horas: `npm run db:seed` los renueva.
+
+Mientras los precios sean de prueba (`PRICES_ARE_REAL` distinto de `true`), la web lo avisa y el JSON-LD no los publica como ofertas.
 
 ## SEO
 
 - HTML completo en servidor; un `h1` por página; title, description y canónica propios.
-- JSON-LD de migas de pan en todas las páginas con ruta y de producto en la ficha.
+- JSON-LD de migas de pan y de producto. Las ilustraciones no se publican como imagen de producto.
 - `sitemap.xml` con portada, catálogo, ofertas, marcas y fichas.
 
-**Paginación** (pensada para 1.000–2.000 palas, 24 por página):
+**Paginación** (24 palas por página; lógica en `lib/catalog/seo.ts`):
 
 | URL | Indexable | Canónica |
 |---|---|---|
@@ -96,27 +123,16 @@ La fecha actual es un dato de entrada, no "el último registro del histórico":
 | Cualquier otro filtro, orden o búsqueda | No (`noindex, follow`) | Ninguna |
 | Página fuera de rango | 404 | — |
 
-Las páginas 2 en adelante no apuntan a la primera porque su contenido es distinto. Se usa `?pagina=N` y no `/pagina/N/` porque esa ruta chocaría con `/palas-padel/[marca]/`. La lógica está en `lib/catalog/seo.ts`.
+Todo el sitio va con `noindex` hasta definir `NEXT_PUBLIC_ALLOW_INDEXING=true`.
 
 ## Ilustraciones
 
-```bash
-node scripts/generate-art.mjs
-```
-
-Genera en `public/img/` una ilustración por pala, la de portada y las de guías. Son arte propio sin logotipos, no fotos del producto. Para usar recortes reales, cambiar `images` en la semilla o en la base de datos.
-
-## Implementado
-
-- Layout, cabecera, pie y barra inferior móvil.
-- Portada, catálogo con filtros y paginación, páginas de marca, ficha de pala y ofertas.
-- Veredicto de precio en lenguaje natural e histórico de 3, 6 y 12 meses.
-- Modelo de datos, esquema SQL, repositorio y semilla.
+`npm run art` genera en `public/img/` una ilustración por pala del seed, la de portada y las de guías. Son arte propio sin logotipos, no fotos del producto. Para usar fotos reales, cambiar `images` en la tabla `rackets`.
 
 ## Pendiente
 
-- Repositorio sobre Supabase y carga de la semilla.
-- Proceso de actualización de precios que rellene `price_history` y `racket_price_stats`.
+- Precios reales: proceso que actualice `store_prices`, escriba `price_history` y ejecute el recálculo de agregados.
+- Revisar a mano las palas de `source: "tienda"` y los campos `pending`.
+- Texto editorial revisado y opiniones reales.
 - Comparador, guías individuales, escáner IA, alertas y cuentas de usuario.
-- Subpáginas de opiniones e histórico; galería de fotos; filtros de potencia, control y peso.
 - Fotos reales de producto e imagen Open Graph.

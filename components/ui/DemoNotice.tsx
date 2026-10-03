@@ -1,4 +1,4 @@
-import { isDemoData } from "@/data";
+import { hasTestPrices } from "@/data";
 import { cn } from "@/lib/cn";
 
 interface DemoNoticeProps {
@@ -6,9 +6,9 @@ interface DemoNoticeProps {
   className?: string;
 }
 
-/** Aviso de datos de ejemplo. Deja de mostrarse al conectar datos reales. */
+/** Aviso de precios de prueba. Deja de mostrarse cuando los precios son reales. */
 export function DemoNotice({ children, className }: DemoNoticeProps) {
-  if (!isDemoData) return null;
+  if (!hasTestPrices) return null;
 
   return <p className={cn("text-xs text-muted", className)}>{children}</p>;
 }

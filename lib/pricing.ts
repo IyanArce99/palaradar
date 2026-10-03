@@ -1,5 +1,7 @@
+import { pricingConfig } from "@/config/pricing";
 import type { PricePoint, StoreOffer } from "@/types/catalog";
 import type {
+  PriceFreshness,
   PriceStats,
   PriceStatus,
   PriceSummary,
@@ -8,17 +10,16 @@ import type {
 } from "@/types/pricing";
 import { formatDate, formatEuroCompact, formatMonthYear, formatPercent } from "./format";
 
-// Toda la lógica de precios recibe `now` de forma explícita: la fecha actual es
-// un dato de entrada, nunca "el último registro del histórico".
+// Tres fechas distintas que esta lógica nunca mezcla:
+//   · now        → la fecha actual, siempre recibida como parámetro
+//   · checkedAt  → cuándo se comprobó un precio en la tienda
+//   · priceDate  → el día al que corresponde un registro del histórico
 
 const DAY_MS = 86_400_000;
 const HOUR_MS = 3_600_000;
 const AVERAGE_WINDOW_DAYS = 90;
 const MONTH_DAYS = 30;
 const DAYS_PER_MONTH = 30.5;
-
-/** Un precio sin comprobar durante más tiempo se considera desactualizado. */
-export const PRICE_STALE_AFTER_HOURS = 48;
 
 // Umbrales del veredicto de precio
 const AT_MIN_RATIO = 1.03;
@@ -61,8 +62,11 @@ export function priceDaysAgo(history: PricePoint[], days: number, now: Date): nu
   return history.findLast((point) => dayTime(point.date) <= target)?.price ?? null;
 }
 
-export function isPriceStale(updatedAt: string, now: Date): boolean {
-  return now.getTime() - Date.parse(updatedAt) > PRICE_STALE_AFTER_HOURS * HOUR_MS;
+/** Antigüedad de una comprobación de precio respecto a la fecha actual. */
+export function priceFreshness(checkedAt: string, now: Date): PriceFreshness {
+  const hours = (now.getTime() - Date.parse(checkedAt)) / HOUR_MS;
+  if (hours <= pricingConfig.currentHours) return "current";
+  return hours <= pricingConfig.staleAfterHours ? "recent" : "stale";
 }
 
 function average(points: PricePoint[]): number | null {
@@ -98,8 +102,9 @@ export function classifyPrice(
 }
 
 /**
- * Agregados de precio de una pala a fecha `now`. Es la lógica que debe ejecutar
- * el proceso de actualización de precios para rellenar `racket_price_stats`.
+ * Agregados de precio de una pala a fecha `now`, a partir de sus ofertas y de
+ * su histórico diario. La usan la ficha (sobre los precios vivos) y el proceso
+ * que rellena `racket_price_stats` para el catálogo.
  * Devuelve null si la pala no tiene ninguna oferta.
  */
 export function computePriceStats(
@@ -131,23 +136,23 @@ export function computePriceStats(
     minPriceDate: min?.date ?? null,
     price30dAgo: priceDaysAgo(history, MONTH_DAYS, now),
     status: classifyPrice(best.total, average90, min?.price ?? null),
-    priceUpdatedAt: best.updatedAt,
+    priceCheckedAt: best.checkedAt,
     computedAt: now.toISOString(),
   };
 }
 
 type NoteInput = Pick<PriceStats, "status" | "bestPrice" | "minPrice">;
 
-/** Nota corta para tarjetas; null si no hay nada que destacar. */
-export function priceCardNote(stats: NoteInput, isStale: boolean): string | null {
-  if (isStale || stats.status !== "good") return null;
+/** Nota corta para tarjetas; null si no hay nada que destacar o el precio está desactualizado. */
+export function priceCardNote(stats: NoteInput, freshness: PriceFreshness): string | null {
+  if (freshness === "stale" || stats.status !== "good") return null;
   const atMin = stats.minPrice !== null && stats.bestPrice <= stats.minPrice * AT_MIN_RATIO;
   return atMin ? "Cerca de su mínimo" : "Buen momento para comprar";
 }
 
-function describePrice(stats: PriceStats, isStale: boolean): PriceVerdict {
-  if (isStale) {
-    const since = formatDate(stats.priceUpdatedAt);
+function describePrice(stats: PriceStats, freshness: PriceFreshness): PriceVerdict {
+  if (freshness === "stale") {
+    const since = formatDate(stats.priceCheckedAt);
     return {
       status: "stale",
       label: "Precio sin confirmar",
@@ -200,21 +205,21 @@ function describePrice(stats: PriceStats, isStale: boolean): PriceVerdict {
   };
 }
 
-/** Resumen de precio para la ficha, a partir de los agregados y las ofertas. */
+/** Resumen de precio para la ficha, calculado sobre las ofertas vivas. null si no hay ofertas. */
 export function buildPriceSummary(
-  stats: PriceStats,
   offers: StoreOffer[],
+  history: PricePoint[],
   now: Date,
 ): PriceSummary | null {
-  const ranked = rankOffers(offers);
-  const bestOffer = ranked.find((offer) => offer.store.id === stats.bestStoreId) ?? ranked[0];
-  if (!bestOffer) return null;
+  const stats = computePriceStats(offers, history, now);
+  if (!stats) return null;
 
-  const isStale = isPriceStale(stats.priceUpdatedAt, now);
+  const ranked = rankOffers(offers);
+  const freshness = priceFreshness(stats.priceCheckedAt, now);
 
   return {
     current: stats.bestPrice,
-    bestOffer,
+    bestOffer: ranked[0],
     offers: ranked,
     storeCount: stats.storeCount,
     previous: stats.previousPrice,
@@ -224,27 +229,27 @@ export function buildPriceSummary(
       stats.minPrice !== null && stats.minPriceDate !== null
         ? { price: stats.minPrice, date: stats.minPriceDate }
         : null,
-    updatedAt: stats.priceUpdatedAt,
+    checkedAt: stats.priceCheckedAt,
     asOf: now.toISOString(),
-    isStale,
-    verdict: describePrice(stats, isStale),
+    freshness,
+    verdict: describePrice(stats, freshness),
   };
 }
 
-type ChartPrice = Pick<PriceSummary, "current" | "asOf" | "isStale">;
+type ChartPrice = Pick<PriceSummary, "current" | "asOf" | "checkedAt" | "freshness">;
 
 /**
- * Serie del gráfico para los últimos `months` meses contados desde hoy. Si el
- * precio está al día y el histórico aún no tiene registro de hoy, se añade el
- * precio actual; si está desactualizado, la serie termina en el último registro.
+ * Serie del gráfico para los últimos `months` meses contados desde hoy. El
+ * precio actual se añade como último punto en la fecha que le corresponde: hoy
+ * si la comprobación es reciente, o el día en que se comprobó si no lo es.
  */
 export function chartSeries(history: PricePoint[], price: ChartPrice, months: number): PricePoint[] {
   const now = new Date(price.asOf);
   const points = historyWindow(history, Math.round(months * DAYS_PER_MONTH), now);
-  const today = toIsoDate(now);
-  const lastDate = points.at(-1)?.date ?? "";
+  const lastPointDate = price.freshness === "current" ? toIsoDate(now) : price.checkedAt.slice(0, 10);
+  const lastRecorded = points.at(-1)?.date ?? "";
 
-  return !price.isStale && lastDate < today
-    ? [...points, { date: today, price: price.current }]
+  return lastRecorded < lastPointDate
+    ? [...points, { date: lastPointDate, price: price.current }]
     : points;
 }

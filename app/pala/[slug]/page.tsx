@@ -15,7 +15,7 @@ import { StoreList } from "@/components/ficha/StoreList";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
-import { getAllPalaSlugs, getPalaBySlug, isDemoData } from "@/data";
+import { getAllPalaSlugs, getPalaBySlug, hasTestPrices } from "@/data";
 import { routes } from "@/lib/routes";
 import { pageMetadata, productJsonLd } from "@/lib/seo";
 
@@ -57,7 +57,7 @@ export default async function PalaPage({ params }: PalaPageProps) {
 
   return (
     <article>
-      <JsonLd data={productJsonLd({ pala, path, includeCommercialData: !isDemoData })} />
+      <JsonLd data={productJsonLd({ pala, path, includeOffers: !hasTestPrices })} />
 
       <Breadcrumbs
         mobileBack={{ label: "Palas", href: routes.catalog }}

@@ -24,4 +24,4 @@ export const guides: Guide[] = [
 ];
 
 /** Pala destacada en la portada */
-export const featuredPalaSlug = "bullpadel-vertex-04-2026";
+export const featuredPalaSlug = "bullpadel-vertex-04-2025";

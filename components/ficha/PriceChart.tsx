@@ -56,7 +56,7 @@ export function PriceChart({ history, price, months, width, height, className }:
   const last = points[points.length - 1];
   const lastX = x(points.length - 1);
   const lastY = y(last.price);
-  const endsToday = !price.isStale;
+  const endsToday = price.freshness === "current";
   const { average90, historicalMin } = price;
 
   return (

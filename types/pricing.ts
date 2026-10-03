@@ -3,6 +3,14 @@ import type { PricePoint, StoreOffer } from "./catalog";
 /** Valoración del precio actual frente a su histórico */
 export type PriceStatus = "good" | "fair" | "wait";
 
+/**
+ * Antigüedad de la última comprobación del precio:
+ * - current: comprobado dentro de las últimas PRICE_CURRENT_HOURS → «precio de hoy»
+ * - recent: más antiguo, pero aún dentro de PRICE_STALE_AFTER_HOURS → «último precio conocido»
+ * - stale: desactualizado → «precio sin confirmar», sin veredicto
+ */
+export type PriceFreshness = "current" | "recent" | "stale";
+
 export interface RankedOffer extends StoreOffer {
   /** Precio final con envío */
   total: number;
@@ -25,7 +33,7 @@ export interface PriceStats {
   price30dAgo: number | null;
   status: PriceStatus;
   /** Última comprobación del mejor precio (ISO con hora) */
-  priceUpdatedAt: string;
+  priceCheckedAt: string;
   computedAt: string;
 }
 
@@ -50,11 +58,10 @@ export interface PriceSummary {
   dropPercent: number | null;
   average90: number | null;
   historicalMin: PricePoint | null;
-  /** Última comprobación del mejor precio (ISO con hora) */
-  updatedAt: string;
-  /** Momento respecto al que se ha calculado todo: el «hoy» de la capa de datos */
+  /** Momento en que se comprobó el mejor precio (ISO con hora) */
+  checkedAt: string;
+  /** Fecha actual respecto a la que se ha calculado todo (ISO con hora) */
   asOf: string;
-  /** true si el precio lleva más tiempo sin comprobarse del admitido */
-  isStale: boolean;
+  freshness: PriceFreshness;
   verdict: PriceVerdict;
 }

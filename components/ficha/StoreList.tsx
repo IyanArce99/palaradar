@@ -70,9 +70,9 @@ export function StoreList({ price, id }: StoreListProps) {
       <SectionTitle id={id}>Precios en todas las tiendas</SectionTitle>
       <p className="mt-1.5 text-[13px] leading-[1.45] text-pretty text-muted">
         Precio final con envío, de más barata a más cara.{" "}
-        {price.isStale
-          ? `Sin actualizar desde el ${formatDate(price.updatedAt)}.`
-          : `Actualizado ${formatTimeAgo(price.updatedAt, price.asOf)}.`}
+        {price.freshness === "stale"
+          ? `Sin comprobar desde el ${formatDate(price.checkedAt)}.`
+          : `Comprobado ${formatTimeAgo(price.checkedAt, price.asOf)}.`}
       </p>
       <ol className="mt-3.5 overflow-hidden rounded-[18px] border border-line">
         {price.offers.map((offer, i) => (
@@ -80,7 +80,7 @@ export function StoreList({ price, id }: StoreListProps) {
         ))}
       </ol>
       <DemoNotice className="mt-3">
-        Tiendas y precios de ejemplo: los enlaces se activarán con las ofertas reales.
+        Tiendas y precios de prueba: no son ofertas reales. Los enlaces se activarán con ellas.
       </DemoNotice>
     </section>
   );

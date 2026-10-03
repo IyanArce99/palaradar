@@ -1,4 +1,3 @@
-import { DemoNotice } from "@/components/ui/DemoNotice";
 import { Stars } from "@/components/ui/Rating";
 import { formatCount, formatMonthYear, formatRating } from "@/lib/format";
 import { LEVEL_LABELS } from "@/lib/labels";
@@ -45,6 +44,17 @@ interface PlayerOpinionsProps {
 
 /** Qué opinan los jugadores: valoración global, aspectos, lo que más repiten y opiniones. */
 export function PlayerOpinions({ pala, id }: PlayerOpinionsProps) {
+  if (pala.reviewCount === 0) {
+    return (
+      <section aria-labelledby={id}>
+        <SectionTitle id={id}>Qué opinan los jugadores</SectionTitle>
+        <p className="mt-2.5 text-base leading-[1.6] text-pretty text-ink">
+          Todavía no tenemos opiniones de jugadores sobre esta pala.
+        </p>
+      </section>
+    );
+  }
+
   return (
     <section aria-labelledby={id}>
       <SectionTitle id={id}>Qué opinan los jugadores</SectionTitle>
@@ -106,10 +116,6 @@ export function PlayerOpinions({ pala, id }: PlayerOpinionsProps) {
           </ul>
         </>
       )}
-
-      <DemoNotice className="mt-3">
-        Valoraciones y opiniones de ejemplo: todavía no proceden de jugadores reales.
-      </DemoNotice>
     </section>
   );
 }
