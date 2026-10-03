@@ -8,7 +8,12 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "test": "tsx --test \"tests/**/*.test.ts\"",
+    "test:db": "tsx --env-file-if-exists=.env.local --test \"tests/db/*.test.ts\"",
     "art": "tsx scripts/generate-art.ts",
+    "ingest:demo": "tsx scripts/ingest-demo.ts",
+    "prices:dry-run": "tsx --env-file-if-exists=.env.local scripts/prices/dry-run.ts",
+    "prices:ingest": "tsx --env-file-if-exists=.env.local scripts/prices/ingest.ts",
     "db:migrate": "tsx --env-file-if-exists=.env.local scripts/db/migrate.ts",
     "db:seed": "tsx --env-file-if-exists=.env.local scripts/db/seed.ts",
     "db:stats": "tsx --env-file-if-exists=.env.local scripts/db/stats.ts"

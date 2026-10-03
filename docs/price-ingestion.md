@@ -1,6 +1,41 @@
 # Ingestión de precios
 
-Investigación y diseño del sistema que sustituirá los precios de prueba por precios reales. **Nada de esto está implementado.** Comprobaciones hechas el 3 de octubre de 2026 con unas pocas peticiones por tienda; lo que no se pudo comprobar está marcado como tal.
+Investigación y diseño del sistema que sustituirá los precios de prueba por precios reales. Comprobaciones hechas el 3 de octubre de 2026 con unas pocas peticiones por tienda; lo que no se pudo comprobar está marcado como tal.
+
+## Estado de la implementación
+
+La ingestión está construida en `ingestion/`. **Hay una tienda real conectada: PadelProShop**, con autorización expresa de la tienda, a través del JSON de su colección de palas. Se ejecuta a mano; todavía no hay tarea programada.
+
+```bash
+npm run prices:dry-run                        # descarga, empareja y muestra el resultado; no escribe nada
+npm run prices:ingest -- --store=padelproshop # ingestión real, en una única transacción
+```
+
+24 de las 28 palas del catálogo tienen EAN verificado en `racket_identifiers`, tomado de la web del fabricante o contrastado en dos fuentes. Las cuatro restantes (Bullpadel Neuron 2025, Head Extreme Pro 2026, Head Evo Extreme 2025 y Wilson Defy LS V1 SE 2026) no tienen un EAN que se haya podido verificar sin ambigüedad.
+
+| Pieza | Archivo |
+|---|---|
+| Contrato del adaptador y tipos | `ingestion/types.ts` |
+| Validación de EAN/GTIN | `ingestion/gtin.ts` |
+| Emparejamiento con el catálogo | `ingestion/matcher.ts`, `ingestion/title.ts` |
+| Normalización de precios | `ingestion/normalizer.ts` |
+| Flujo de una ejecución | `ingestion/run.ts` |
+| Persistencia (memoria y PostgreSQL) | `ingestion/memory-repository.ts`, `ingestion/postgres-repository.ts` |
+| Adaptador de prueba | `ingestion/adapters/mock.ts` |
+| Adaptador de PadelProShop | `ingestion/adapters/padelproshop.ts` |
+| Comandos | `scripts/prices/dry-run.ts`, `scripts/prices/ingest.ts` |
+| Tablas nuevas | `db/migrations/002_price_ingestion.sql` |
+
+Diferencias con el diseño de más abajo, decididas al implementar:
+
+- La disponibilidad no es un estado del emparejamiento. `store_products` lleva `matching_status` (emparejado, en revisión, rechazado) y, aparte, `listing_status` (activo, agotado, desaparecido): una pala agotada sigue emparejada.
+- `store_prices` no ha cambiado. Un producto agotado o desaparecido deja de publicarse ahí; su estado, su precio de lista y su último precio viven en `store_products`.
+- Un producto sin equivalente en el catálogo queda como rechazado con su motivo, no en revisión, para que la cola de revisión solo contenga dudas reales. Se reevalúa en cada ejecución, así que se empareja solo cuando la pala se añade al catálogo.
+
+- Una pala con el mismo nombre pero otro EAN (otro color, por ejemplo) no se empareja. Para aceptarla hay que añadir ese segundo EAN a `racket_identifiers`.
+- `npm run db:seed` vacía las tablas, incluidos los productos y precios reales de las tiendas. Después hay que volver a ejecutar la ingestión.
+
+Para probarlo: `npm test` (reglas de negocio, sin base de datos), `npm run test:db` (repositorio PostgreSQL, en una transacción que se deshace) y `npm run ingest:demo` (flujo completo con datos ficticios).
 
 ## Resumen
 

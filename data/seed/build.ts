@@ -2,12 +2,14 @@
 // exacta de las tablas de db/schema.sql. La usan el repositorio en memoria y
 // `npm run db:seed`, así que ambos orígenes de datos parten de lo mismo.
 import { createHash } from "node:crypto";
+import { normalizeGtin } from "@/ingestion/gtin";
 import { BALANCE_LABELS, formatLevels, SHAPE_LABELS } from "@/lib/labels";
 import type { PlayStyle, Spec } from "@/types/catalog";
 import type {
   BrandRow,
   PriceHistoryRow,
   RacketAlternativeRow,
+  RacketIdentifierRow,
   RacketRow,
   ReviewRow,
   StorePriceRow,
@@ -22,6 +24,7 @@ export interface SeedTables {
   stores: StoreRow[];
   rackets: RacketRow[];
   racketAlternatives: RacketAlternativeRow[];
+  racketIdentifiers: RacketIdentifierRow[];
   storePrices: StorePriceRow[];
   priceHistory: PriceHistoryRow[];
   reviews: ReviewRow[];
@@ -269,6 +272,12 @@ export function buildSeed(now: Date): SeedTables {
     stores,
     rackets: entries.map(({ row }) => row),
     racketAlternatives: entries.flatMap(({ spec, row }) => alternativesFor(spec, row, entries)),
+    racketIdentifiers: entries.flatMap(({ spec, row }) => {
+      const value = normalizeGtin(spec.gtin?.value);
+      return spec.gtin && value
+        ? [{ racket_id: row.id, type: "gtin" as const, value, source: spec.gtin.source, verified_at: now.toISOString() }]
+        : [];
+    }),
     storePrices: prices.flatMap((p) => p.storePrices),
     priceHistory: prices.flatMap((p) => p.priceHistory),
     reviews: [],

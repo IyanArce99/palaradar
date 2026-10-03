@@ -1,20 +1,25 @@
 // Operaciones de administración de la base de datos: aplicar el esquema, cargar
 // la semilla y recalcular los agregados de precio. Las usan los scripts de
 // scripts/db/; la web no las llama.
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { computePriceStats } from "@/lib/pricing";
 import type { PricePoint, StoreOffer } from "@/types/catalog";
 import type { RacketPriceStatsRow, RacketRow, StorePriceRow, StoreRow } from "@/types/db";
 import { toPriceStatsRow, toStoreOffer } from "../mappers";
 import type { SeedTables } from "../seed/build";
-import type { Sql } from "./client";
+import { inTransaction, type Sql } from "./client";
 
-const SCHEMA_FILE = join(process.cwd(), "db", "schema.sql");
+const DB_DIR = join(process.cwd(), "db");
+const MIGRATIONS_DIR = join(DB_DIR, "migrations");
+const BASE_MIGRATION = "001_schema";
 const INSERT_CHUNK = 1000;
 
 // En orden de borrado seguro (primero las que dependen de otras).
 const TABLES = [
+  "ingestion_runs",
+  "store_products",
+  "racket_identifiers",
   "racket_price_stats",
   "price_history",
   "store_prices",
@@ -32,6 +37,11 @@ const TYPES = [
   "play_style",
   "price_status",
   "editorial_status",
+  "identifier_type",
+  "matching_status",
+  "matching_method",
+  "listing_status",
+  "ingestion_status",
 ];
 
 export async function schemaExists(sql: Sql): Promise<boolean> {
@@ -40,9 +50,54 @@ export async function schemaExists(sql: Sql): Promise<boolean> {
   return exists;
 }
 
-/** Crea tablas, vistas e índices. Falla si ya existen: no borra nada. */
-export async function applySchema(sql: Sql): Promise<void> {
-  await sql.unsafe(await readFile(SCHEMA_FILE, "utf8"));
+interface Migration {
+  name: string;
+  file: string;
+}
+
+/** db/schema.sql es la migración base; después, db/migrations/*.sql en orden de nombre. */
+async function listMigrations(): Promise<Migration[]> {
+  const files = (await readdir(MIGRATIONS_DIR)).filter((file) => file.endsWith(".sql")).sort();
+  return [
+    { name: BASE_MIGRATION, file: join(DB_DIR, "schema.sql") },
+    ...files.map((file) => ({ name: file.replace(/\.sql$/, ""), file: join(MIGRATIONS_DIR, file) })),
+  ];
+}
+
+/**
+ * Aplica las migraciones pendientes, cada una en su transacción, y devuelve sus
+ * nombres. No borra nada: lo ya aplicado se salta.
+ */
+export async function migrate(sql: Sql): Promise<string[]> {
+  await sql`
+    create table if not exists schema_migrations (
+      name text primary key,
+      applied_at timestamptz not null default now()
+    )`;
+  await sql`alter table schema_migrations enable row level security`;
+
+  // Bases creadas antes de llevar registro: el esquema base ya está aplicado.
+  if (await schemaExists(sql)) {
+    await sql`insert into schema_migrations (name) values (${BASE_MIGRATION}) on conflict do nothing`;
+  }
+
+  const done = new Set(
+    (await sql<{ name: string }[]>`select name from schema_migrations`).map((row) => row.name),
+  );
+  const applied: string[] = [];
+
+  for (const migration of await listMigrations()) {
+    if (done.has(migration.name)) continue;
+
+    const statements = await readFile(migration.file, "utf8");
+    await sql.begin(async (tx) => {
+      await tx.unsafe(statements);
+      await tx`insert into schema_migrations (name) values (${migration.name})`;
+    });
+    applied.push(migration.name);
+  }
+
+  return applied;
 }
 
 /** Borra SOLO los objetos de PalaRadar (tablas, vistas y tipos de este esquema). */
@@ -50,6 +105,7 @@ export async function dropSchema(sql: Sql): Promise<void> {
   for (const view of VIEWS) await sql.unsafe(`drop view if exists ${view} cascade`);
   for (const table of TABLES) await sql.unsafe(`drop table if exists ${table} cascade`);
   for (const type of TYPES) await sql.unsafe(`drop type if exists ${type} cascade`);
+  await sql.unsafe("drop table if exists schema_migrations");
 }
 
 /** Literal de array de PostgreSQL: {"a","b"}. Evita depender de la inferencia de tipos del driver. */
@@ -104,6 +160,9 @@ export async function loadSeed(sql: Sql, seed: SeedTables): Promise<void> {
     if (seed.racketAlternatives.length > 0) {
       await tx`insert into racket_alternatives ${tx(seed.racketAlternatives)}`;
     }
+    if (seed.racketIdentifiers.length > 0) {
+      await tx`insert into racket_identifiers ${tx(seed.racketIdentifiers)}`;
+    }
     for (const rows of chunks(seed.storePrices)) await tx`insert into store_prices ${tx(rows)}`;
     for (const rows of chunks(seed.priceHistory)) await tx`insert into price_history ${tx(rows)}`;
     for (const rows of chunks(seed.reviews)) await tx`insert into reviews ${tx(rows)}`;
@@ -142,7 +201,7 @@ export async function refreshPriceStats(sql: Sql, now: Date): Promise<number> {
     return stats ? [toPriceStatsRow(racketId, stats)] : [];
   });
 
-  await sql.begin(async (tx) => {
+  await inTransaction(sql, async (tx) => {
     await tx`delete from racket_price_stats`;
     for (const batch of chunks(rows)) await tx`insert into racket_price_stats ${tx(batch)}`;
   });

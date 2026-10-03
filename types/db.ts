@@ -117,6 +117,62 @@ export interface RacketPriceStatsRow {
   computed_at: string;
 }
 
+// --- Ingestión de precios (db/migrations/002_price_ingestion.sql) ---------------
+
+export type IdentifierType = "gtin" | "manufacturer_ref";
+export type MatchingStatus = "matched" | "pending_review" | "rejected";
+export type MatchingMethod = "gtin" | "attributes" | "manual";
+export type ListingStatus = "active" | "out_of_stock" | "missing";
+export type IngestionStatus = "running" | "success" | "failed";
+
+export interface RacketIdentifierRow {
+  racket_id: string;
+  type: IdentifierType;
+  /** Los GTIN, normalizados a 14 dígitos */
+  value: string;
+  source: string;
+  verified_at: string | null;
+}
+
+/** Un producto del catálogo de una tienda, esté o no emparejado con una pala nuestra */
+export interface StoreProductRow {
+  id: string;
+  store_id: string;
+  external_id: string;
+  racket_id: string | null;
+  title: string;
+  brand: string | null;
+  gtin: string | null;
+  url: string;
+  matching_status: MatchingStatus;
+  matching_method: MatchingMethod | null;
+  matching_note: string | null;
+  listing_status: ListingStatus;
+  /** Último precio aceptado, sin envío */
+  price: number | null;
+  /** Precio de lista que declara la tienda; no se usa como precio anterior */
+  list_price: number | null;
+  /** Bajada anómala a la espera de confirmarse */
+  pending_price: number | null;
+  checked_at: string | null;
+  first_seen_at: string;
+  last_seen_at: string;
+  missed_runs: number;
+}
+
+export interface IngestionRunRow {
+  id: string;
+  store_id: string;
+  started_at: string;
+  finished_at: string | null;
+  status: IngestionStatus;
+  products_seen: number;
+  products_matched: number;
+  products_pending: number;
+  prices_updated: number;
+  error_message: string | null;
+}
+
 /**
  * Vista `racket_catalog`: pala + marca + agregados de precio. Es lo único que
  * consulta el catálogo, con filtros, orden y paginación en SQL.

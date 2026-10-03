@@ -16,6 +16,8 @@ npm run dev        # http://localhost:3000
 npm run build
 npm run lint
 npm run typecheck
+npm test           # reglas de negocio de la ingestión, sin base de datos
+npm run test:db    # repositorio de ingestión contra PostgreSQL (no deja datos)
 ```
 
 Sin configurar nada, el proyecto arranca con los datos seed en memoria.
@@ -23,7 +25,7 @@ Sin configurar nada, el proyecto arranca con los datos seed en memoria.
 ### Con base de datos
 
 1. Copia `.env.example` como `.env.local` y pon tu `DATABASE_URL` (en Supabase: Project Settings → Database → Connection string).
-2. `npm run db:migrate` — crea tablas, índices y vistas (`db/schema.sql`). No hace nada si ya existen; `-- --reset` las borra y recrea.
+2. `npm run db:migrate` — aplica las migraciones pendientes (`db/schema.sql` y `db/migrations/`). No borra nada; `-- --reset` elimina las tablas de PalaRadar y las recrea.
 3. `npm run db:seed` — carga las palas y los precios de prueba, y calcula los agregados de precio. Sustituye el contenido de las tablas de PalaRadar.
 4. `npm run db:stats` — recalcula los agregados después de cambiar precios a mano.
 
@@ -52,11 +54,26 @@ data/         Capa de acceso a datos (lo único que importan las páginas)
   mappers.ts              Filas de BD → modelos de dominio
   db/                     Conexión y operaciones de administración
   seed/                   Palas reales, marcas, tiendas de prueba y generador de filas
-db/schema.sql PostgreSQL: tablas, índices y vistas
+db/           schema.sql (esquema base) · migrations/ (cambios posteriores)
+docs/         price-ingestion.md: fuentes de precios y diseño de la ingestión
+ingestion/    Ingestión de precios: adaptadores, matcher, normalizador y flujo
 lib/          Lógica pura: precios, formato, consulta del catálogo, SEO
+tests/        ingestion/ (sin base de datos) · db/ (contra PostgreSQL)
 types/        catalog.ts y pricing.ts (dominio) · db.ts (filas de BD)
-scripts/      db/ (migrate, seed, stats) · generate-art.ts
+scripts/      db/ (migrate, seed, stats) · generate-art.ts · ingest-demo.ts
 ```
+
+## Ingestión de precios
+
+El sistema que sustituye los precios de prueba está en `ingestion/`. Cada tienda tiene un adaptador que devuelve sus productos en un formato común; el resto (emparejar con el catálogo, normalizar, guardar, histórico y agregados) es compartido. Hay una tienda real conectada, PadelProShop, con su autorización. Detalle, fuentes por tienda y reglas en [docs/price-ingestion.md](docs/price-ingestion.md).
+
+```bash
+npm run prices:dry-run                        # simula la ingestión y muestra el emparejamiento; no escribe nada
+npm run prices:ingest -- --store=padelproshop # ingestión real, en una única transacción
+npm run ingest:demo                           # flujo completo con datos ficticios, sin base de datos
+```
+
+Los precios reales conviven por ahora con los de las tiendas de prueba del seed, así que el aviso de precios de prueba sigue activo. `npm run db:seed` borra también los precios reales: después hay que repetir la ingestión.
 
 ## Arquitectura de datos
 
@@ -131,7 +148,7 @@ Todo el sitio va con `noindex` hasta definir `NEXT_PUBLIC_ALLOW_INDEXING=true`.
 
 ## Pendiente
 
-- Precios reales: proceso que actualice `store_prices`, escriba `price_history` y ejecute el recálculo de agregados.
+- Precios reales: adaptadores de tiendas reales (pendientes de autorización o feed) y la tarea programada que los ejecute.
 - Revisar a mano las palas de `source: "tienda"` y los campos `pending`.
 - Texto editorial revisado y opiniones reales.
 - Comparador, guías individuales, escáner IA, alertas y cuentas de usuario.

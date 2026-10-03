@@ -33,6 +33,8 @@ export interface RacketSpec {
   sourceUrl: string;
   /** Dudas pendientes de revisar a mano */
   pending?: string;
+  /** EAN/GTIN real de la pala, solo cuando se ha contrastado en dos fuentes */
+  gtin?: { value: string; source: string };
 }
 
 export const racketSpecs: RacketSpec[] = [
@@ -56,6 +58,10 @@ export const racketSpecs: RacketSpec[] = [
     source: "tienda",
     sourceUrl: "https://www.padelnuestro.com/bullpadel-vertex-04-25-113772-p",
     pending: "Sin verificar en bullpadel.com. Nivel y estilo son la clasificación de la tienda.",
+    gtin: {
+      value: "8445402691890",
+      source: "https://www.zonadepadel.com/bullpadel/10839-bullpadel-vertex-04-2025.html",
+    },
   },
   {
     brand: "bullpadel",
@@ -75,6 +81,10 @@ export const racketSpecs: RacketSpec[] = [
       "Según la ficha consultada, está orientada al jugador profesional de perfil ofensivo. Se destaca una potencia que aprovecha la velocidad del gesto y el acabado rugoso de la cara.",
     source: "tienda",
     sourceUrl: "https://www.padelnuestro.com/bullpadel-hack-04-26",
+    gtin: {
+      value: "8445402973934",
+      source: "https://www.stockpadel.com/en/padel-rackets/bullpadel-padel-rackets/3192-bullpadel-hack-04-26-8445402973934.html",
+    },
     pending:
       "Sin verificar en bullpadel.com. Balance ambiguo en la ficha («Alto, Medio»). El año sale del sufijo «26» del nombre comercial.",
   },
@@ -117,6 +127,10 @@ export const racketSpecs: RacketSpec[] = [
       "Según la ficha consultada, es una pala para el jugador amateur en fase de aprendizaje que prioriza colocar la bola sobre pegar fuerte. Se destaca por ser ligera, cómoda y muy manejable.",
     source: "tienda",
     sourceUrl: "https://www.padelnuestro.com/bullpadel-indiga-ctr-26",
+    gtin: {
+      value: "8445402993833",
+      source: "https://www.ofertasdepadel.com/en/padel-rackets/41416-bullpadel-indiga-ctr-26-8445402993833.html",
+    },
     pending: "Sin verificar en bullpadel.com. Nivel y estilo son la clasificación de la tienda.",
   },
 
@@ -139,6 +153,10 @@ export const racketSpecs: RacketSpec[] = [
       "Es la pala de Agustín Tapia para la temporada 2026, de nivel profesional y juego polivalente. Nox destaca el nuevo molde, el sistema de contrapesos para ajustar el balance y la superficie pensada para generar efectos.",
     source: "fabricante",
     sourceUrl: "https://www.noxsport.com/products/pala-at10-genius-18k-alum-2026-by-agustin-tapia",
+    gtin: {
+      value: "8435778902621",
+      source: "https://www.noxsport.com/products/pala-at10-genius-18k-alum-2026-by-agustin-tapia",
+    },
     pending: "El fabricante no da un balance fijo: es ajustable con contrapesos.",
   },
   {
@@ -159,6 +177,10 @@ export const racketSpecs: RacketSpec[] = [
       "Desarrollada con Edu Alonso para jugadores que quieren mandar en ataque y definir en el remate. Nox destaca el formato diamante con puño más largo y balance alto, y un tacto firme con buena salida de bola.",
     source: "fabricante",
     sourceUrl: "https://www.noxsport.com/products/ea10-ventus-attack-12k-xtrem-by-edu-alonso",
+    gtin: {
+      value: "8435778902683",
+      source: "https://www.noxsport.com/products/ea10-ventus-attack-12k-xtrem-by-edu-alonso",
+    },
   },
   {
     brand: "nox",
@@ -178,6 +200,10 @@ export const racketSpecs: RacketSpec[] = [
       "Según Nox es una pala para progresar con control: manejable, de tacto intermedio-duro pero cómoda, con respuesta precisa. Subraya el sistema antivibración para proteger el brazo.",
     source: "fabricante",
     sourceUrl: "https://www.noxsport.com/products/equation-hard-advanced-2027",
+    gtin: {
+      value: "8435778915850",
+      source: "https://www.noxsport.com/products/equation-hard-advanced-2027",
+    },
   },
 
   // --- Adidas (allforpadel.com, web oficial de adidas padel) ---------------------
@@ -201,6 +227,11 @@ export const racketSpecs: RacketSpec[] = [
     sourceUrl:
       "https://allforpadel.com/es/palas-padel/7750-pala-de-padel-adidas-metalbone-34-ale-galan-8435739402740.html",
     pending: "Nivel «Pro» del fabricante asignado a competición.",
+    gtin: {
+      value: "8435739402740",
+      source:
+        "https://allforpadel.com/es/palas-padel/7750-pala-de-padel-adidas-metalbone-34-ale-galan-8435739402740.html",
+    },
   },
   {
     brand: "adidas",
@@ -221,6 +252,10 @@ export const racketSpecs: RacketSpec[] = [
     source: "fabricante",
     sourceUrl:
       "https://allforpadel.com/es/palas-padel/7527-pala-de-padel-adidas-cross-it-ctrl-2026-8435739405949.html",
+    gtin: {
+      value: "8435739405949",
+      source: "https://allforpadel.com/es/palas-padel/7527-pala-de-padel-adidas-cross-it-ctrl-2026-8435739405949.html",
+    },
     pending: "El estilo de juego sale del texto de la ficha, no de un campo.",
   },
   {
@@ -242,6 +277,10 @@ export const racketSpecs: RacketSpec[] = [
     source: "fabricante",
     sourceUrl:
       "https://allforpadel.com/es/palas-padel/7535-pala-de-padel-adidas-metalbone-team-light-2026-8435739405864.html",
+    gtin: {
+      value: "8435739405864",
+      source: "https://allforpadel.com/es/palas-padel/7535-pala-de-padel-adidas-metalbone-team-light-2026-8435739405864.html",
+    },
   },
   {
     brand: "adidas",
@@ -262,6 +301,10 @@ export const racketSpecs: RacketSpec[] = [
     source: "fabricante",
     sourceUrl:
       "https://allforpadel.com/es/palas-padel/7493-pala-de-padel-adidas-match-black-2026-8435739406052.html",
+    gtin: {
+      value: "8435739406052",
+      source: "https://allforpadel.com/es/palas-padel/7493-pala-de-padel-adidas-match-black-2026-8435739406052.html",
+    },
     pending:
       "El fabricante la llama «Allround (híbrido)»: se asigna a lágrima. Balance «Slightly Head Heavy», sin equivalente claro.",
   },
@@ -285,6 +328,10 @@ export const racketSpecs: RacketSpec[] = [
       "Babolat la plantea para el jugador competitivo de perfil atacante técnico que quiere imponer un ritmo ofensivo. Destaca las caras de carbono 3K y una capa de carbono dentro de la goma para ganar potencia y reactividad.",
     source: "fabricante",
     sourceUrl: "https://www.babolat.com/es/technical-viper-3.0/150175.html",
+    gtin: {
+      value: "3324922283110",
+      source: "https://www.babolat.com/es/technical-viper-3.0/150175.html",
+    },
   },
   {
     brand: "babolat",
@@ -304,6 +351,10 @@ export const racketSpecs: RacketSpec[] = [
       "Pensada para jugadores contraatacantes que construyen el punto con paciencia y precisión antes de rematar. El fabricante destaca la forma redonda con punto dulce amplio y unas caras que dan más salida de bola y un tacto más cómodo.",
     source: "fabricante",
     sourceUrl: "https://www.babolat.com/es/counter-veron-2.6/150181.html",
+    gtin: {
+      value: "3324922283172",
+      source: "https://www.babolat.com/es/counter-veron-2.6/150181.html",
+    },
     pending:
       "Balance contradictorio en la ficha (tabla «cabeza pesada», texto «equilibrio medio»). El año viene de una tienda. Babolat no declara nivel.",
   },
@@ -325,6 +376,10 @@ export const racketSpecs: RacketSpec[] = [
       "Dirigida a quien busca una pala muy manejable y cómoda que genere potencia sin exigir mucho esfuerzo. Babolat subraya la fibra de vidrio flexible, el diseño aerodinámico y el sistema antivibraciones.",
     source: "fabricante",
     sourceUrl: "https://www.babolat.com/es/air-vertuo-2.6/150184.html",
+    gtin: {
+      value: "3324922283202",
+      source: "https://www.babolat.com/es/air-vertuo-2.6/150184.html",
+    },
     pending: "El año viene de una tienda. Babolat no declara nivel ni estilo de juego.",
   },
   {
@@ -345,6 +400,10 @@ export const racketSpecs: RacketSpec[] = [
       "Babolat la presenta como una pala de control para quien pisa una pista de pádel por primera vez, incluso sin experiencia en deportes de raqueta. Destaca su manejabilidad, confort y tolerancia.",
     source: "fabricante",
     sourceUrl: "https://www.babolat.com/es/counter-origin/150154.html",
+    gtin: {
+      value: "3324922162392",
+      source: "https://www.babolat.com/es/counter-origin/150154.html",
+    },
     pending: "El año viene de una tienda.",
   },
 
@@ -387,6 +446,10 @@ export const racketSpecs: RacketSpec[] = [
       "Según la ficha consultada, es para jugadores avanzados de perfil táctico que quieren marcar el ritmo del punto. Se destaca el equilibrio entre manejabilidad, estabilidad y precisión, con caras de fibra de vidrio de tacto flexible.",
     source: "tienda",
     sourceUrl: "https://www.padelnuestro.com/int/head-radical-motion-2026",
+    gtin: {
+      value: "198772134440",
+      source: "https://www.time2padel.com/en/padel-rackets/31439-head-radical-motion-2026-head-198772134440.html",
+    },
     pending: "Sin verificar en head.com. La ficha no indica el peso.",
   },
   {
@@ -407,6 +470,10 @@ export const racketSpecs: RacketSpec[] = [
       "Según la ficha consultada, es una pala versátil y fácil de usar para jugadores intermedios y avanzados que buscan algo manejable. Se destaca el tacto blando de la fibra de vidrio y un punto dulce amplio y tolerante.",
     source: "tienda",
     sourceUrl: "https://www.padelnuestro.com/pala-head-speed-team-2025-221085",
+    gtin: {
+      value: "726423386001",
+      source: "https://padelmania.com/es/palas-de-padel/24302-head-speed-team-2025-head-726423386001.html",
+    },
     pending: "Sin verificar en head.com. La tienda etiqueta el nivel de forma contradictoria.",
   },
   {
@@ -449,6 +516,10 @@ export const racketSpecs: RacketSpec[] = [
       "Pala redonda de la gama Beat para jugadores de iniciación que buscan control. El fabricante declara balance bajo y un tacto blando.",
     source: "fabricante",
     sourceUrl: "https://www.siuxpadel.com/products/siux-beat-control-2",
+    gtin: {
+      value: "8435762902934",
+      source: "https://www.siuxpadel.com/products/siux-beat-control-2",
+    },
   },
   {
     brand: "siux",
@@ -468,6 +539,10 @@ export const racketSpecs: RacketSpec[] = [
       "Pala versátil de la gama Go para jugadores intermedios que quieren progresar en todas las facetas del juego. El fabricante declara forma de lágrima, balance medio y tacto equilibrado.",
     source: "fabricante",
     sourceUrl: "https://www.siuxpadel.com/products/siux-astra-hybrid-2026",
+    gtin: {
+      value: "8436625200525",
+      source: "https://www.siuxpadel.com/products/siux-astra-hybrid-2026",
+    },
     pending: "La web dice literalmente «Fibra de vidrio 3K»; 3K suele ser carbono (posible errata).",
   },
   {
@@ -488,6 +563,10 @@ export const racketSpecs: RacketSpec[] = [
       "Pala de ataque para jugadores avanzados o profesionales que quieren definir el punto con el remate. El fabricante declara forma de diamante, balance alto y el tacto más duro de su gama.",
     source: "fabricante",
     sourceUrl: "https://www.siuxpadel.com/products/siux-fenix-pro-2026-glow-purple",
+    gtin: {
+      value: "8436625200426",
+      source: "https://www.siuxpadel.com/products/siux-fenix-pro-2026-glow-purple",
+    },
   },
   {
     brand: "siux",
@@ -507,6 +586,10 @@ export const racketSpecs: RacketSpec[] = [
       "Pala de la gama Pro catalogada para nivel profesional, con un juego polivalente de tendencia agresiva. El fabricante declara forma híbrida y tacto medio-duro.",
     source: "fabricante",
     sourceUrl: "https://www.siuxpadel.com/products/siux-electra-stupa-pro-st4",
+    gtin: {
+      value: "8435762902804",
+      source: "https://www.siuxpadel.com/products/siux-electra-stupa-pro-st4",
+    },
     pending:
       "Forma «híbrida» asignada a lágrima. Balance «medio-alto» y superficie «15K» (sin material), sin equivalente claro.",
   },
@@ -530,6 +613,10 @@ export const racketSpecs: RacketSpec[] = [
       "StarVie la plantea para quien empieza a jugar y quiere ante todo una pala fácil de mover. Destaca el tacto blando y cómodo de la goma y la fibra, y un puente pensado para generar potencia con poco esfuerzo.",
     source: "fabricante",
     sourceUrl: "https://starvie.com/products/pala-kyra",
+    gtin: {
+      value: "8436612942100",
+      source: "https://starvie.com/products/pala-kyra",
+    },
   },
   {
     brand: "starvie",
@@ -549,6 +636,10 @@ export const racketSpecs: RacketSpec[] = [
       "Dirigida a jugadores versátiles que quieren un reparto equilibrado entre control y potencia. El fabricante resalta el carbono 12K, que amplía el punto dulce, y una goma de densidad media-dura.",
     source: "fabricante",
     sourceUrl: "https://starvie.com/products/drax",
+    gtin: {
+      value: "8436612942087",
+      source: "https://starvie.com/products/drax",
+    },
   },
   {
     brand: "starvie",
@@ -568,6 +659,10 @@ export const racketSpecs: RacketSpec[] = [
       "Pensada para un juego de ataque: StarVie destaca la rigidez del carbono 18K y una goma de alta densidad con tacto firme para sacar la máxima potencia en los golpes definitivos.",
     source: "fabricante",
     sourceUrl: "https://starvie.com/products/triton-power",
+    gtin: {
+      value: "8436612942056",
+      source: "https://starvie.com/products/triton-power",
+    },
     pending: "265,50 € es el único precio mostrado; podría ser ya un precio rebajado y no el PVP.",
   },
   {
@@ -588,6 +683,10 @@ export const racketSpecs: RacketSpec[] = [
       "Para jugadores versátiles de nivel alto que buscan equilibrio entre potencia, control y manejabilidad. StarVie subraya el sistema antivibración y una pieza intercambiable con distintos pesos que permite ajustar el balance.",
     source: "fabricante",
     sourceUrl: "https://starvie.com/products/raptor",
+    gtin: {
+      value: "8436612941035",
+      source: "https://starvie.com/products/raptor",
+    },
   },
 
   // --- Wilson (ficha de tienda: wilson.com bloquea el acceso automático) ---------------

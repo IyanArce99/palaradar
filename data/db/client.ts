@@ -52,6 +52,20 @@ export function createSql(url: string, max: number) {
 
 export type Sql = ReturnType<typeof createSql>;
 
+/**
+ * Ejecuta `work` de forma atómica: en una transacción nueva o, si `sql` ya es
+ * una transacción abierta, en un savepoint. Si `work` falla, no queda nada escrito.
+ */
+export async function inTransaction<T>(sql: Sql, work: (tx: Sql) => Promise<T>): Promise<T> {
+  const open = sql as unknown as {
+    savepoint?: (fn: (tx: unknown) => Promise<T>) => Promise<T>;
+  };
+  if (typeof open.savepoint === "function") {
+    return open.savepoint((tx) => work(tx as Sql));
+  }
+  return sql.begin((tx) => work(tx as unknown as Sql)) as Promise<T>;
+}
+
 const globalForSql = globalThis as unknown as { palaradarSql?: Sql };
 
 /** Conexión compartida por proceso (sobrevive a la recarga en caliente en desarrollo). */
