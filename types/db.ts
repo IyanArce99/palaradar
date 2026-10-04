@@ -10,6 +10,7 @@ import type {
   ScoredAspect,
   Spec,
 } from "./catalog";
+import type { MediaRole, RightsStatus, VerificationStatus } from "@/lib/media";
 import type { PriceStatus } from "./pricing";
 
 export interface BrandRow {
@@ -209,4 +210,27 @@ export interface RacketCatalogRow {
   price_30d_ago: number | null;
   price_status: PriceStatus | null;
   price_checked_at: string | null;
+  /** Ruta en Storage de la foto publicada; la semilla en memoria no tiene fotos */
+  photo_path?: string | null;
+}
+
+/** Imagen de una pala: origen, copia propia y estado de publicación */
+export interface RacketMediaRow {
+  racket_id: string;
+  source: string;
+  source_url: string;
+  role: MediaRole;
+  position: number;
+  storage_path: string | null;
+  width: number | null;
+  height: number | null;
+  file_hash: string | null;
+  file_size: number | null;
+  fetched_at: string | null;
+  matching_method: string | null;
+  matching_confidence: "high" | "medium" | "review" | null;
+  verification_status: VerificationStatus;
+  verification_note: string | null;
+  rights_status: RightsStatus;
+  rights_note: string | null;
 }

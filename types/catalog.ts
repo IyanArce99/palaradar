@@ -127,7 +127,10 @@ export interface Pala {
   brand: Brand;
   model: string;
   year: number;
+  /** Fotos publicadas de la pala o, si no tiene ninguna, sus ilustraciones */
   images: string[];
+  /** Tamaño en píxeles de la foto principal; null si lo que se muestra es una ilustración */
+  photoSize: { width: number; height: number } | null;
   shape: PalaShape;
   /** Gramos. null si el fabricante no lo declara */
   weight: { min: number; max: number } | null;

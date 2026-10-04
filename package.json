@@ -16,6 +16,9 @@
     "prices:ingest": "tsx --env-file-if-exists=.env.local scripts/prices/ingest.ts",
     "prices:pending": "tsx --env-file-if-exists=.env.local scripts/prices/pending.ts",
     "catalog:import": "tsx --env-file-if-exists=.env.local scripts/catalog/import.ts",
+    "media:import": "tsx --env-file-if-exists=.env.local scripts/media/import.ts",
+    "media:report": "tsx --env-file-if-exists=.env.local scripts/media/report.ts",
+    "media:review": "tsx --env-file-if-exists=.env.local scripts/media/review.ts",
     "db:purge-demo": "tsx --env-file-if-exists=.env.local scripts/db/purge-demo.ts",
     "db:migrate": "tsx --env-file-if-exists=.env.local scripts/db/migrate.ts",
     "db:seed": "tsx --env-file-if-exists=.env.local scripts/db/seed.ts",
@@ -35,6 +38,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
+    "sharp": "^0.35.5",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5"

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/config/site";
+import { isProductPhoto, palaAlt } from "@/lib/media";
 import type { Pala } from "@/types/catalog";
 
 export function absoluteUrl(path: string): string {
@@ -13,9 +14,17 @@ interface PageMetadataInput {
   path: string | null;
   /** false para páginas que no deben indexarse (resultados filtrados, secciones en preparación) */
   index?: boolean;
+  /** Imagen para compartir (Open Graph): la foto real del producto, nunca una ilustración */
+  image?: { url: string; width?: number; height?: number; alt: string } | null;
 }
 
-export function pageMetadata({ title, description, path, index = true }: PageMetadataInput): Metadata {
+export function pageMetadata({
+  title,
+  description,
+  path,
+  index = true,
+  image,
+}: PageMetadataInput): Metadata {
   return {
     title,
     description,
@@ -27,6 +36,7 @@ export function pageMetadata({ title, description, path, index = true }: PageMet
       siteName: siteConfig.name,
       locale: siteConfig.locale,
       type: "website",
+      ...(image ? { images: [image] } : {}),
     },
     // Si el sitio aún no es indexable, manda el noindex global del layout.
     ...(index || !siteConfig.allowIndexing ? {} : { robots: { index: false, follow: true } }),
@@ -53,13 +63,19 @@ interface ProductJsonLdInput {
   includeOffers: boolean;
 }
 
-/** Las ilustraciones propias no son imagen del producto y no se publican como tal. */
-function isProductPhoto(src: string): boolean {
-  return !src.startsWith("/img/palas/");
+/**
+ * Foto real de la pala para compartir la página, con sus dimensiones. null si
+ * lo que se muestra es una ilustración: no se publica como imagen del producto.
+ */
+export function palaShareImage(pala: Pala) {
+  const [main] = pala.images;
+  if (!main || !isProductPhoto(main)) return null;
+  return { url: main, ...pala.photoSize, alt: palaAlt(pala) };
 }
 
 export function productJsonLd({ pala, path, includeOffers }: ProductJsonLdInput) {
   const { price } = pala;
+  // Las ilustraciones propias no son imagen del producto y no se publican como tal.
   const photos = pala.images.filter(isProductPhoto);
 
   // Sin opiniones no hay valoración que publicar.

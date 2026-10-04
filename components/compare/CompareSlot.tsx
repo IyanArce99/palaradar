@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
 import { compareSelectPath, priceHeading, type CompareSlotId } from "@/lib/compare";
 import { formatEuro } from "@/lib/format";
+import { palaAlt } from "@/lib/media";
 import type { Pala, PalaSuggestion } from "@/types/catalog";
 import { PalaPicker } from "./PalaPicker";
 import { SuggestionList } from "./SuggestionList";
@@ -27,7 +28,7 @@ export function CompareSlot({ slot, pala, other, search, results }: CompareSlotP
       <section aria-label={title}>
         <PalaPhoto
           src={pala.images[0] ?? null}
-          alt={`${pala.brand.name} ${pala.model} ${pala.year}`}
+          alt={palaAlt(pala)}
           sizes="(min-width: 1024px) 440px, 50vw"
           className="h-[170px] rounded-2xl lg:h-[360px] lg:rounded-3xl"
         />

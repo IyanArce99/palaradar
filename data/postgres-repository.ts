@@ -5,7 +5,14 @@ import { pricingConfig } from "@/config/pricing";
 import { CATALOG_PAGE_SIZE, DEFAULT_QUERY, type CatalogQuery, type SortId } from "@/lib/catalog/query";
 import { buildPriceHistory } from "@/lib/pricing";
 import { WEIGHT_BANDS, type RecommenderCriterion } from "@/lib/recommender";
-import type { BrandRow, RacketCatalogRow, RacketRow, ReviewRow, StorePriceRow } from "@/types/db";
+import type {
+  BrandRow,
+  RacketCatalogRow,
+  RacketMediaRow,
+  RacketRow,
+  ReviewRow,
+  StorePriceRow,
+} from "@/types/db";
 import { getSql, type Sql } from "./db/client";
 import { activeStores } from "./db/sources";
 import { toBrand, toMonthlyDrop, toPala, toPalaSummary, toStoreOffer } from "./mappers";
@@ -198,7 +205,7 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
       if (!racket) return null;
 
       // Ofertas e histórico salen solo de las tiendas activas como fuente de precios.
-      const [[brand], offers, history, reviews, alternatives] = await Promise.all([
+      const [[brand], offers, history, reviews, alternatives, photos] = await Promise.all([
         sql<BrandRow[]>`select * from brands where id = ${racket.brand_id}`,
         sql<OfferRow[]>`
           select p.*, s.slug as store_slug, s.name as store_name, s.url as store_url
@@ -216,6 +223,12 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
           select c.*, a.reason
           from racket_alternatives a join racket_catalog c on c.id = a.alternative_id
           where a.racket_id = ${racket.id} order by a.position`,
+        // Solo las imágenes publicables: verificadas, con derechos y con copia propia.
+        sql<Pick<RacketMediaRow, "storage_path" | "width" | "height">[]>`
+          select storage_path, width, height from racket_media
+          where racket_id = ${racket.id} and verification_status = 'verified'
+            and rights_status = 'approved' and storage_path is not null
+          order by (role = 'primary') desc, position, fetched_at desc nulls last, source_url`,
       ]);
       if (!brand) return null;
 
@@ -238,6 +251,7 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
             pala: toPalaSummary(row, at),
             reason: row.reason,
           })),
+          photos,
         },
         at,
       );

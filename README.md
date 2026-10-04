@@ -179,9 +179,23 @@ Mientras se muestren precios de demostración, la web lo avisa y el JSON-LD no l
 
 Todo el sitio va con `noindex` hasta definir `NEXT_PUBLIC_ALLOW_INDEXING=true`.
 
+## Imágenes de producto
+
+Cada pala enseña, por este orden: su foto real publicada, su ilustración propia o la ilustración genérica de su forma. La elección se hace en la capa de datos (`lib/media.ts`) y `PalaPhoto` la pinta en todas las pantallas.
+
+- **Dónde están:** las fotos se describen en `racket_media` (origen, copia propia, dimensiones, huella, estado) y los archivos viven en el bucket público `media` de Supabase Storage (`rackets/{id}/primary.jpg`). La web no enlaza imágenes de otras webs.
+- **Qué se publica:** solo las imágenes `verified` (controles técnicos de `media/inspect.ts`), aprobadas (`rights_status = approved`) y con copia guardada. Las demás quedan `pending` (revisión manual) o `rejected`, y la pala sigue con su ilustración. La misma imagen se usa en listados y en la ficha.
+- **Controles:** JPG, PNG, WebP o AVIF válido; lado corto de 500 px o más; fondo blanco, gris claro o transparente; una sola pala en vertical y sin cortar. Quedan pendientes las duplicadas entre palas y las de asociación dudosa. Un precio, texto o marca de agua sobre fondo blanco no se detecta automáticamente.
+- **Derechos:** `rights_status` es nuestro estado interno de aprobación para mostrar la imagen, **no** una licencia ni una afirmación de titularidad; la base de la decisión va en `rights_note`. Las imágenes de PadelZoom son fotos de catálogo de los fabricantes y están pensadas para sustituirse por otras de fuentes con derechos claros.
+- **Sustituir imágenes:** una imagen de otra fuente se añade como otra fila de la misma pala; a igual rol y posición se publica la importada más recientemente, y su archivo no pisa el anterior. Para retirar todas las de una fuente basta pasar su `rights_status` a `rejected`.
+- **Importar:** `npm run media:import` descarga lo pendiente de una fuente, lo valida, lo guarda y lo clasifica; se puede repetir sin riesgo. `-- --dry-run` analiza sin guardar y `-- --recheck` vuelve a pasar los controles a todas (tras cambiar criterios). `npm run media:report` resume estados, cobertura y espacio; `npm run media:review` genera `var/media-review.html` con las pendientes que hay que mirar a mano.
+- **Variables:** `SUPABASE_URL` (la web la usa para servir las fotos) y `SUPABASE_SERVICE_ROLE_KEY` (secreta: solo la leen los scripts de importación; no se configura en el hosting de la web ni lleva prefijo `NEXT_PUBLIC_`). Ver `.env.example`.
+- **Rendimiento:** se guarda el original; `next/image` sirve cada tamaño optimizado y el marco fija el tamaño, sin saltos de maquetación.
+- **Mejora pendiente:** las fotos con fondo gris claro (unas 50, sobre todo Drop Shot, Kombat, Varlion y Wilson) se publican, pero su recuadro se nota sobre el marco de la web. Integrarlo exigiría recortar el fondo de esas imágenes o conseguir versiones con fondo blanco.
+
 ## Ilustraciones
 
-`npm run art` genera en `public/img/` una ilustración por pala del seed, la de portada y las de guías. Son arte propio sin logotipos, no fotos del producto. Para usar fotos reales, cambiar `images` en la tabla `rackets`.
+`npm run art` genera en `public/img/` una ilustración por pala del seed, la de portada y las de guías. Son arte propio sin logotipos, no fotos del producto: son el respaldo de las palas que todavía no tienen foto publicada.
 
 ## Pendiente
 
@@ -189,4 +203,4 @@ Todo el sitio va con `noindex` hasta definir `NEXT_PUBLIC_ALLOW_INDEXING=true`.
 - Revisar a mano las palas de `source: "tienda"` y los campos `pending`.
 - Texto editorial revisado y opiniones reales.
 - Comparador, guías individuales, escáner IA, alertas y cuentas de usuario.
-- Fotos reales de producto e imagen Open Graph.
+- Fotos reales de las palas que siguen con ilustración (imágenes pendientes de revisión u otras fuentes).

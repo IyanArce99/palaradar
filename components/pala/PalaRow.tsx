@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
 import { RatingInline } from "@/components/ui/Rating";
 import { formatEuro } from "@/lib/format";
+import { palaAlt } from "@/lib/media";
 import { routes } from "@/lib/routes";
 import type { PalaSummary } from "@/types/catalog";
 
@@ -15,7 +16,7 @@ export function PalaRow({ pala }: PalaRowProps) {
     <article className="relative grid grid-cols-[84px_minmax(0,1fr)] items-center gap-3.5 border-b border-line py-3">
       <PalaPhoto
         src={pala.image}
-        alt={`${pala.brand.name} ${pala.model} ${pala.year}`}
+        alt={palaAlt(pala)}
         sizes="84px"
         className="h-24 rounded-xl"
       />

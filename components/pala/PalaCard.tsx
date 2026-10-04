@@ -5,6 +5,7 @@ import { RatingInline } from "@/components/ui/Rating";
 import { cn } from "@/lib/cn";
 import { formatEuro, formatRating, pluralize } from "@/lib/format";
 import { SHAPE_LABELS } from "@/lib/labels";
+import { palaAlt } from "@/lib/media";
 import { routes } from "@/lib/routes";
 import type { PalaSummary } from "@/types/catalog";
 
@@ -91,7 +92,7 @@ export function PalaCard({
     >
       <PalaPhoto
         src={pala.image}
-        alt={`${fullName} ${pala.year}`}
+        alt={palaAlt(pala)}
         className={cn("rounded-2xl transition-[filter] group-hover:brightness-[0.97]", photoClassName)}
       />
       <div>

@@ -20,7 +20,8 @@ import { PalaPhoto } from "@/components/ui/PalaPhoto";
 import { getPalaBySlug, getPricedPalaSlugs, hasTestPrices } from "@/data";
 import { cn } from "@/lib/cn";
 import { routes } from "@/lib/routes";
-import { pageMetadata, productJsonLd } from "@/lib/seo";
+import { palaAlt } from "@/lib/media";
+import { pageMetadata, palaShareImage, productJsonLd } from "@/lib/seo";
 
 // Precios y veredicto dependen de la fecha: la ficha se regenera cada hora.
 export const revalidate = 3600;
@@ -61,6 +62,7 @@ export async function generateMetadata({ params }: PalaPageProps): Promise<Metad
     title: `${name}: opiniones y precios`,
     description: `${pala.description} Opiniones de jugadores, para quién es y precio de la ${name} en todas las tiendas.`,
     path: routes.pala(pala.slug),
+    image: palaShareImage(pala),
   });
 }
 
@@ -107,8 +109,9 @@ export default async function PalaPage({ params }: PalaPageProps) {
         <div className="mx-4 lg:mx-0">
           <PalaPhoto
             src={pala.images[0] ?? null}
-            alt={`${pala.brand.name} ${pala.model} ${pala.year}`}
+            alt={palaAlt(pala)}
             sizes="(min-width: 1024px) 600px, 100vw"
+            priority
             placeholderLabel="foto pala · fondo neutro, recortada"
             className="h-[340px] rounded-3xl lg:h-[600px] lg:rounded-[28px]"
           />

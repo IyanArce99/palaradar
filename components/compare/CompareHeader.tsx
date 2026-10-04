@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
 import { priceHeading } from "@/lib/compare";
 import { formatEuro, formatTimeAgo, pluralize } from "@/lib/format";
+import { palaAlt } from "@/lib/media";
 import { routes } from "@/lib/routes";
 import type { Pala } from "@/types/catalog";
 
@@ -39,8 +40,10 @@ export function CompareHeader({ palas }: { palas: [Pala, Pala] }) {
         <article key={pala.id} className="relative">
           <PalaPhoto
             src={pala.images[0] ?? null}
-            alt={`${pala.brand.name} ${pala.model} ${pala.year}`}
+            alt={palaAlt(pala)}
             sizes="(min-width: 1024px) 440px, 50vw"
+            // Las dos fotos abren la página: se cargan con prioridad.
+            priority
             className="h-[170px] rounded-2xl lg:h-[360px] lg:rounded-3xl"
           />
           <div className="mt-2.5 lg:mt-4 lg:flex lg:items-end lg:justify-between lg:gap-4">

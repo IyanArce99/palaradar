@@ -10,6 +10,15 @@ import type { CatalogImport, ImportRacket } from "./types";
 
 const CHUNK = 500;
 
+/**
+ * Fuentes cuyas imágenes hemos aprobado mostrar en PalaRadar, con la base de esa
+ * decisión. Es una aprobación interna (`rights_status`), no una licencia.
+ */
+const MEDIA_RIGHTS: Record<string, string | undefined> = {
+  padelzoom:
+    "Aprobación interna para mostrarla en PalaRadar (octubre de 2026). No acredita licencia ni titularidad: es una foto de catálogo obtenida de PadelZoom. Sustituible por una imagen de fabricante, tienda u otra fuente con derechos claros.",
+};
+
 function chunks<T>(rows: T[]): T[][] {
   const result: T[][] = [];
   for (let i = 0; i < rows.length; i += CHUNK) result.push(rows.slice(i, i + CHUNK));
@@ -270,11 +279,21 @@ export async function loadCatalog(sql: Sql, data: CatalogImport, now: Date = new
         on conflict (racket_id, source, kind) do update set
           body = excluded.body, url = excluded.url, words = excluded.words, fetched_at = excluded.fetched_at`;
     }
+    // La imagen viene de la misma ficha que la pala: la asociación es directa. Los
+    // derechos parten de lo acordado con cada fuente; el resto, pendiente.
     const mediaRows = resolved.flatMap(({ item, id }) =>
-      item.media.map((media) => ({ racket_id: id, source: media.source, url: media.url })),
+      item.media.map((media) => ({
+        racket_id: id,
+        source: media.source,
+        source_url: media.url,
+        matching_method: "source_page",
+        matching_confidence: "high",
+        rights_status: MEDIA_RIGHTS[media.source] ? "approved" : "pending",
+        rights_note: MEDIA_RIGHTS[media.source] ?? null,
+      })),
     );
     for (const batch of chunks(mediaRows)) {
-      await tx`insert into racket_media ${tx(batch)} on conflict (racket_id, url) do nothing`;
+      await tx`insert into racket_media ${tx(batch)} on conflict (racket_id, source_url) do nothing`;
     }
     const urlRows = resolved.flatMap(({ item, id }) =>
       item.legacyUrls.map((url) => ({ source: url.source, path: url.path, racket_id: id })),

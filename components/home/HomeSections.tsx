@@ -12,6 +12,7 @@ import { cn } from "@/lib/cn";
 import { comparePath } from "@/lib/compare";
 import { formatEuro, pluralize } from "@/lib/format";
 import { BALANCE_LABELS, SHAPE_LABELS } from "@/lib/labels";
+import { palaAlt } from "@/lib/media";
 import { chartSeries } from "@/lib/pricing";
 import { routes } from "@/lib/routes";
 import type { Guide, Pala, PalaSummary } from "@/types/catalog";
@@ -177,14 +178,14 @@ export function CompareTeaserSection({ pair }: { pair: [Pala, Pala] | null }) {
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2.5 lg:gap-3.5">
             <PalaPhoto
               src={pair[0].images[0] ?? null}
-              alt={`${pair[0].brand.name} ${pair[0].model}`}
+              alt={palaAlt(pair[0])}
               sizes="(min-width: 1024px) 240px, 40vw"
               className="h-[110px] rounded-xl lg:h-[170px] lg:rounded-[14px]"
             />
             <span className="text-[13px] font-extrabold text-muted lg:text-base">vs</span>
             <PalaPhoto
               src={pair[1].images[0] ?? null}
-              alt={`${pair[1].brand.name} ${pair[1].model}`}
+              alt={palaAlt(pair[1])}
               sizes="(min-width: 1024px) 240px, 40vw"
               className="h-[110px] rounded-xl lg:h-[170px] lg:rounded-[14px]"
             />

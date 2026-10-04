@@ -1,5 +1,6 @@
 // Conversión de filas de base de datos a modelos de dominio. Cualquier
 // implementación del repositorio (memoria, PostgreSQL) reutiliza estas funciones.
+import { mediaUrl, publishedImages } from "@/lib/media";
 import { buildPriceSummary, priceCardNote, priceFreshness } from "@/lib/pricing";
 import type {
   Alternative,
@@ -14,6 +15,7 @@ import type {
 import type {
   BrandRow,
   RacketCatalogRow,
+  RacketMediaRow,
   RacketPriceStatsRow,
   RacketRow,
   ReviewRow,
@@ -102,7 +104,7 @@ export function toPalaSummary(row: RacketCatalogRow, now: Date): PalaSummary {
     brand: { slug: row.brand_slug, name: row.brand_name },
     model: row.model,
     year: row.year,
-    image: row.images[0] ?? null,
+    image: publishedImages([mediaUrl(row.photo_path)], row.images)[0] ?? null,
     shape: row.shape,
     description: row.description,
     rating: row.rating,
@@ -139,10 +141,15 @@ interface PalaParts {
   priceHistory: PricePoint[];
   reviews: ReviewRow[];
   alternatives: Alternative[];
+  /** Fotos publicadas (verificadas y con derechos), la principal primero */
+  photos?: Pick<RacketMediaRow, "storage_path" | "width" | "height">[];
 }
 
 export function toPala(parts: PalaParts, now: Date): Pala {
   const { racket, brand, offers, priceHistory, reviews, alternatives } = parts;
+  // Solo cuentan las fotos que se pueden servir; sin ellas, las ilustraciones.
+  const photos = (parts.photos ?? []).filter((photo) => mediaUrl(photo.storage_path) !== null);
+  const [main] = photos;
 
   return {
     id: racket.id,
@@ -150,7 +157,11 @@ export function toPala(parts: PalaParts, now: Date): Pala {
     brand: toBrand(brand),
     model: racket.model,
     year: racket.year,
-    images: racket.images,
+    images: publishedImages(
+      photos.map((photo) => mediaUrl(photo.storage_path)),
+      racket.images,
+    ),
+    photoSize: main?.width && main.height ? { width: main.width, height: main.height } : null,
     shape: racket.shape,
     weight:
       racket.weight_min !== null && racket.weight_max !== null

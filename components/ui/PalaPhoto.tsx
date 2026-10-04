@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { cn } from "@/lib/cn";
+import { isProductPhoto } from "@/lib/media";
 
 interface PalaPhotoProps {
   src: string | null;
@@ -13,9 +14,27 @@ interface PalaPhotoProps {
   fit?: "contain" | "cover";
   /** Sustituye el encaje por defecto de la imagen (p. ej. distinto en móvil y escritorio) */
   imageClassName?: string;
+  /** Carga prioritaria: solo para la imagen principal visible al abrir la página */
+  priority?: boolean;
 }
 
-/** Foto de producto. Sin imagen muestra el placeholder rayado del diseño. */
+// Foto real: entera, sin deformar y con algo más de aire que una ilustración. El
+// fondo blanco de la foto de catálogo se funde con el del marco (multiply), así
+// la pala se ve como producto y no como un recuadro blanco.
+const PHOTO_FIT = "object-contain p-[7%] mix-blend-multiply";
+const ILLUSTRATION_FIT = "object-contain p-[4%]";
+
+function defaultFit(src: string, fit: "contain" | "cover"): string {
+  if (fit === "cover") return "object-cover";
+  return isProductPhoto(src) ? PHOTO_FIT : ILLUSTRATION_FIT;
+}
+
+/**
+ * Imagen de una pala: su foto real publicada o, si no la tiene, su ilustración
+ * (la elige la capa de datos, ver lib/media.ts). Sin imagen muestra el
+ * placeholder rayado del diseño. El marco fija el tamaño, así que no hay saltos
+ * de maquetación al cargar.
+ */
 export function PalaPhoto({
   src,
   alt,
@@ -24,6 +43,7 @@ export function PalaPhoto({
   placeholderLabel,
   fit = "contain",
   imageClassName,
+  priority = false,
 }: PalaPhotoProps) {
   return (
     <div
@@ -35,9 +55,8 @@ export function PalaPhoto({
           alt={alt}
           fill
           sizes={sizes}
-          className={
-            imageClassName ?? (fit === "cover" ? "object-cover" : "object-contain p-[4%]")
-          }
+          priority={priority}
+          className={imageClassName ?? defaultFit(src, fit)}
         />
       ) : (
         placeholderLabel && (
