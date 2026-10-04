@@ -105,6 +105,15 @@ export interface PalaSummary {
   priceNote: string | null;
 }
 
+/** Lo mínimo de una pala para una sugerencia del buscador */
+export interface PalaSuggestion {
+  slug: string;
+  brand: string;
+  model: string;
+  year: number;
+  image: string | null;
+}
+
 export interface Alternative {
   pala: PalaSummary;
   /** Por qué es alternativa: "Más control", "Más barata"… */
@@ -125,6 +134,10 @@ export interface Pala {
   balance: PalaBalance | null;
   levels: PlayerLevel[];
   playStyle: PlayStyle | null;
+  /** Dureza declarada, tal y como la da la fuente ("Media", "Dura, Media") */
+  hardness: string | null;
+  /** Jugador profesional asociado al modelo */
+  player: string | null;
   /** Frase corta para tarjetas y listados */
   description: string;
   editorial: Editorial;

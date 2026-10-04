@@ -72,6 +72,9 @@ export const getAllPalaSlugs = () => getRepository().getAllPalaSlugs();
 export const getPricedPalaSlugs = () => getRepository().getPricedPalaSlugs();
 export const getBiggestMonthlyDrops = (limit: number) =>
   getRepository().getBiggestMonthlyDrops(limit);
+export const getAlternativePairs = () => getRepository().getAlternativePairs();
+export const recommendPalas: CatalogRepository["recommendPalas"] = (prefs, limit) =>
+  getRepository().recommendPalas(prefs, limit);
 
 /** Palas rebajadas respecto a su precio anterior, de mayor a menor descuento. */
 export async function getDeals(limit: number): Promise<PalaSummary[]> {
@@ -91,10 +94,13 @@ export async function getPopularSearches(limit: number): Promise<string[]> {
   return (await getPopularPalas(limit)).map((pala) => pala.model);
 }
 
-/** Pala destacada en la portada; si la elegida no existe, la primera del catálogo. */
+/**
+ * Pala destacada en la portada. Si la elegida no existe o ahora no tiene precio,
+ * la primera por popularidad (que sí lo tiene mientras haya alguna a la venta).
+ */
 export async function getFeaturedPala(): Promise<Pala | null> {
   const featured = await getRepository().getPalaBySlug(featuredPalaSlug);
-  if (featured) return featured;
+  if (featured?.price) return featured;
 
   const [first] = await getPopularPalas(1);
   return first ? getRepository().getPalaBySlug(first.slug) : null;

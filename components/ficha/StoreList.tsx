@@ -1,5 +1,6 @@
 import { buttonClass } from "@/components/ui/Button";
 import { DemoNotice } from "@/components/ui/DemoNotice";
+import { EmptyNote } from "@/components/ui/EmptyNote";
 import { cn } from "@/lib/cn";
 import { formatDate, formatEuro, formatTimeAgo } from "@/lib/format";
 import type { PriceSummary, RankedOffer } from "@/types/pricing";
@@ -65,14 +66,27 @@ function StoreRow({ offer, cheapest }: StoreRowProps) {
 }
 
 interface StoreListProps {
-  price: PriceSummary;
+  price: PriceSummary | null;
   id: string;
+  className?: string;
 }
 
 /** Precio por tienda, de más barata a más cara; la primera va destacada. */
-export function StoreList({ price, id }: StoreListProps) {
+export function StoreList({ price, id, className }: StoreListProps) {
+  if (!price) {
+    return (
+      <section aria-labelledby={id} className={className}>
+        <SectionTitle id={id}>Precios en todas las tiendas</SectionTitle>
+        <EmptyNote className="mt-3.5">
+          Ninguna de las tiendas que seguimos tiene esta pala a la venta ahora mismo. En cuanto
+          vuelva a estar disponible, verás aquí su precio en cada tienda.
+        </EmptyNote>
+      </section>
+    );
+  }
+
   return (
-    <section aria-labelledby={id}>
+    <section aria-labelledby={id} className={className}>
       <SectionTitle id={id}>Precios en todas las tiendas</SectionTitle>
       <p className="mt-1.5 text-[13px] leading-[1.45] text-pretty text-muted">
         {price.offers.some((offer) => offer.shipping === null)

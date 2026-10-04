@@ -1,12 +1,18 @@
+import { EmptyNote } from "@/components/ui/EmptyNote";
 import { Stars } from "@/components/ui/Rating";
+import { cn } from "@/lib/cn";
 import { formatCount, formatMonthYear, formatRating } from "@/lib/format";
 import { LEVEL_LABELS } from "@/lib/labels";
 import type { Pala, Review } from "@/types/catalog";
 import { SectionTitle } from "./SectionTitle";
 
-function ReviewCard({ review }: { review: Review }) {
+// En el diseño las opiniones ocupan un solo bloque en escritorio y dos en
+// móvil: el resumen va antes de «¿Para quién es?» y las opiniones destacadas,
+// después de las tiendas. Por eso son dos componentes.
+
+function ReviewCard({ review, className }: { review: Review; className?: string }) {
   return (
-    <li className="rounded-[18px] border border-line p-[18px]">
+    <li className={cn("rounded-[18px] border border-line p-[18px]", className)}>
       <div className="flex items-center justify-between">
         <Stars rating={review.rating} className="text-[15px]" />
         <time dateTime={review.createdAt} className="text-xs text-muted">
@@ -34,32 +40,37 @@ function ReviewCard({ review }: { review: Review }) {
   );
 }
 
-interface PlayerOpinionsProps {
-  pala: Pick<
-    Pala,
-    "rating" | "reviewCount" | "reviewAspects" | "reviewHighlights" | "reviews"
-  >;
+type OpinionsPala = Pick<
+  Pala,
+  "rating" | "reviewCount" | "reviewAspects" | "reviewHighlights" | "reviews"
+>;
+
+interface OpinionsSummaryProps {
+  pala: OpinionsPala;
   id: string;
+  /** Ancla de las opiniones destacadas, para el enlace del resumen en móvil */
+  highlightsHref: string;
+  className?: string;
 }
 
-/** Qué opinan los jugadores: valoración global, aspectos, lo que más repiten y opiniones. */
-export function PlayerOpinions({ pala, id }: PlayerOpinionsProps) {
+/** Qué opinan los jugadores: valoración global, aspectos y lo que más repiten. */
+export function OpinionsSummary({ pala, id, highlightsHref, className }: OpinionsSummaryProps) {
   if (pala.reviewCount === 0) {
     return (
-      <section aria-labelledby={id}>
+      <section aria-labelledby={id} className={className}>
         <SectionTitle id={id}>Qué opinan los jugadores</SectionTitle>
-        <p className="mt-2.5 text-base leading-[1.6] text-pretty text-ink">
-          Todavía no tenemos opiniones de jugadores sobre esta pala.
-        </p>
+        <EmptyNote className="mt-3.5 lg:mt-4">
+          Todavía estamos recopilando opiniones de jugadores sobre esta pala.
+        </EmptyNote>
       </section>
     );
   }
 
   return (
-    <section aria-labelledby={id}>
+    <section aria-labelledby={id} className={className}>
       <SectionTitle id={id}>Qué opinan los jugadores</SectionTitle>
 
-      <div className="mt-4 flex items-center gap-3.5">
+      <div className="mt-3.5 flex items-center gap-3.5 lg:mt-4">
         <span className="text-[52px] leading-none font-black tracking-[-0.04em]">
           {formatRating(pala.rating)}
         </span>
@@ -71,8 +82,9 @@ export function PlayerOpinions({ pala, id }: PlayerOpinionsProps) {
         </div>
       </div>
 
+      {/* El desglose por aspecto solo está en la ficha de escritorio. */}
       {pala.reviewAspects.length > 0 && (
-        <dl className="mt-5 grid max-w-[560px] gap-2.5">
+        <dl className="mt-5 hidden gap-2.5 lg:grid">
           {pala.reviewAspects.map((aspect) => (
             <div
               key={aspect.label}
@@ -92,7 +104,9 @@ export function PlayerOpinions({ pala, id }: PlayerOpinionsProps) {
 
       {pala.reviewHighlights.length > 0 && (
         <>
-          <h3 className="mt-6 mb-3 text-sm font-extrabold">Lo que más repiten los jugadores</h3>
+          <h3 className="mt-[18px] mb-3 text-sm font-extrabold lg:mt-6">
+            Lo que más repiten<span className="hidden lg:inline"> los jugadores</span>
+          </h3>
           <ul className="flex flex-col gap-3">
             {pala.reviewHighlights.map((highlight) => (
               <li
@@ -107,15 +121,38 @@ export function PlayerOpinions({ pala, id }: PlayerOpinionsProps) {
       )}
 
       {pala.reviews.length > 0 && (
-        <>
-          <h3 className="mt-6 mb-3 text-sm font-extrabold">Opiniones destacadas</h3>
-          <ul className="grid gap-3 lg:grid-cols-3">
-            {pala.reviews.map((review) => (
-              <ReviewCard key={review.id} review={review} />
-            ))}
-          </ul>
-        </>
+        <a href={highlightsHref} className="mt-3.5 inline-block text-sm font-bold underline lg:hidden">
+          Ver todas las opiniones
+        </a>
       )}
+    </section>
+  );
+}
+
+const MOBILE_REVIEWS = 2;
+
+interface OpinionsHighlightsProps {
+  reviews: Review[];
+  id: string;
+  className?: string;
+}
+
+/** Opiniones destacadas: dos en móvil, tres en escritorio. */
+export function OpinionsHighlights({ reviews, id, className }: OpinionsHighlightsProps) {
+  if (reviews.length === 0) return null;
+
+  return (
+    <section id={id} aria-label="Opiniones destacadas" className={className}>
+      <h3 className="mb-3 text-sm font-extrabold lg:hidden">Opiniones destacadas</h3>
+      <ul className="grid gap-3 lg:grid-cols-3">
+        {reviews.slice(0, 3).map((review, index) => (
+          <ReviewCard
+            key={review.id}
+            review={review}
+            className={index >= MOBILE_REVIEWS ? "hidden lg:block" : undefined}
+          />
+        ))}
+      </ul>
     </section>
   );
 }

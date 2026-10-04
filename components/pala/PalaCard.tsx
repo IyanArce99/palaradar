@@ -18,6 +18,8 @@ interface PalaCardProps {
   badge?: string;
   /** Alto y radio de la foto */
   photoClassName?: string;
+  /** Destino de la tarjeta; por defecto, la ficha de la pala */
+  href?: string;
   className?: string;
 }
 
@@ -74,6 +76,7 @@ export function PalaCard({
   variant = "catalog",
   badge,
   photoClassName = "h-[170px] lg:h-[260px]",
+  href = routes.pala(pala.slug),
   className,
 }: PalaCardProps) {
   const fullName = `${pala.brand.name} ${pala.model}`;
@@ -100,7 +103,7 @@ export function PalaCard({
               </span>
             )}
             <h3 className="text-base leading-[1.2] font-extrabold">
-              <Link href={routes.pala(pala.slug)} className={cardLinkClass}>
+              <Link href={href} className={cardLinkClass}>
                 {fullName}
               </Link>
             </h3>
@@ -125,7 +128,7 @@ export function PalaCard({
               )}
             </div>
             <h3 className="mt-0.5 text-[15px] leading-[1.2] font-extrabold lg:text-[17px]">
-              <Link href={routes.pala(pala.slug)} className={cardLinkClass}>
+              <Link href={href} className={cardLinkClass}>
                 {pala.model}
               </Link>
             </h3>

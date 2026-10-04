@@ -159,6 +159,8 @@ export function toPala(parts: PalaParts, now: Date): Pala {
     balance: racket.balance,
     levels: racket.levels,
     playStyle: racket.play_style,
+    hardness: racket.hardness ?? null,
+    player: racket.player ?? null,
     description: racket.description,
     editorial: {
       status: racket.editorial_status,

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/ui/icons";
-import { catalogShortcuts, mainNav } from "@/config/navigation";
+import { catalogShortcuts, footerBrandSlugs, mainNav } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
 import { getBrands, hasTestPrices } from "@/data";
 import { catalogHref } from "@/lib/catalog/query";
@@ -53,11 +53,14 @@ export async function Footer() {
 
         <FooterColumn
           title="Palas por marca"
-          links={brands.map((brand) => ({ label: brand.name, href: routes.brand(brand.slug) }))}
+          links={footerBrandSlugs.flatMap((slug) => {
+            const brand = brands.find((item) => item.slug === slug);
+            return brand ? [{ label: brand.name, href: routes.brand(brand.slug) }] : [];
+          })}
         />
         <FooterColumn
           title="Palas por tipo"
-          links={catalogShortcuts.map((shortcut) => ({
+          links={catalogShortcuts.filter((shortcut) => shortcut.inFooter).map((shortcut) => ({
             label: shortcut.shortLabel,
             href: catalogHref(shortcut.query),
           }))}

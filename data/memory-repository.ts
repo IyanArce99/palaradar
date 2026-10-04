@@ -4,6 +4,7 @@
 // consulta equivale a un SELECT con WHERE, ORDER BY y LIMIT/OFFSET.
 import { CATALOG_PAGE_SIZE, DEFAULT_QUERY, type CatalogQuery, type SortId } from "@/lib/catalog/query";
 import { buildPriceHistory, computePriceStats } from "@/lib/pricing";
+import { matchesWeight, type RecommenderCriterion } from "@/lib/recommender";
 import type { PricePoint, StoreOffer } from "@/types/catalog";
 import type { RacketCatalogRow } from "@/types/db";
 import {
@@ -140,9 +141,14 @@ export function createMemoryRepository(): CatalogRepository {
     return price !== null && row.min_price ? price / row.min_price : LAST;
   };
 
+  /** Popularidad: más opiniones, luego más tiendas con precio actual, luego más recientes. */
+  const storesOf = (row: RacketCatalogRow) => (priceOf(row) === null ? -1 : (row.store_count ?? -1));
+  const byPopularity = (a: RacketCatalogRow, b: RacketCatalogRow) =>
+    b.review_count - a.review_count || storesOf(b) - storesOf(a) || b.year - a.year || bySlug(a, b);
+
   /** Equivalente al ORDER BY; las palas sin precio actual van al final (NULLS LAST). */
   const orderBy: Record<SortId, (a: RacketCatalogRow, b: RacketCatalogRow) => number> = {
-    popularidad: (a, b) => b.review_count - a.review_count || b.year - a.year || bySlug(a, b),
+    popularidad: byPopularity,
     precio: (a, b) => (priceOf(a) ?? LAST) - (priceOf(b) ?? LAST) || bySlug(a, b),
     descuento: (a, b) => dropOf(b) - dropOf(a) || bySlug(a, b),
     minimo: (a, b) => distanceToMin(a) - distanceToMin(b) || bySlug(a, b),
@@ -246,6 +252,39 @@ export function createMemoryRepository(): CatalogRepository {
         .flatMap((row) => toMonthlyDrop(row, now()) ?? [])
         .sort((a, b) => b.percent - a.percent)
         .slice(0, limit);
+    },
+
+    async getAlternativePairs() {
+      return tables.racketAlternatives.flatMap((row): [string, string][] => {
+        const a = catalogById.get(row.racket_id);
+        const b = catalogById.get(row.alternative_id);
+        return a && b ? [[a.slug, b.slug]] : [];
+      });
+    },
+
+    async recommendPalas(prefs, limit) {
+      const racketsById = new Map(tables.rackets.map((racket) => [racket.id, racket]));
+
+      return catalogRows
+        .flatMap((row) => {
+          const price = priceOf(row);
+          const racket = racketsById.get(row.id);
+          if (price === null || !racket) return [];
+          if (prefs.maxPrice !== null && price > prefs.maxPrice) return [];
+
+          const matched: RecommenderCriterion[] = [];
+          if (prefs.level && row.levels.includes(prefs.level)) matched.push("level");
+          if (prefs.style && row.play_style === prefs.style) matched.push("style");
+          if (prefs.shape && row.shape === prefs.shape) matched.push("shape");
+          if (prefs.balance && row.balance === prefs.balance) matched.push("balance");
+          if (prefs.weight && matchesWeight(prefs.weight, racket.weight_min, racket.weight_max)) {
+            matched.push("weight");
+          }
+          return [{ row, matched }];
+        })
+        .sort((a, b) => b.matched.length - a.matched.length || byPopularity(a.row, b.row))
+        .slice(0, limit)
+        .map(({ row, matched }) => ({ pala: toPalaSummary(row, now()), matched }));
     },
   };
 

@@ -1,25 +1,60 @@
+import { EmptyNote } from "@/components/ui/EmptyNote";
+import { cn } from "@/lib/cn";
+import { formatDate } from "@/lib/format";
+import { chartSeries } from "@/lib/pricing";
 import type { PricePoint } from "@/types/catalog";
 import type { PriceSummary } from "@/types/pricing";
 import { PriceHistory } from "./PriceHistory";
 import { SectionTitle } from "./SectionTitle";
 
+const TITLE_ID = "precio-historico";
+/** Con menos puntos no hay línea que dibujar. */
+const MIN_CHART_POINTS = 2;
+
 interface PriceInsightProps {
-  price: PriceSummary;
+  price: PriceSummary | null;
   history: PricePoint[];
+  className?: string;
 }
 
 /** ¿Está barata ahora? El precio explicado en una frase, con su histórico. */
-export function PriceInsight({ price, history }: PriceInsightProps) {
+export function PriceInsight({ price, history, className }: PriceInsightProps) {
+  const title = <SectionTitle id={TITLE_ID}>¿Está barata ahora?</SectionTitle>;
+
+  if (!price) {
+    return (
+      <section aria-labelledby={TITLE_ID} className={className}>
+        {title}
+        <EmptyNote className="mt-2.5">
+          Ahora mismo no tenemos el precio de esta pala en ninguna tienda, así que no podemos
+          decirte si es buen momento para comprarla.
+        </EmptyNote>
+      </section>
+    );
+  }
+
+  const answer = (
+    <p className="mt-2.5 text-base leading-[1.6] text-pretty text-ink">{price.verdict.answer}</p>
+  );
+
+  if (chartSeries(history, price, 12).length < MIN_CHART_POINTS) {
+    const since = history[0]?.date ?? price.checkedAt;
+    return (
+      <section aria-labelledby={TITLE_ID} className={className}>
+        {title}
+        {answer}
+        <EmptyNote className="mt-4 lg:mt-[18px]">
+          Seguimos el precio de esta pala desde el {formatDate(since)}. Su evolución aparecerá
+          aquí cuando tengamos más días de histórico.
+        </EmptyNote>
+      </section>
+    );
+  }
+
   return (
-    <section aria-labelledby="precio-historico">
-      <PriceHistory
-        title={<SectionTitle id="precio-historico">¿Está barata ahora?</SectionTitle>}
-        history={history}
-        price={price}
-      >
-        <p className="mt-2.5 mb-4 text-base leading-[1.6] text-pretty text-ink lg:mb-0">
-          {price.verdict.answer}
-        </p>
+    <section aria-labelledby={TITLE_ID} className={cn(className)}>
+      <PriceHistory title={title} history={history} price={price}>
+        {answer}
       </PriceHistory>
     </section>
   );

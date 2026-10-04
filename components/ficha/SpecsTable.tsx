@@ -1,4 +1,5 @@
 import { DisclosureMarker } from "@/components/ui/DisclosureMarker";
+import { formatWeight } from "@/lib/format";
 import { BALANCE_LABELS, formatLevels, SHAPE_LABELS, STYLE_LABELS } from "@/lib/labels";
 import type { Pala, Spec } from "@/types/catalog";
 
@@ -14,10 +15,6 @@ function buildSpecs(pala: Pala): Spec[] {
     ["Año", String(pala.year)],
   ];
   return entries.flatMap(([label, value]) => (value ? [{ label, value }] : []));
-}
-
-function formatWeight({ min, max }: { min: number; max: number }): string {
-  return min === max ? `${min} g` : `${min}–${max} g`;
 }
 
 function hostname(url: string): string {

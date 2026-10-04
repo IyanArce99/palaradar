@@ -3,6 +3,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Logo, ScanIcon, SearchIcon } from "@/components/ui/icons";
 import { mainNav } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
+import { cn } from "@/lib/cn";
 import { routes } from "@/lib/routes";
 import { SearchForm } from "./SearchForm";
 
@@ -21,7 +22,11 @@ export function Header() {
           <ul className="flex gap-[22px] text-[15px] font-bold whitespace-nowrap">
             {mainNav.map((item) => (
               <li key={item.href}>
-                <Link href={item.href} className="hover:underline">
+                <Link
+                  href={item.href}
+                  // «Pala ideal» va en un peso más ligero, como en el diseño.
+                  className={cn("hover:underline", item.href === routes.idealPala && "font-medium text-ink")}
+                >
                   {item.label}
                 </Link>
               </li>

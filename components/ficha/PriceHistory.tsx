@@ -17,7 +17,10 @@ interface PriceHistoryProps {
   price: PriceSummary;
 }
 
-/** Histórico de precio con selector de rango (3 / 6 / 12 meses). */
+/**
+ * Histórico de precio. El selector de rango (3 / 6 / 12 meses) es de la ficha
+ * de escritorio; en móvil el diseño muestra el gráfico sin selector.
+ */
 export function PriceHistory({ title, children, history, price }: PriceHistoryProps) {
   const [months, setMonths] = useState<(typeof RANGES)[number]>(12);
   const chart = { history, price, months };
@@ -29,7 +32,7 @@ export function PriceHistory({ title, children, history, price }: PriceHistoryPr
       <div
         role="group"
         aria-label="Periodo del histórico"
-        className="flex gap-1 rounded-xl bg-mist p-1 lg:col-start-2 lg:row-start-1"
+        className="hidden gap-1 rounded-xl bg-mist p-1 lg:col-start-2 lg:row-start-1 lg:flex"
       >
         {RANGES.map((range) => (
           <button
@@ -38,7 +41,7 @@ export function PriceHistory({ title, children, history, price }: PriceHistoryPr
             aria-pressed={range === months}
             onClick={() => setMonths(range)}
             className={cn(
-              "h-11 flex-1 rounded-[9px] px-3 text-[13px] font-bold whitespace-nowrap lg:h-[38px]",
+              "h-[38px] flex-1 rounded-[9px] px-3 text-[13px] font-bold whitespace-nowrap",
               range === months && "bg-white shadow-[0_1px_3px_rgb(0_0_0/0.12)]",
             )}
           >
@@ -47,7 +50,7 @@ export function PriceHistory({ title, children, history, price }: PriceHistoryPr
         ))}
       </div>
       <div className="lg:col-span-2">
-        <PriceChart {...chart} width={350} height={190} className="mt-4 lg:hidden" />
+        <PriceChart history={history} price={price} months={12} width={350} height={190} className="mt-4 lg:hidden" />
         <PriceChart {...chart} width={760} height={240} className="mt-[18px] hidden lg:block" />
       </div>
     </div>

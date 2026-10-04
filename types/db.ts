@@ -51,6 +51,9 @@ export interface RacketRow {
   technical_specs: Spec[];
   faq: FaqItem[];
   specs_source_url: string | null;
+  /** Columnas del catálogo enriquecido; la semilla en memoria no las tiene */
+  hardness?: string | null;
+  player?: string | null;
 }
 
 export interface RacketAlternativeRow {

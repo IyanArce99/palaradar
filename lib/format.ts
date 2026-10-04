@@ -80,6 +80,11 @@ export function formatMonthYearShort(iso: string): string {
   return `${MONTHS[month].slice(0, 3)} ${year}`;
 }
 
+/** {355, 375} → "355–375 g" · {365, 365} → "365 g" */
+export function formatWeight({ min, max }: { min: number; max: number }): string {
+  return min === max ? `${min} g` : `${min}–${max} g`;
+}
+
 export function pluralize(count: number, singular: string, plural: string): string {
   return `${formatCount(count)} ${count === 1 ? singular : plural}`;
 }

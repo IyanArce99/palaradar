@@ -20,19 +20,37 @@ function PriceRow({ label, value }: { label: string; value: number }) {
 }
 
 interface PriceCardProps {
-  price: PriceSummary;
+  price: PriceSummary | null;
   /** Ancla del listado de tiendas */
   storesHref: string;
+  /** Ancla del bloque «Avísame cuando baje» */
+  alertHref: string;
   className?: string;
 }
 
 /** Mejor precio hoy, con el veredicto en una frase y solo tres cifras de contexto. */
-export function PriceCard({ price, storesHref, className }: PriceCardProps) {
+export function PriceCard({ price, storesHref, alertHref, className }: PriceCardProps) {
+  const frame = cn("rounded-[22px] border-2 border-carbon p-5 lg:p-6", className);
+
+  if (!price) {
+    return (
+      <section aria-label="Mejor precio" className={frame}>
+        <h2 className="text-[13px] font-bold text-muted">Mejor precio hoy</h2>
+        <p className="mt-0.5 text-[26px] leading-[1.1] font-black tracking-[-0.025em]">
+          Sin precio ahora mismo
+        </p>
+        <p className="mt-2 text-[15px] leading-normal text-ink">
+          Ninguna de las tiendas que seguimos tiene esta pala a la venta en este momento.
+        </p>
+        <a href={alertHref} className={buttonClass({ variant: "outline", className: "mt-4 w-full" })}>
+          Avísame cuando esté disponible
+        </a>
+      </section>
+    );
+  }
+
   return (
-    <section
-      aria-label="Mejor precio"
-      className={cn("rounded-[22px] border-2 border-carbon p-5 lg:p-6", className)}
-    >
+    <section aria-label="Mejor precio" className={frame}>
       <h2 className="text-[13px] font-bold text-muted">
         {price.freshness === "current" ? "Mejor precio hoy" : "Último precio conocido"}
       </h2>
@@ -67,9 +85,14 @@ export function PriceCard({ price, storesHref, className }: PriceCardProps) {
         )}
       </dl>
 
-      <a href={storesHref} className={buttonClass({ size: "lg", className: "mt-4 w-full" })}>
-        Ver precios en todas las tiendas
-      </a>
+      <div className="mt-4 grid gap-2">
+        <a href={storesHref} className={buttonClass({ size: "lg" })}>
+          Ver precios en todas las tiendas
+        </a>
+        <a href={alertHref} className={buttonClass({ variant: "outline" })}>
+          Avísame cuando baje
+        </a>
+      </div>
     </section>
   );
 }

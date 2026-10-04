@@ -7,4 +7,7 @@ export const routes = {
   compare: "/comparar/",
   guides: "/guias/",
   scan: "/escanear/",
+  idealPala: "/pala-ideal/",
+  /** Sugerencias del buscador de palas (JSON) */
+  searchApi: "/api/palas/",
 } as const;

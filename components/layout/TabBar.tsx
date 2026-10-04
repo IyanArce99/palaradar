@@ -42,7 +42,7 @@ export function TabBar() {
               <Link
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
-                className="flex min-h-11 w-[68px] flex-col items-center justify-end gap-[5px]"
+                className="flex min-h-11 w-[72px] flex-col items-center justify-end gap-[5px]"
               >
                 <span
                   aria-hidden="true"

@@ -25,7 +25,7 @@ export function Hero({ featured }: HeroProps) {
           {siteConfig.tagline}
         </h1>
         <p className="mt-3.5 text-[17px] leading-[1.6] text-pretty text-ink lg:mt-[22px] lg:text-xl">
-          Compara palas, descubre qué opinan otros jugadores y encuentra el mejor precio.
+          Compara cientos de palas, descubre qué opinan otros jugadores y encuentra el mejor precio.
         </p>
         <SearchForm variant="hero" className="mt-[22px] max-w-[580px] lg:mt-8" />
         <div className="mt-2.5 flex flex-col gap-3.5 lg:mt-4 lg:flex-row lg:items-center">

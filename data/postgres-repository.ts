@@ -4,6 +4,7 @@
 import { pricingConfig } from "@/config/pricing";
 import { CATALOG_PAGE_SIZE, DEFAULT_QUERY, type CatalogQuery, type SortId } from "@/lib/catalog/query";
 import { buildPriceHistory } from "@/lib/pricing";
+import { WEIGHT_BANDS, type RecommenderCriterion } from "@/lib/recommender";
 import type { BrandRow, RacketCatalogRow, RacketRow, ReviewRow, StorePriceRow } from "@/types/db";
 import { getSql, type Sql } from "./db/client";
 import { activeStores } from "./db/sources";
@@ -79,6 +80,16 @@ function whereClause(sql: Sql, query: CatalogQuery): Fragment {
   return conditions.reduce((all, condition) => sql`${all} and ${condition}`, sql`true`);
 }
 
+/**
+ * Popularidad, con datos que se pueden comprobar: primero las palas con más
+ * opiniones de jugadores; a igualdad, las que más tiendas tienen a la venta
+ * ahora mismo y, después, las más recientes. No hay visitas ni ventas detrás.
+ */
+function popularityOrder(sql: Sql): Fragment {
+  return sql`review_count desc,
+    case when ${hasCurrentPrice(sql)} then store_count end desc nulls last, year desc, slug`;
+}
+
 /** ORDER BY de cada criterio; las palas sin precio actual van al final. */
 function orderClause(sql: Sql, sort: SortId): Fragment {
   const current = hasCurrentPrice(sql);
@@ -93,9 +104,13 @@ function orderClause(sql: Sql, sort: SortId): Fragment {
     case "novedades":
       return sql`year desc, review_count desc, slug`;
     default:
-      return sql`review_count desc, year desc, slug`;
+      return popularityOrder(sql);
   }
 }
+
+const CRITERIA: RecommenderCriterion[] = ["level", "style", "shape", "balance", "weight"];
+
+type ScoredRow = RacketCatalogRow & Record<`m_${RecommenderCriterion}`, boolean>;
 
 interface OfferRow extends StorePriceRow {
   store_slug: string;
@@ -270,6 +285,44 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
 
       const at = now();
       return rows.flatMap((row) => toMonthlyDrop(row, at) ?? []);
+    },
+
+    async getAlternativePairs() {
+      const rows = await sql<{ a: string; b: string }[]>`
+        select a.slug as a, b.slug as b
+        from racket_alternatives x
+        join rackets a on a.id = x.racket_id
+        join rackets b on b.id = x.alternative_id
+        where a.is_available and b.is_available`;
+      return rows.map((row) => [row.a, row.b]);
+    },
+
+    async recommendPalas(prefs, limit) {
+      const no = sql`false`;
+      const band = prefs.weight ? WEIGHT_BANDS[prefs.weight] : null;
+      const middle = sql`(r.weight_min + r.weight_max) / 2.0`;
+
+      const rows = await sql<ScoredRow[]>`
+        select * from (
+          select c.*,
+            ${prefs.level ? sql`c.levels && array[${prefs.level}]::text[]` : no} as m_level,
+            coalesce(${prefs.style ? sql`c.play_style::text = ${prefs.style}` : no}, false) as m_style,
+            coalesce(${prefs.shape ? sql`c.shape::text = ${prefs.shape}` : no}, false) as m_shape,
+            coalesce(${prefs.balance ? sql`c.balance::text = ${prefs.balance}` : no}, false) as m_balance,
+            coalesce(${band ? sql`${middle} > ${band.min} and ${middle} <= ${band.max}` : no}, false) as m_weight
+          from racket_catalog c join rackets r on r.id = c.id
+          where c.best_price is not null and c.price_checked_at > ${staleBefore()}
+            and ${prefs.maxPrice === null ? sql`true` : sql`c.best_price <= ${prefs.maxPrice}`}
+        ) scored
+        order by m_level::int + m_style::int + m_shape::int + m_balance::int + m_weight::int desc,
+          ${popularityOrder(sql)}
+        limit ${limit}`;
+
+      const at = now();
+      return rows.map((row) => ({
+        pala: toPalaSummary(row, at),
+        matched: CRITERIA.filter((criterion) => row[`m_${criterion}`]),
+      }));
     },
   };
 }
