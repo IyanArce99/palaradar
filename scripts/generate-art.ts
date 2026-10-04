@@ -15,6 +15,7 @@ const SHAPES: Record<PalaShape, { w: number; h: number; taper: number; power: nu
   redonda: { w: 118, h: 122, taper: 0, power: 2 },
   lagrima: { w: 116, h: 128, taper: 0.1, power: 2.15 },
   diamante: { w: 120, h: 126, taper: 0.2, power: 2.5 },
+  hibrida: { w: 118, h: 127, taper: 0.15, power: 2.3 },
 };
 
 interface Palette {
@@ -170,6 +171,15 @@ function firstOf(shape: PalaShape, skip = 0): ArtPala {
 // Una imagen por pala, sobre fondo transparente
 for (const p of palas) {
   write(`palas/${p.slug}.svg`, svg(340, 460, [placed(p, "p", 176, 138, 8, 0.88)]));
+}
+
+// Ilustraciones genéricas por forma y paleta, para las palas del catálogo que
+// no tienen una propia (ver genericArtPath en catalog/normalize.ts).
+for (const shape of Object.keys(SHAPES) as PalaShape[]) {
+  PALETTES.forEach((palette, index) => {
+    const generic: ArtPala = { slug: `generica-${shape}-${index}`, shape, ...palette };
+    write(`palas/${generic.slug}.svg`, svg(340, 460, [placed(generic, "p", 176, 138, 8, 0.88)]));
+  });
 }
 
 // Portada: tres palas en abanico

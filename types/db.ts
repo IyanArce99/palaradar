@@ -122,7 +122,7 @@ export interface RacketPriceStatsRow {
 
 // --- Ingestión de precios (db/migrations/002_price_ingestion.sql) ---------------
 
-export type IdentifierType = "gtin" | "manufacturer_ref";
+export type IdentifierType = "gtin" | "manufacturer_ref" | "padelzoom_model_id" | "padelzoom_slug";
 export type MatchingStatus = "matched" | "pending_review" | "rejected";
 export type MatchingMethod = "gtin" | "attributes" | "manual";
 export type ListingStatus = "active" | "out_of_stock" | "missing";

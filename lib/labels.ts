@@ -11,6 +11,7 @@ export const SHAPE_LABELS: Record<PalaShape, string> = {
   redonda: "Redonda",
   lagrima: "Lágrima",
   diamante: "Diamante",
+  hibrida: "Híbrida",
 };
 
 export const BALANCE_LABELS: Record<PalaBalance, string> = {

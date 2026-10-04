@@ -25,6 +25,11 @@ const INSERT_CHUNK = 1000;
 
 // En orden de borrado seguro (primero las que dependen de otras).
 const TABLES = [
+  "legacy_urls",
+  "racket_media",
+  "racket_source_content",
+  "racket_facts",
+  "data_sources",
   "ingestion_runs",
   "store_products",
   "racket_identifiers",
@@ -37,7 +42,7 @@ const TABLES = [
   "stores",
   "brands",
 ];
-const VIEWS = ["racket_catalog", "racket_price_daily"];
+const VIEWS = ["racket_catalog", "racket_price_daily", "racket_fact_conflicts"];
 const TYPES = [
   "pala_shape",
   "pala_balance",

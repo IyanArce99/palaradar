@@ -54,6 +54,8 @@ export interface CatalogRepository {
    */
   getPriceHistory(slug: string): Promise<PriceHistory | null>;
   getAllPalaSlugs(): Promise<string[]>;
+  /** Palas con algún precio publicado: las que merece la pena generar por adelantado */
+  getPricedPalaSlugs(): Promise<string[]>;
   /** Mayores bajadas de precio de los últimos 30 días */
   getBiggestMonthlyDrops(limit: number): Promise<MonthlyDrop[]>;
 }

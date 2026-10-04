@@ -234,6 +234,13 @@ export function createMemoryRepository(): CatalogRepository {
       return catalogRows.map((row) => row.slug).sort();
     },
 
+    async getPricedPalaSlugs() {
+      return catalogRows
+        .filter((row) => row.best_price !== null)
+        .map((row) => row.slug)
+        .sort();
+    },
+
     async getBiggestMonthlyDrops(limit) {
       return catalogRows
         .flatMap((row) => toMonthlyDrop(row, now()) ?? [])

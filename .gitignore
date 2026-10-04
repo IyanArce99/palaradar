@@ -34,6 +34,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# datos de trabajo que no van al repositorio (p. ej. el catálogo a importar)
+/var/
+
 # vercel
 .vercel
 

@@ -2,7 +2,8 @@
 // los construye a partir de las filas de la base de datos (types/db.ts).
 import type { PriceSummary } from "./pricing";
 
-export type PalaShape = "redonda" | "lagrima" | "diamante";
+/** `hibrida`: entre lágrima y diamante; la usan fabricantes y tiendas como forma propia */
+export type PalaShape = "redonda" | "lagrima" | "diamante" | "hibrida";
 export type PalaBalance = "bajo" | "medio" | "alto";
 export type PlayerLevel = "iniciacion" | "intermedio" | "avanzado" | "competicion";
 export type PlayStyle = "control" | "polivalente" | "potencia";

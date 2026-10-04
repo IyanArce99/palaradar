@@ -15,7 +15,7 @@ import { StoreList } from "@/components/ficha/StoreList";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
-import { getAllPalaSlugs, getPalaBySlug, hasTestPrices } from "@/data";
+import { getPalaBySlug, getPricedPalaSlugs, hasTestPrices } from "@/data";
 import { routes } from "@/lib/routes";
 import { pageMetadata, productJsonLd } from "@/lib/seo";
 
@@ -29,8 +29,10 @@ interface PalaPageProps {
   params: Promise<{ slug: string }>;
 }
 
+// Solo se generan por adelantado las palas con precio; el resto del catálogo
+// se genera la primera vez que se pide y queda en caché igual.
 export async function generateStaticParams() {
-  return (await getAllPalaSlugs()).map((slug) => ({ slug }));
+  return (await getPricedPalaSlugs()).map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: PalaPageProps): Promise<Metadata> {

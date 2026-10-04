@@ -116,7 +116,7 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
   async function getBrands() {
     const rows = await sql<BrandRow[]>`
       select b.* from brands b
-      where exists (select 1 from rackets r where r.brand_id = b.id)
+      where exists (select 1 from rackets r where r.brand_id = b.id and r.is_available)
       order by b.name`;
     return rows.map(toBrand);
   }
@@ -152,9 +152,10 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
     async getCatalogFacets() {
       const [brands, years, [{ max }]] = await Promise.all([
         getBrands(),
-        sql<{ year: number }[]>`select distinct year from rackets order by year desc`,
+        sql<{ year: number }[]>`
+          select distinct year from rackets where is_available order by year desc`,
         sql<{ max: number }[]>`
-          select coalesce(max(best_price), 0) as max from racket_price_stats
+          select coalesce(max(best_price), 0) as max from racket_catalog
           where ${hasCurrentPrice(sql)}`,
       ]);
 
@@ -170,13 +171,15 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
     async getBrandBySlug(slug) {
       const [row] = await sql<BrandRow[]>`
         select b.* from brands b
-        where b.slug = ${slug} and exists (select 1 from rackets r where r.brand_id = b.id)`;
+        where b.slug = ${slug}
+          and exists (select 1 from rackets r where r.brand_id = b.id and r.is_available)`;
       return row ? toBrand(row) : null;
     },
 
     async getPalaBySlug(slug) {
       const [racket] = await sql<RacketRow[]>`
-        select r.*, r.levels::text[] as levels from rackets r where r.slug = ${slug}`;
+        select r.*, r.levels::text[] as levels from rackets r
+        where r.slug = ${slug} and r.is_available`;
       if (!racket) return null;
 
       // Ofertas e histórico salen solo de las tiendas activas como fuente de precios.
@@ -247,7 +250,14 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
     },
 
     async getAllPalaSlugs() {
-      const rows = await sql<{ slug: string }[]>`select slug from rackets order by slug`;
+      const rows = await sql<{ slug: string }[]>`
+        select slug from rackets where is_available order by slug`;
+      return rows.map((row) => row.slug);
+    },
+
+    async getPricedPalaSlugs() {
+      const rows = await sql<{ slug: string }[]>`
+        select slug from racket_catalog where best_price is not null order by slug`;
       return rows.map((row) => row.slug);
     },
 

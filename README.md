@@ -92,6 +92,24 @@ Cada tienda es real o de demostración (`stores.is_demo`), y lo declara su adapt
 
 Para conectar otra tienda: un adaptador nuevo con `isDemo: false`, registrado en `ingestion/adapters/index.ts`. No hay que tocar consultas ni componentes.
 
+## Catálogo enriquecido
+
+Cada dato de una pala guarda de dónde sale. `racket_facts` tiene una fila por pala, atributo y fuente (valor normalizado, valor original, URL, fecha, tipo y confianza); lo que se publica en `rackets` es la observación marcada como elegida. Los conflictos entre fuentes no se pierden: la vista `racket_fact_conflicts` lista los atributos en los que no coinciden.
+
+- **Fuentes** (`data_sources`): fabricantes, tiendas autorizadas y catálogos de terceros. Ninguna es imprescindible; sus datos se pueden añadir o retirar por fuente sin cambiar el modelo.
+- **Identidad:** `racket_identifiers` relaciona cada pala con su EAN, la referencia del fabricante y los identificadores de otros catálogos. El SKU o id de cada tienda vive en `store_products`, con la confianza del emparejamiento (`matching_confidence`: high, medium, review).
+- **Tipos de dato:** `fact` (técnico), `declared` (lo declara la fuente: nivel, tacto…) y `rating` (valoración de un tercero). Las valoraciones se guardan como señal y nunca se publican como valoración propia.
+- **Disponibilidad:** una pala con `is_available = false` está en la base de datos pero no se ofrece en la web (por ejemplo, si las fuentes no coinciden en la forma). No tiene que ver con la indexación.
+- **Material de terceros:** los textos de otras fuentes (`racket_source_content`) y sus imágenes (`racket_media`, con derechos pendientes) son privados: la web no los muestra. Las palas sin ilustración propia usan una genérica de su forma.
+- **Forma:** cuatro valores; «híbrida» es una forma propia.
+
+```bash
+npm run catalog:import   # carga var/catalog/dataset.json (formato en catalog/types.ts); repetible, no borra nada
+npm run prices:ingest    # después, para publicar los precios de las palas nuevas
+```
+
+El fichero se genera fuera del repositorio y no se versiona (`/var/` está ignorado). La carga respeta lo que una persona haya fijado a mano (`racket_facts.pinned`) y los datos verificados de las palas que ya existían. Solo se generan por adelantado las fichas de las palas con precio; el resto se generan al pedirlas.
+
 ## Arquitectura de datos
 
 ```
