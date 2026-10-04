@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ScanIcon } from "@/components/ui/icons";
+import { ScanIcon, TabIcon } from "@/components/ui/icons";
 import { mobileTabs, type TabItem } from "@/config/navigation";
 import { cn } from "@/lib/cn";
 import { routes } from "@/lib/routes";
@@ -25,7 +25,7 @@ export function TabBar() {
   return (
     <nav
       aria-label="Navegación móvil"
-      className="sticky bottom-0 z-20 border-t border-line bg-white px-1 pt-2 pb-[calc(14px+env(safe-area-inset-bottom))] lg:hidden"
+      className="sticky bottom-0 z-20 border-t border-line bg-white px-1 pt-2 pb-[calc(10px+env(safe-area-inset-bottom))] lg:hidden"
     >
       <Link
         href={routes.scan}
@@ -35,7 +35,7 @@ export function TabBar() {
         Escanear
       </Link>
 
-      <ul className="flex justify-around">
+      <ul className="mx-auto grid max-w-[520px] grid-cols-5">
         {mobileTabs.map((tab) => {
           const active = isActive(tab, pathname);
           return (
@@ -43,12 +43,17 @@ export function TabBar() {
               <Link
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
-                className="flex min-h-11 w-[72px] flex-col items-center justify-end gap-[5px]"
+                className="flex min-h-[52px] flex-col items-center justify-end gap-1"
               >
+                {/* La pestaña activa se marca con una pastilla lima tras el icono. */}
                 <span
-                  aria-hidden="true"
-                  className={cn("h-1 w-[22px] rounded-sm", active && "bg-carbon")}
-                />
+                  className={cn(
+                    "grid h-7 w-12 place-items-center rounded-full",
+                    active ? "bg-lime text-carbon" : "text-muted",
+                  )}
+                >
+                  <TabIcon name={tab.icon} size={22} />
+                </span>
                 <span
                   className={cn(
                     "text-xs whitespace-nowrap",

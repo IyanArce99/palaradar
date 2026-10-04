@@ -48,6 +48,50 @@ export function SearchIcon({ size = 20, className }: IconProps) {
   );
 }
 
+const TAB_ICONS = {
+  home: <path d="M4 11.2 12 4l8 7.2V19a1 1 0 0 1-1 1h-4.2v-5.6H9.2V20H5a1 1 0 0 1-1-1Z" />,
+  rackets: (
+    <>
+      <ellipse cx="12" cy="9.2" rx="6.3" ry="6.7" />
+      <path d="M12 16v5" strokeWidth="3.2" />
+      <path d="M9.8 8h.01M14.2 8h.01M12 11h.01" strokeWidth="2.2" />
+    </>
+  ),
+  ideal: (
+    <>
+      <path d="m11 5 1.8 5.2L18 12l-5.2 1.8L11 19l-1.8-5.2L4 12l5.2-1.8Z" />
+      <path d="M18.5 3.5v4M16.5 5.5h4" />
+    </>
+  ),
+  deals: (
+    <>
+      <path d="M3.5 5A1.5 1.5 0 0 1 5 3.5h7l8.5 8.5a1.5 1.5 0 0 1 0 2.1l-6.4 6.4a1.5 1.5 0 0 1-2.1 0L3.5 12Z" />
+      <path d="M8 8h.01" strokeWidth="2.6" />
+    </>
+  ),
+  compare: <path d="M4 8h13m-3-3 3 3-3 3M20 16H7m3-3-3 3 3 3" />,
+};
+
+/** Iconos de la barra inferior móvil, a trazo como el resto. */
+export function TabIcon({ name, size = 24, className }: IconProps & { name: keyof typeof TAB_ICONS }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      {TAB_ICONS[name]}
+    </svg>
+  );
+}
+
 /** Icono del escáner: anillos de radar */
 export function ScanIcon({ size = 22, className }: IconProps) {
   return (

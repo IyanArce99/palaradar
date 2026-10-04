@@ -14,17 +14,22 @@ export const mainNav: NavItem[] = [
   { label: "Pala ideal", href: routes.idealPala },
 ];
 
+export type TabIconName = "home" | "rackets" | "ideal" | "deals" | "compare";
+
 export interface TabItem extends NavItem {
+  icon: TabIconName;
   /** Prefijos de ruta que activan la pestaña */
   match: string[];
 }
 
+// Cinco pestañas caben en un móvil estrecho. Las guías, que aún no tienen
+// contenido, se alcanzan desde el pie.
 export const mobileTabs: TabItem[] = [
-  { label: "Inicio", href: routes.home, match: [] },
-  { label: "Catálogo", href: routes.catalog, match: ["/palas-padel", "/pala/"] },
-  { label: "Ofertas", href: routes.deals, match: ["/ofertas"] },
-  { label: "Comparar", href: routes.compare, match: ["/comparar"] },
-  { label: "Guías", href: routes.guides, match: ["/guias"] },
+  { label: "Inicio", href: routes.home, icon: "home", match: [] },
+  { label: "Catálogo", href: routes.catalog, icon: "rackets", match: ["/palas-padel", "/pala/"] },
+  { label: "Pala ideal", href: routes.idealPala, icon: "ideal", match: ["/pala-ideal"] },
+  { label: "Ofertas", href: routes.deals, icon: "deals", match: ["/ofertas"] },
+  { label: "Comparar", href: routes.compare, icon: "compare", match: ["/comparar"] },
 ];
 
 export interface CatalogShortcut {
