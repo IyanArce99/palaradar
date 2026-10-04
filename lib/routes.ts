@@ -8,6 +8,11 @@ export const routes = {
   guides: "/guias/",
   scan: "/escanear/",
   idealPala: "/pala-ideal/",
+  privacy: "/privacidad/",
+  /** Confirmación y baja de una alerta de precio (enlaces de los correos) */
+  alertConfirm: "/alertas/confirmar/",
+  alertCancel: "/alertas/baja/",
+  alertCancelApi: "/api/alertas/baja/",
   /** Sugerencias del buscador de palas (JSON) */
   searchApi: "/api/palas/",
 } as const;

@@ -55,6 +55,8 @@ export interface RacketRow {
   /** Columnas del catálogo enriquecido; la semilla en memoria no las tiene */
   hardness?: string | null;
   player?: string | null;
+  gender?: string | null;
+  msrp?: number | null;
 }
 
 export interface RacketAlternativeRow {

@@ -120,6 +120,19 @@ export interface Alternative {
   reason: string;
 }
 
+/**
+ * Valoraciones de una pala publicadas por una fuente externa (hoy, PadelZoom).
+ * Se muestran siempre con el nombre de la fuente: no son valoraciones de PalaRadar.
+ */
+export interface SourceRatings {
+  /** Nombre de la fuente, tal y como se enseña */
+  source: string;
+  /** Aspectos puntuados, de 0 a 10 */
+  scores: ScoredAspect[];
+  /** Valoración total de la fuente, de 0 a 10 */
+  total: number | null;
+}
+
 /** Pala completa, tal y como la necesita la ficha */
 export interface Pala {
   id: string;
@@ -141,6 +154,16 @@ export interface Pala {
   hardness: string | null;
   /** Jugador profesional asociado al modelo */
   player: string | null;
+  /** A quién la dirige el fabricante ("hombre", "mujer", "hombre, mujer") */
+  gender: string | null;
+  /** Precio de venta recomendado por el fabricante */
+  msrp: number | null;
+  /** Código de barras del producto (EAN/GTIN), si lo conocemos */
+  gtin: string | null;
+  /** Referencia del fabricante */
+  manufacturerRef: string | null;
+  /** Valoraciones publicadas por una fuente externa; no son de PalaRadar */
+  sourceRatings: SourceRatings | null;
   /** Frase corta para tarjetas y listados */
   description: string;
   editorial: Editorial;

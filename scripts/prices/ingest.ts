@@ -13,6 +13,7 @@ import { getQueryCount } from "@/data/db/client";
 import { getAdapter } from "@/ingestion/adapters";
 import { createPostgresIngestionRepository } from "@/ingestion/postgres-repository";
 import { IngestionLockedError, runIngestion, type RunTimings } from "@/ingestion/run";
+import { sendDueAlerts } from "../alerts/shared";
 import { runDbScript } from "../db/run";
 import { storesFromArgs } from "./shared";
 
@@ -66,6 +67,11 @@ runDbScript(async (sql) => {
       failed.push(adapter.store.slug);
     }
   }
+
+  // Con los precios al día, se avisa a las alertas que se cumplen. Un fallo aquí
+  // no cambia el resultado de la ingestión.
+  console.log("");
+  await sendDueAlerts(sql);
 
   if (failed.length > 0) {
     console.error(`\nIngestión terminada con fallos en: ${failed.join(", ")}.`);

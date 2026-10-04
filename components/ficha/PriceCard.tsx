@@ -35,7 +35,7 @@ export function PriceCard({ price, storesHref, alertHref, className }: PriceCard
   if (!price) {
     return (
       <section aria-label="Mejor precio" className={frame}>
-        <h2 className="text-[13px] font-bold text-muted">Mejor precio hoy</h2>
+        <p className="text-[13px] font-bold text-muted">Mejor precio hoy</p>
         <p className="mt-0.5 text-[26px] leading-[1.1] font-black tracking-[-0.025em]">
           Sin precio ahora mismo
         </p>
@@ -51,9 +51,9 @@ export function PriceCard({ price, storesHref, alertHref, className }: PriceCard
 
   return (
     <section aria-label="Mejor precio" className={frame}>
-      <h2 className="text-[13px] font-bold text-muted">
+      <p className="text-[13px] font-bold text-muted">
         {price.freshness === "current" ? "Mejor precio hoy" : "Último precio conocido"}
-      </h2>
+      </p>
       <p className="mt-0.5 text-[44px] leading-[1.05] font-black tracking-[-0.035em] whitespace-nowrap tabular-nums">
         {formatEuro(price.current)}
       </p>
@@ -90,7 +90,7 @@ export function PriceCard({ price, storesHref, alertHref, className }: PriceCard
           Ver precios en todas las tiendas
         </a>
         <a href={alertHref} className={buttonClass({ variant: "outline" })}>
-          Avísame cuando baje
+          Avísame cuando baje de precio
         </a>
       </div>
     </section>

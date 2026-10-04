@@ -16,6 +16,7 @@
     "prices:ingest": "tsx --env-file-if-exists=.env.local scripts/prices/ingest.ts",
     "prices:pending": "tsx --env-file-if-exists=.env.local scripts/prices/pending.ts",
     "catalog:import": "tsx --env-file-if-exists=.env.local scripts/catalog/import.ts",
+    "alerts:send": "tsx --env-file-if-exists=.env.local scripts/alerts/send.ts",
     "media:import": "tsx --env-file-if-exists=.env.local scripts/media/import.ts",
     "media:report": "tsx --env-file-if-exists=.env.local scripts/media/report.ts",
     "media:review": "tsx --env-file-if-exists=.env.local scripts/media/review.ts",

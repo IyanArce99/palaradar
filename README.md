@@ -193,6 +193,30 @@ Cada pala enseña, por este orden: su foto real publicada, su ilustración propi
 - **Rendimiento:** se guarda el original; `next/image` sirve cada tamaño optimizado y el marco fija el tamaño, sin saltos de maquetación.
 - **Mejora pendiente:** las fotos con fondo gris claro (unas 50, sobre todo Drop Shot, Kombat, Varlion y Wilson) se publican, pero su recuadro se nota sobre el marco de la web. Integrarlo exigiría recortar el fondo de esas imágenes o conseguir versiones con fondo blanco.
 
+## Ficha de pala
+
+La ficha solo enseña bloques con datos reales detrás; un bloque sin datos no aparece (no hay avisos de «todavía no…»). Orden: cabecera (foto, nombre, precio de partida, ver precios y crear alerta) → descripción → «De un vistazo» → ¿Para quién es? → ¿Cómo se siente jugando? → precio (¿está barata?, tiendas, alerta) → palas relacionadas y comparador → especificaciones completas → preguntas frecuentes.
+
+- **Texto con los datos de cada pala** (`lib/pala-content.ts`): la descripción, «De un vistazo», las especificaciones y las preguntas frecuentes se construyen con lo que la pala declara. Las explicaciones dicen qué significa un atributo en general; no valoran la pala.
+- **Puntuaciones técnicas de PadelZoom:** sus puntuaciones (potencia, control, salida de bola, manejabilidad, punto dulce y total) se enseñan en «¿Cómo se siente jugando?» con ese título y el aviso «Datos heredados de PadelZoom. No son valoraciones propias de PalaRadar». No son opiniones de usuarios ni notas de PalaRadar. Los análisis escritos de PadelZoom no se usan.
+- **Opiniones:** el bloque no se muestra mientras no haya opiniones reales.
+- **SEO:** título y descripción con los datos de la pala, JSON-LD de producto con EAN, referencia y características, JSON-LD de preguntas frecuentes, y enlaces a la marca, a palas relacionadas y al comparador.
+
+## Alertas de precio
+
+Sin cuentas de usuario. Desde la ficha se elige un precio objetivo y se deja un correo; la alerta no se activa hasta confirmar el enlace que llega por correo (doble confirmación). Después de cada ingestión de precios (`npm run prices:ingest`) se comprueban las alertas activas y se avisa, una sola vez, a las que se cumplen con un precio vigente; `npm run alerts:send` lo hace a mano. Todos los correos llevan enlace de baja.
+
+- **Código:** `alerts/` (servicio, repositorio y correos), `app/alertas/` (acciones y páginas de confirmación y baja) y la tabla `price_alerts`.
+- **Protecciones:** validación del correo, consentimiento obligatorio, campo trampa, límite de alertas por correo y por conexión (se guarda una huella de la IP, no la IP) y una sola alerta abierta por pala y correo.
+- **Variables:** `RESEND_API_KEY` y `ALERTS_FROM_EMAIL` (remitente de un dominio verificado en Resend); opcional `ALERTS_SECRET`. Sin las dos primeras la ficha no puede crear alertas y lo dice. Los enlaces usan `NEXT_PUBLIC_SITE_URL`.
+- **Conservación:** las alertas sin confirmar se borran a los 7 días y las cerradas (avisadas o dadas de baja) a los 30; las activas se conservan hasta que se cumplen o se dan de baja. El borrado va con la comprobación de alertas (tras la ingestión o con `npm run alerts:send`). Los plazos están en `alerts/service.ts`.
+- **Privacidad:** `/privacidad/` cuenta qué se guarda, para qué, cuánto tiempo, cómo darse de baja y qué proveedores intervienen (Resend y Supabase). Describe lo que hace el código: si cambia, hay que cambiar la página. El correo de contacto sale de `NEXT_PUBLIC_CONTACT_EMAIL`.
+- **Pendiente antes de publicar:** configurar Resend y probar un envío real (todavía no se ha enviado ningún correo de verdad), definir `ALERTS_SECRET`, publicar un correo de contacto y la identidad del responsable en la política de privacidad, y programar la ingestión.
+
+## Pala ideal
+
+`/pala-ideal/` es un quiz de seis preguntas (nivel, juego, lado, forma, tacto y presupuesto) según el diseño del handoff. Las respuestas viajan en la URL y el resultado se calcula y se renderiza en servidor (`lib/recommender.ts`). Presupuesto y forma elegida son filtros; el resto ordena por cuántas respuestas cumple cada pala según sus datos declarados. El tacto (blando, medio-blando, medio, duro o «me da igual») se compara con el tacto que declara la pala y, si no lo declara, con su dureza. No hay porcentajes de compatibilidad: se enseña «N de M respuestas». El lado de la pista se traduce a una preferencia de balance, como orientación.
+
 ## Ilustraciones
 
 `npm run art` genera en `public/img/` una ilustración por pala del seed, la de portada y las de guías. Son arte propio sin logotipos, no fotos del producto: son el respaldo de las palas que todavía no tienen foto publicada.

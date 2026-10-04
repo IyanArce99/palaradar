@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/config/site";
 import { isProductPhoto, palaAlt } from "@/lib/media";
-import type { Pala } from "@/types/catalog";
+import { describePala, fullSpecs } from "@/lib/pala-content";
+import type { FaqItem, Pala } from "@/types/catalog";
 
 export function absoluteUrl(path: string): string {
   return `${siteConfig.url}${path}`;
@@ -108,13 +109,41 @@ export function productJsonLd({ pala, path, includeOffers }: ProductJsonLdInput)
     "@context": "https://schema.org",
     "@type": "Product",
     name: `${pala.brand.name} ${pala.model} ${pala.year}`,
-    description: pala.editorial.summary,
+    description: describePala(pala),
     category: "Palas de pádel",
     brand: { "@type": "Brand", name: pala.brand.name },
     model: pala.model,
     url: absoluteUrl(path),
+    ...gtinProperty(pala.gtin),
+    ...(pala.manufacturerRef ? { mpn: pala.manufacturerRef } : {}),
     ...(photos.length > 0 ? { image: photos } : {}),
+    // Las características declaradas, las mismas que enseña la tabla de la ficha.
+    additionalProperty: fullSpecs(pala)
+      .filter((spec) => !IDENTIFIER_SPECS.has(spec.label))
+      .map((spec) => ({ "@type": "PropertyValue", name: spec.label, value: spec.value })),
     ...rating,
     ...offers,
+  };
+}
+
+/** Filas de la tabla que ya van como identificadores del producto */
+const IDENTIFIER_SPECS = new Set(["EAN", "Referencia del fabricante"]);
+
+/** El EAN se guarda con 14 dígitos; si empieza por 0 es un EAN-13 con relleno. */
+function gtinProperty(gtin: string | null) {
+  if (!gtin || !/^\d{8,14}$/.test(gtin)) return {};
+  return gtin.length === 14 && gtin.startsWith("0") ? { gtin13: gtin.slice(1) } : { gtin };
+}
+
+/** Preguntas frecuentes de la página; solo si hay alguna. */
+export function faqJsonLd(items: FaqItem[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: { "@type": "Answer", text: item.answer },
+    })),
   };
 }

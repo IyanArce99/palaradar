@@ -1,21 +1,6 @@
-import { DisclosureMarker } from "@/components/ui/DisclosureMarker";
-import { formatWeight } from "@/lib/format";
-import { BALANCE_LABELS, formatLevels, SHAPE_LABELS, STYLE_LABELS } from "@/lib/labels";
-import type { Pala, Spec } from "@/types/catalog";
-
-/** Solo las características que la fuente declara: lo desconocido no se muestra. */
-function buildSpecs(pala: Pala): Spec[] {
-  const entries: [string, string | null][] = [
-    ["Forma", SHAPE_LABELS[pala.shape]],
-    ["Peso", pala.weight ? formatWeight(pala.weight) : null],
-    ["Balance", pala.balance ? BALANCE_LABELS[pala.balance] : null],
-    ["Estilo de juego", pala.playStyle ? STYLE_LABELS[pala.playStyle] : null],
-    ...pala.specs.map((spec): [string, string] => [spec.label, spec.value]),
-    ["Nivel", pala.levels.length > 0 ? formatLevels(pala.levels) : null],
-    ["Año", String(pala.year)],
-  ];
-  return entries.flatMap(([label, value]) => (value ? [{ label, value }] : []));
-}
+import { fullSpecs } from "@/lib/pala-content";
+import type { Pala } from "@/types/catalog";
+import { SectionTitle } from "./SectionTitle";
 
 function hostname(url: string): string {
   try {
@@ -27,21 +12,22 @@ function hostname(url: string): string {
 
 interface SpecsTableProps {
   pala: Pala;
+  className?: string;
 }
 
-/** Especificaciones técnicas, plegadas: están para quien las busca, no para abrir la ficha. */
-export function SpecsTable({ pala }: SpecsTableProps) {
+/**
+ * Especificaciones completas, a la vista: todas las características que la pala
+ * declara, como referencia tras los bloques que ayudan a decidir.
+ */
+export function SpecsTable({ pala, className }: SpecsTableProps) {
   return (
-    <details className="group rounded-[18px] border border-line px-[18px]">
-      <summary className="flex min-h-[60px] items-center justify-between">
-        <h2 className="text-[17px] font-extrabold">Especificaciones técnicas</h2>
-        <DisclosureMarker />
-      </summary>
-      <dl>
-        {buildSpecs(pala).map((spec) => (
+    <section aria-labelledby="especificaciones" className={className}>
+      <SectionTitle id="especificaciones">Especificaciones completas</SectionTitle>
+      <dl className="mt-3 grid lg:grid-cols-2 lg:gap-x-10">
+        {fullSpecs(pala).map((spec) => (
           <div
             key={spec.label}
-            className="flex min-h-10 items-center justify-between gap-3 border-t border-line-soft text-sm"
+            className="flex min-h-11 items-center justify-between gap-3 border-b border-line-soft py-1.5 text-sm"
           >
             <dt className="text-muted">{spec.label}</dt>
             <dd className="text-right font-bold">{spec.value}</dd>
@@ -49,10 +35,8 @@ export function SpecsTable({ pala }: SpecsTableProps) {
         ))}
       </dl>
       {pala.specsSourceUrl && (
-        <p className="border-t border-line-soft py-3 text-xs text-muted">
-          Fuente de los datos: {hostname(pala.specsSourceUrl)}
-        </p>
+        <p className="mt-3 text-xs text-muted">Fuente de los datos: {hostname(pala.specsSourceUrl)}</p>
       )}
-    </details>
+    </section>
   );
 }

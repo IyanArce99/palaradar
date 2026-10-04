@@ -9,6 +9,7 @@ import type {
   PalaSummary,
   PricePoint,
   Review,
+  SourceRatings,
   Store,
   StoreOffer,
 } from "@/types/catalog";
@@ -143,6 +144,35 @@ interface PalaParts {
   alternatives: Alternative[];
   /** Fotos publicadas (verificadas y con derechos), la principal primero */
   photos?: Pick<RacketMediaRow, "storage_path" | "width" | "height">[];
+  /** Identificadores del producto: EAN y referencia del fabricante */
+  identifiers?: { type: string; value: string }[];
+  /** Valoraciones de una fuente externa, con el nombre de la fuente */
+  ratings?: { attribute: string; value: string; source_name: string }[];
+}
+
+/** Aspectos que puntúa la fuente, en el orden en que se enseñan */
+const RATING_LABELS: Record<string, string> = {
+  score_power: "Potencia",
+  score_control: "Control",
+  score_ball_output: "Salida de bola",
+  score_maneuverability: "Manejabilidad",
+  score_sweet_spot: "Punto dulce",
+};
+const RATING_TOTAL = "score_total";
+
+/** Valoraciones de la fuente tal cual las publica; null si no hay ninguna válida. */
+export function toSourceRatings(rows: NonNullable<PalaParts["ratings"]>): SourceRatings | null {
+  const value = (attribute: string) => {
+    const number = Number(rows.find((row) => row.attribute === attribute)?.value);
+    return Number.isFinite(number) && number >= 0 && number <= 10 ? number : null;
+  };
+  const scores = Object.entries(RATING_LABELS).flatMap(([attribute, label]) => {
+    const score = value(attribute);
+    return score === null ? [] : [{ label, score }];
+  });
+  if (scores.length === 0 || rows.length === 0) return null;
+
+  return { source: rows[0].source_name, scores, total: value(RATING_TOTAL) };
 }
 
 export function toPala(parts: PalaParts, now: Date): Pala {
@@ -150,6 +180,8 @@ export function toPala(parts: PalaParts, now: Date): Pala {
   // Solo cuentan las fotos que se pueden servir; sin ellas, las ilustraciones.
   const photos = (parts.photos ?? []).filter((photo) => mediaUrl(photo.storage_path) !== null);
   const [main] = photos;
+  const identifier = (type: string) =>
+    parts.identifiers?.find((item) => item.type === type)?.value ?? null;
 
   return {
     id: racket.id,
@@ -172,6 +204,11 @@ export function toPala(parts: PalaParts, now: Date): Pala {
     playStyle: racket.play_style,
     hardness: racket.hardness ?? null,
     player: racket.player ?? null,
+    gender: racket.gender ?? null,
+    msrp: racket.msrp ?? null,
+    gtin: identifier("gtin"),
+    manufacturerRef: identifier("manufacturer_ref"),
+    sourceRatings: toSourceRatings(parts.ratings ?? []),
     description: racket.description,
     editorial: {
       status: racket.editorial_status,

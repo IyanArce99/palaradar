@@ -4,7 +4,7 @@
 import { pricingConfig } from "@/config/pricing";
 import { CATALOG_PAGE_SIZE, DEFAULT_QUERY, type CatalogQuery, type SortId } from "@/lib/catalog/query";
 import { buildPriceHistory } from "@/lib/pricing";
-import { WEIGHT_BANDS, type RecommenderCriterion } from "@/lib/recommender";
+import { matchCriteria, SIDE_BALANCES, TOUCH_MATCHES } from "@/lib/recommender";
 import type {
   BrandRow,
   RacketCatalogRow,
@@ -22,6 +22,8 @@ const BIG_DISCOUNT_PERCENT = 20;
 const PRICE_CEILING_STEP = 50;
 const HOUR_MS = 3_600_000;
 const MAX_REVIEWS = 50;
+/** Fuente cuyas valoraciones se enseñan en la ficha, siempre con su nombre */
+const RATINGS_SOURCE = "padelzoom";
 
 /** Reloj de la capa de datos: con datos reales, la fecha actual. */
 function now(): Date {
@@ -115,9 +117,8 @@ function orderClause(sql: Sql, sort: SortId): Fragment {
   }
 }
 
-const CRITERIA: RecommenderCriterion[] = ["level", "style", "shape", "balance", "weight"];
-
-type ScoredRow = RacketCatalogRow & Record<`m_${RecommenderCriterion}`, boolean>;
+/** Fila del catálogo con los datos de tacto que usa el recomendador */
+type TraitsRow = RacketCatalogRow & { touch: string | null; hardness: string | null };
 
 interface OfferRow extends StorePriceRow {
   store_slug: string;
@@ -205,7 +206,7 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
       if (!racket) return null;
 
       // Ofertas e histórico salen solo de las tiendas activas como fuente de precios.
-      const [[brand], offers, history, reviews, alternatives, photos] = await Promise.all([
+      const [[brand], offers, history, reviews, alternatives, photos, identifiers, ratings] = await Promise.all([
         sql<BrandRow[]>`select * from brands where id = ${racket.brand_id}`,
         sql<OfferRow[]>`
           select p.*, s.slug as store_slug, s.name as store_name, s.url as store_url
@@ -229,6 +230,15 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
           where racket_id = ${racket.id} and verification_status = 'verified'
             and rights_status = 'approved' and storage_path is not null
           order by (role = 'primary') desc, position, fetched_at desc nulls last, source_url`,
+        sql<{ type: string; value: string }[]>`
+          select type::text as type, value from racket_identifiers
+          where racket_id = ${racket.id} and type::text in ('gtin', 'manufacturer_ref')
+          order by type, value`,
+        // Valoraciones de PadelZoom: se guardan como señal de esa fuente, no como datos de la pala.
+        sql<{ attribute: string; value: string; source_name: string }[]>`
+          select f.attribute, f.value, d.name as source_name
+          from racket_facts f join data_sources d on d.slug = f.source
+          where f.racket_id = ${racket.id} and f.kind = 'rating' and f.source = ${RATINGS_SOURCE}`,
       ]);
       if (!brand) return null;
 
@@ -252,6 +262,8 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
             reason: row.reason,
           })),
           photos,
+          identifiers,
+          ratings,
         },
         at,
       );
@@ -313,30 +325,49 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
 
     async recommendPalas(prefs, limit) {
       const no = sql`false`;
-      const band = prefs.weight ? WEIGHT_BANDS[prefs.weight] : null;
-      const middle = sql`(r.weight_min + r.weight_max) / 2.0`;
+      const yes = sql`true`;
+      // Tacto pedido: el mismo criterio que `matchesTouch` (lib/recommender.ts). La
+      // dureza solo cuenta si la pala no declara tacto.
+      const wanted = prefs.touch ? TOUCH_MATCHES[prefs.touch] : null;
+      const touchMatch = wanted
+        ? sql`(lower(trim(coalesce(touch, ''))) in ${sql(wanted.touches)}
+            or (trim(coalesce(touch, '')) = '' and lower(trim(coalesce(hardness, ''))) = ${wanted.hardness ?? ""}
+                and ${wanted.hardness !== null}))`
+        : no;
 
-      const rows = await sql<ScoredRow[]>`
+      // Forma y presupuesto son filtros; el resto puntúa.
+      const rows = await sql<TraitsRow[]>`
         select * from (
-          select c.*,
-            ${prefs.level ? sql`c.levels && array[${prefs.level}]::text[]` : no} as m_level,
-            coalesce(${prefs.style ? sql`c.play_style::text = ${prefs.style}` : no}, false) as m_style,
-            coalesce(${prefs.shape ? sql`c.shape::text = ${prefs.shape}` : no}, false) as m_shape,
-            coalesce(${prefs.balance ? sql`c.balance::text = ${prefs.balance}` : no}, false) as m_balance,
-            coalesce(${band ? sql`${middle} > ${band.min} and ${middle} <= ${band.max}` : no}, false) as m_weight
+          select c.*, r.hardness,
+            (select s->>'value' from jsonb_array_elements(r.technical_specs) s
+             where s->>'label' = 'Tacto' limit 1) as touch
           from racket_catalog c join rackets r on r.id = c.id
           where c.best_price is not null and c.price_checked_at > ${staleBefore()}
-            and ${prefs.maxPrice === null ? sql`true` : sql`c.best_price <= ${prefs.maxPrice}`}
-        ) scored
-        order by m_level::int + m_style::int + m_shape::int + m_balance::int + m_weight::int desc,
+            and ${prefs.maxPrice === null ? yes : sql`c.best_price <= ${prefs.maxPrice}`}
+            and ${prefs.shape === null ? yes : sql`c.shape::text = ${prefs.shape}`}
+        ) candidates
+        order by
+          (${prefs.level ? sql`levels && array[${prefs.level}]::text[]` : no})::int
+          + coalesce(${prefs.style ? sql`play_style::text = ${prefs.style}` : no}, false)::int
+          + coalesce(${prefs.side ? sql`balance::text in ${sql(SIDE_BALANCES[prefs.side])}` : no}, false)::int
+          + (${touchMatch})::int desc,
           ${popularityOrder(sql)}
         limit ${limit}`;
 
       const at = now();
-      return rows.map((row) => ({
-        pala: toPalaSummary(row, at),
-        matched: CRITERIA.filter((criterion) => row[`m_${criterion}`]),
-      }));
+      return rows.flatMap((row) => {
+        const pala = toPalaSummary(row, at);
+        const matched = matchCriteria(prefs, {
+          levels: row.levels,
+          playStyle: row.play_style,
+          shape: row.shape,
+          balance: row.balance,
+          touch: row.touch,
+          hardness: row.hardness,
+          price: pala.price,
+        });
+        return matched ? [{ pala, matched }] : [];
+      });
     },
   };
 }

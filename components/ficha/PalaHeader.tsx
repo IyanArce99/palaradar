@@ -1,6 +1,10 @@
+import Link from "next/link";
+import { buttonClass } from "@/components/ui/Button";
 import { Stars } from "@/components/ui/Rating";
 import { formatCount, formatEuro, formatRating, pluralize } from "@/lib/format";
 import { SHAPE_LABELS } from "@/lib/labels";
+import { palaName } from "@/lib/pala-content";
+import { routes } from "@/lib/routes";
 import type { Pala } from "@/types/catalog";
 
 interface PalaHeaderProps {
@@ -9,21 +13,25 @@ interface PalaHeaderProps {
   reviewsHref: string;
   /** Ancla del listado de tiendas */
   storesHref: string;
+  /** Ancla de la alerta de precio */
+  alertHref: string;
 }
 
-/** Marca + modelo + año, valoración y precio de partida. */
-export function PalaHeader({ pala, reviewsHref, storesHref }: PalaHeaderProps) {
+/** Marca, año y forma; nombre de la pala; precio de partida y las dos acciones. */
+export function PalaHeader({ pala, reviewsHref, storesHref, alertHref }: PalaHeaderProps) {
   const { price } = pala;
+  const hasPrice = price !== null && price.freshness !== "stale";
 
   return (
     <header>
-      <h1>
-        <span className="block text-sm text-muted">
-          {pala.brand.name} · {pala.year} · {SHAPE_LABELS[pala.shape]}
-        </span>
-        <span className="mt-1 block text-[40px] leading-none font-black tracking-[-0.035em] lg:text-[64px]">
-          {pala.model}
-        </span>
+      <p className="text-sm text-muted">
+        <Link href={routes.brand(pala.brand.slug)} className="underline-offset-2 hover:text-carbon hover:underline">
+          {pala.brand.name}
+        </Link>{" "}
+        · {pala.year} · {SHAPE_LABELS[pala.shape]}
+      </p>
+      <h1 className="mt-1 text-[40px] leading-none font-black tracking-[-0.035em] text-balance lg:text-[56px]">
+        {palaName(pala)}
       </h1>
       {/* Sin opiniones reales no se muestran estrellas ni número. */}
       {pala.reviewCount > 0 && (
@@ -35,7 +43,7 @@ export function PalaHeader({ pala, reviewsHref, storesHref }: PalaHeaderProps) {
           </a>
         </p>
       )}
-      {price && price.freshness !== "stale" && (
+      {hasPrice && (
         <p className="mt-2.5 text-sm text-ink">
           Desde{" "}
           <a href={storesHref} className="text-lg font-bold whitespace-nowrap text-carbon tabular-nums">
@@ -44,6 +52,16 @@ export function PalaHeader({ pala, reviewsHref, storesHref }: PalaHeaderProps) {
           en {pluralize(price.storeCount, "tienda", "tiendas")}
         </p>
       )}
+      <div className="mt-4 flex flex-wrap gap-2">
+        {hasPrice && (
+          <a href={storesHref} className={buttonClass({})}>
+            Ver precios
+          </a>
+        )}
+        <a href={alertHref} className={buttonClass({ variant: "outline" })}>
+          {hasPrice ? "Crear alerta de precio" : "Avísame cuando esté disponible"}
+        </a>
+      </div>
     </header>
   );
 }

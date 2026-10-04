@@ -1,27 +1,44 @@
+import { maxTarget, suggestedTarget } from "@/alerts/service";
 import { cn } from "@/lib/cn";
+import { AlertForm } from "./AlertForm";
 
 interface AlertBoxProps {
   id: string;
-  /** Sin precio actual no hay umbral de bajada que ofrecer: la alerta será de disponibilidad. */
-  hasPrice: boolean;
+  slug: string;
+  /** Mejor precio vigente de la pala; null si ahora no tiene (la alerta será de disponibilidad) */
+  currentPrice: number | null;
   className?: string;
 }
 
 /**
- * «Avísame cuando baje». El bloque del diseño se mantiene en su sitio; mientras
- * las alertas no existan, lo dice sin ofrecer un formulario que no haría nada.
+ * «Avísame cuando baje de…»: alerta de precio por correo, sin cuenta. Con precio
+ * vigente se elige un objetivo por debajo; sin él, se avisa cuando la pala vuelva
+ * a estar a la venta.
  */
-export function AlertBox({ id, hasPrice, className }: AlertBoxProps) {
+export function AlertBox({ id, slug, currentPrice, className }: AlertBoxProps) {
   return (
-    <section id={id} aria-labelledby={`${id}-titulo`} className={cn("rounded-[22px] bg-carbon p-[22px] text-white", className)}>
+    <section
+      id={id}
+      aria-labelledby={`${id}-titulo`}
+      className={cn("rounded-[22px] bg-carbon p-[22px] text-white", className)}
+    >
       <h2 id={`${id}-titulo`} className="text-xl font-black">
-        {hasPrice ? "Avísame cuando baje" : "Avísame cuando esté disponible"}
+        {currentPrice === null ? "Avísame cuando esté disponible" : "Avísame cuando baje de…"}
       </h2>
-      <p className="mt-2.5 text-sm leading-[1.45] text-ash">
-        {hasPrice
-          ? "Muy pronto podrás elegir un precio y te avisaremos cuando encontremos ese precio o uno inferior en cualquier tienda."
-          : "Muy pronto podrás pedirnos que te avisemos cuando alguna de las tiendas que seguimos vuelva a tener esta pala a la venta."}
-      </p>
+      {currentPrice === null && (
+        <p className="mt-2.5 text-sm leading-[1.45] text-ash">
+          Te escribiremos cuando alguna de las tiendas que seguimos vuelva a tener esta pala a la
+          venta.
+        </p>
+      )}
+      <AlertForm
+        slug={slug}
+        target={
+          currentPrice === null
+            ? null
+            : { suggested: suggestedTarget(currentPrice), max: maxTarget(currentPrice) }
+        }
+      />
     </section>
   );
 }

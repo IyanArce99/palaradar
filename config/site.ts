@@ -5,6 +5,8 @@ export const siteConfig = {
   tagline: "Encuentra tu pala. Y no pagues de más.",
   description:
     "Compara palas de pádel, descubre qué opinan otros jugadores y encuentra el mejor precio en todas las tiendas.",
+  // Correo de contacto público (política de privacidad). Sin él, la página lo dice.
+  contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || null,
   // Interruptor de lanzamiento: hasta activarlo, el sitio se sirve con noindex.
   allowIndexing: process.env.NEXT_PUBLIC_ALLOW_INDEXING === "true",
 } as const;

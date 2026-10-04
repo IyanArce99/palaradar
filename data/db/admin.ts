@@ -25,6 +25,7 @@ const INSERT_CHUNK = 1000;
 
 // En orden de borrado seguro (primero las que dependen de otras).
 const TABLES = [
+  "price_alerts",
   "legacy_urls",
   "racket_media",
   "racket_source_content",

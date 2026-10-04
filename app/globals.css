@@ -73,6 +73,18 @@
   }
 }
 
+/* Quiz «Pala ideal»: en móvil es una experiencia a pantalla completa, sin la
+   cabecera del sitio; el pie solo vuelve con el resultado. */
+@media (max-width: 1023px) {
+  body:has([data-finder]) > header {
+    display: none;
+  }
+
+  body:has([data-finder]:not([data-finder="result"])) > footer {
+    display: none;
+  }
+}
+
 /* Placeholder rayado hasta tener recortes de producto sobre fondo neutro */
 @utility photo-placeholder {
   background: repeating-linear-gradient(135deg, #eef0eb 0 10px, #f6f7f3 10px 20px);

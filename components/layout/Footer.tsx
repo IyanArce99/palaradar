@@ -14,7 +14,8 @@ interface FooterColumnProps {
 function FooterColumn({ title, links }: FooterColumnProps) {
   return (
     <div>
-      <h2 className="mb-1.5 font-extrabold text-white lg:mb-0">{title}</h2>
+      {/* No es un encabezado: los del pie se repetían como h2 en todas las páginas. */}
+      <p className="mb-1.5 font-extrabold text-white lg:mb-0">{title}</p>
       <ul>
         {links.map((link) => (
           <li key={link.href}>
@@ -65,7 +66,10 @@ export async function Footer() {
             href: catalogHref(shortcut.query),
           }))}
         />
-        <FooterColumn title={siteConfig.name} links={mainNav} />
+        <FooterColumn
+          title={siteConfig.name}
+          links={[...mainNav, { label: "Privacidad", href: routes.privacy }]}
+        />
       </div>
     </footer>
   );

@@ -7,8 +7,9 @@ import { mobileTabs, type TabItem } from "@/config/navigation";
 import { cn } from "@/lib/cn";
 import { routes } from "@/lib/routes";
 
-// La ficha tiene su propia barra inferior de precio; el escáner ocupa toda la pantalla.
-const HIDDEN_ON = ["/pala/", routes.scan];
+// La ficha tiene su propia barra inferior de precio; el escáner y el quiz «Pala
+// ideal» ocupan toda la pantalla.
+const HIDDEN_ON = ["/pala/", routes.scan, routes.idealPala];
 
 function isActive(tab: TabItem, pathname: string): boolean {
   if (tab.match.length === 0) return pathname === tab.href;

@@ -4,7 +4,7 @@
 // consulta equivale a un SELECT con WHERE, ORDER BY y LIMIT/OFFSET.
 import { CATALOG_PAGE_SIZE, DEFAULT_QUERY, type CatalogQuery, type SortId } from "@/lib/catalog/query";
 import { buildPriceHistory, computePriceStats } from "@/lib/pricing";
-import { matchesWeight, type RecommenderCriterion } from "@/lib/recommender";
+import { matchCriteria } from "@/lib/recommender";
 import type { PricePoint, StoreOffer } from "@/types/catalog";
 import type { RacketCatalogRow } from "@/types/db";
 import {
@@ -267,20 +267,19 @@ export function createMemoryRepository(): CatalogRepository {
 
       return catalogRows
         .flatMap((row) => {
-          const price = priceOf(row);
           const racket = racketsById.get(row.id);
-          if (price === null || !racket) return [];
-          if (prefs.maxPrice !== null && price > prefs.maxPrice) return [];
+          if (!racket) return [];
 
-          const matched: RecommenderCriterion[] = [];
-          if (prefs.level && row.levels.includes(prefs.level)) matched.push("level");
-          if (prefs.style && row.play_style === prefs.style) matched.push("style");
-          if (prefs.shape && row.shape === prefs.shape) matched.push("shape");
-          if (prefs.balance && row.balance === prefs.balance) matched.push("balance");
-          if (prefs.weight && matchesWeight(prefs.weight, racket.weight_min, racket.weight_max)) {
-            matched.push("weight");
-          }
-          return [{ row, matched }];
+          const matched = matchCriteria(prefs, {
+            levels: row.levels,
+            playStyle: row.play_style,
+            shape: row.shape,
+            balance: row.balance,
+            touch: racket.technical_specs.find((spec) => spec.label === "Tacto")?.value ?? null,
+            hardness: racket.hardness ?? null,
+            price: priceOf(row),
+          });
+          return matched ? [{ row, matched }] : [];
         })
         .sort((a, b) => b.matched.length - a.matched.length || byPopularity(a.row, b.row))
         .slice(0, limit)

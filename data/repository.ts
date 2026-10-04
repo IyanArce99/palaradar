@@ -60,9 +60,9 @@ export interface CatalogRepository {
   /** Mayores bajadas de precio de los últimos 30 días */
   getBiggestMonthlyDrops(limit: number): Promise<MonthlyDrop[]>;
   /**
-   * Palas con precio actual que mejor encajan con las respuestas del recomendador:
-   * un punto por respuesta cumplida, dentro del presupuesto. A igualdad, el orden
-   * de popularidad.
+   * Palas con precio actual que mejor encajan con las respuestas del recomendador.
+   * Presupuesto, forma elegida y tacto blando exigido son filtros; el orden lo da
+   * cuántas de las demás respuestas cumple cada pala y, a igualdad, la popularidad.
    */
   recommendPalas(prefs: RecommenderPrefs, limit: number): Promise<Recommendation[]>;
   /**
