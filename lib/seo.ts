@@ -26,14 +26,18 @@ export function pageMetadata({
   index = true,
   image,
 }: PageMetadataInput): Metadata {
+  // Antes del lanzamiento no se declara canónica: iría con noindex y apuntando al
+  // dominio definitivo, que todavía no sirve este sitio. Serían señales contradictorias.
+  const canonical = siteConfig.allowIndexing ? path : null;
+
   return {
     title,
     description,
-    ...(path ? { alternates: { canonical: path } } : {}),
+    ...(canonical ? { alternates: { canonical } } : {}),
     openGraph: {
       title,
       description,
-      ...(path ? { url: path } : {}),
+      ...(canonical ? { url: canonical } : {}),
       siteName: siteConfig.name,
       locale: siteConfig.locale,
       type: "website",

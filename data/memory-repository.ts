@@ -141,18 +141,18 @@ export function createMemoryRepository(): CatalogRepository {
     return price !== null && row.min_price ? price / row.min_price : LAST;
   };
 
-  /** Popularidad: más opiniones, luego más tiendas con precio actual, luego más recientes. */
+  /** Orden por defecto: más tiendas con precio actual y, a igualdad, las más recientes. */
   const storesOf = (row: RacketCatalogRow) => (priceOf(row) === null ? -1 : (row.store_count ?? -1));
-  const byPopularity = (a: RacketCatalogRow, b: RacketCatalogRow) =>
-    b.review_count - a.review_count || storesOf(b) - storesOf(a) || b.year - a.year || bySlug(a, b);
+  const byAvailability = (a: RacketCatalogRow, b: RacketCatalogRow) =>
+    storesOf(b) - storesOf(a) || b.year - a.year || bySlug(a, b);
 
   /** Equivalente al ORDER BY; las palas sin precio actual van al final (NULLS LAST). */
   const orderBy: Record<SortId, (a: RacketCatalogRow, b: RacketCatalogRow) => number> = {
-    popularidad: byPopularity,
+    disponibilidad: byAvailability,
     precio: (a, b) => (priceOf(a) ?? LAST) - (priceOf(b) ?? LAST) || bySlug(a, b),
     descuento: (a, b) => dropOf(b) - dropOf(a) || bySlug(a, b),
     minimo: (a, b) => distanceToMin(a) - distanceToMin(b) || bySlug(a, b),
-    novedades: (a, b) => b.year - a.year || b.review_count - a.review_count || bySlug(a, b),
+    novedades: (a, b) => b.year - a.year || storesOf(b) - storesOf(a) || bySlug(a, b),
   };
 
   const repository: CatalogRepository = {
@@ -281,7 +281,7 @@ export function createMemoryRepository(): CatalogRepository {
           });
           return matched ? [{ row, matched }] : [];
         })
-        .sort((a, b) => b.matched.length - a.matched.length || byPopularity(a.row, b.row))
+        .sort((a, b) => b.matched.length - a.matched.length || byAvailability(a.row, b.row))
         .slice(0, limit)
         .map(({ row, matched }) => ({ pala: toPalaSummary(row, now()), matched }));
     },

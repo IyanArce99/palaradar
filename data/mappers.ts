@@ -76,10 +76,11 @@ export function toPriceStatsRow(racketId: string, stats: PriceStats): RacketPric
     store_count: stats.storeCount,
     previous_price: stats.previousPrice,
     drop_percent: stats.dropPercent,
-    avg_90d: stats.average90,
+    avg_30d: stats.average30,
     min_price: stats.minPrice,
     min_price_date: stats.minPriceDate,
     price_30d_ago: stats.price30dAgo,
+    tracked_since: stats.trackedSince,
     price_status: stats.status,
     price_checked_at: stats.priceCheckedAt,
     computed_at: stats.computedAt,
@@ -121,6 +122,7 @@ export function toPalaSummary(row: RacketCatalogRow, now: Date): PalaSummary {
             priceFreshness(row.price_checked_at, now),
           )
         : null,
+    priceRecent: price !== null && row.price_status === "recent",
   };
 }
 

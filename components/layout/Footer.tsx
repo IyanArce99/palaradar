@@ -41,8 +41,8 @@ export async function Footer() {
             {siteConfig.name}
           </div>
           <p className="max-w-[320px]">
-            El lugar al que vas antes de comprar una pala: opiniones, comparativas y precios en
-            todas las tiendas.
+            El lugar al que vas antes de comprar una pala: características, comparativas y precios
+            en todas las tiendas.
           </p>
           {hasTestPrices && (
             <p className="mt-3 max-w-[320px]">

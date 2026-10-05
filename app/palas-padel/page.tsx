@@ -16,10 +16,12 @@ import { PalaGrid } from "@/components/pala/PalaGrid";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { buttonClass } from "@/components/ui/Button";
 import { PageHeading } from "@/components/ui/PageHeading";
-import { countPalas, getCatalogFacets, getPopularSearches, searchCatalog } from "@/data";
+import { countPalas, getCatalogFacets, getSearchSuggestions, searchCatalog } from "@/data";
 import {
   catalogHref,
+  DEFAULT_QUERY,
   getActiveFilters,
+  hasCatalogFilters,
   parseCatalogQuery,
   type RawSearchParams,
 } from "@/lib/catalog/query";
@@ -40,8 +42,8 @@ export async function generateMetadata({ searchParams }: CatalogPageProps): Prom
   const seo = catalogSeo(query);
 
   return pageMetadata({
-    title: `Palas de pádel: opiniones y comparador de precios${pageSuffix(query.page)}`,
-    description: `Catálogo de palas de pádel con opiniones de jugadores y precios en todas las tiendas. Filtra por nivel, marca, forma y presupuesto${pageSuffix(query.page)}.`,
+    title: `Palas de pádel: características y comparador de precios${pageSuffix(query.page)}`,
+    description: `Catálogo de palas de pádel con sus características y precios en todas las tiendas. Filtra por nivel, marca, forma y presupuesto${pageSuffix(query.page)}.`,
     path: seo.canonical,
     index: seo.index,
   });
@@ -57,10 +59,10 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       parsed.maxPrice !== null && parsed.maxPrice >= facets.priceCeiling ? null : parsed.maxPrice,
   };
 
-  const [result, catalogSize, popularSearches] = await Promise.all([
+  const [result, catalogSize, suggestions] = await Promise.all([
     searchCatalog(query),
     countPalas(),
-    getPopularSearches(5),
+    getSearchSuggestions(5),
   ]);
 
   // Una página que no existe es un 404, no una copia de la última.
@@ -82,7 +84,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       <div className="mx-auto max-w-[1280px]">
         <PageHeading
           title="Palas de pádel"
-          lead={`${pluralize(catalogSize, "pala", "palas")} de ${pluralize(facets.brands.length, "marca", "marcas")}. Compara opiniones de jugadores y precios en todas las tiendas para encontrar la tuya.`}
+          lead={`${pluralize(catalogSize, "pala", "palas")} de ${pluralize(facets.brands.length, "marca", "marcas")}. Compara características y precios en todas las tiendas para encontrar la tuya.`}
         />
 
         <div className="px-5 pt-4 lg:hidden">
@@ -145,7 +147,15 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
               </>
             ) : (
               <div className="mt-7">
-                <NoResults searchTerm={query.q} popularSearches={popularSearches} />
+                <NoResults
+                  searchTerm={query.q}
+                  suggestions={suggestions}
+                  // Sola, sin búsqueda ni filtros, está vacía porque aún no hay palas con veredicto.
+                  awaitingHistory={
+                    query.collection === "mejor-precio" &&
+                    !hasCatalogFilters({ ...query, collection: DEFAULT_QUERY.collection, sort: DEFAULT_QUERY.sort })
+                  }
+                />
               </div>
             )}
           </section>

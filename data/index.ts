@@ -85,24 +85,26 @@ export async function getDeals(limit: number): Promise<PalaSummary[]> {
   return result.items;
 }
 
-export async function getPopularPalas(limit: number): Promise<PalaSummary[]> {
+/** Las primeras del orden por defecto: las que más tiendas tienen a la venta ahora. */
+export async function getTopPalas(limit: number): Promise<PalaSummary[]> {
   const result = await getRepository().searchCatalog(DEFAULT_QUERY, { pageSize: limit });
   return result.items;
 }
 
-export async function getPopularSearches(limit: number): Promise<string[]> {
-  return (await getPopularPalas(limit)).map((pala) => pala.model);
+/** Modelos del catálogo que proponer cuando una búsqueda no da resultados. No son búsquedas de nadie. */
+export async function getSearchSuggestions(limit: number): Promise<string[]> {
+  return (await getTopPalas(limit)).map((pala) => pala.model);
 }
 
 /**
  * Pala destacada en la portada. Si la elegida no existe o ahora no tiene precio,
- * la primera por popularidad (que sí lo tiene mientras haya alguna a la venta).
+ * la primera del orden por defecto (que sí lo tiene mientras haya alguna a la venta).
  */
 export async function getFeaturedPala(): Promise<Pala | null> {
   const featured = await getRepository().getPalaBySlug(featuredPalaSlug);
   if (featured?.price) return featured;
 
-  const [first] = await getPopularPalas(1);
+  const [first] = await getTopPalas(1);
   return first ? getRepository().getPalaBySlug(first.slug) : null;
 }
 

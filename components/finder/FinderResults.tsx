@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/ui/icons";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
+import { RecentPriceNote } from "@/components/ui/RecentPriceNote";
 import { siteConfig } from "@/config/site";
 import { comparePath, priceHeading } from "@/lib/compare";
 import { formatEuro, pluralize } from "@/lib/format";
@@ -149,6 +150,7 @@ export function FinderResults({ answers, top, results }: FinderResultsProps) {
                   {price.verdict.label}
                 </p>
               )}
+              {price.verdict.status === "recent" && <RecentPriceNote className="text-[13px]" />}
             </div>
           )}
 
@@ -227,8 +229,11 @@ export function FinderResults({ answers, top, results }: FinderResultsProps) {
                   <div className="flex-1" />
                   <div className="mt-2.5 flex items-center justify-between gap-2">
                     {pala.price !== null && (
-                      <span className="text-lg font-black whitespace-nowrap tabular-nums">
-                        {formatEuro(pala.price)}
+                      <span className="flex flex-col">
+                        <span className="text-lg font-black whitespace-nowrap tabular-nums">
+                          {formatEuro(pala.price)}
+                        </span>
+                        {pala.priceRecent && <RecentPriceNote />}
                       </span>
                     )}
                     <Link

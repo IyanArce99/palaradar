@@ -117,10 +117,13 @@ export interface RacketPriceStatsRow {
   store_count: number;
   previous_price: number | null;
   drop_percent: number | null;
-  avg_90d: number | null;
+  /** Media y mínimo de los últimos 30 días; nulos sin histórico suficiente */
+  avg_30d: number | null;
   min_price: number | null;
   min_price_date: string | null;
   price_30d_ago: number | null;
+  /** Primer día con precio registrado */
+  tracked_since: string | null;
   price_status: PriceStatus;
   price_checked_at: string;
   computed_at: string;

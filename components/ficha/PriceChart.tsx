@@ -29,7 +29,8 @@ interface PriceChartProps {
 
 /**
  * Evolución del precio como SVG renderizado en servidor: línea de precio,
- * media de 90 días (punteada) y mínimo histórico (discontinua). La serie llega
+ * media (punteada) y mínimo (discontinua) de los últimos 30 días, que solo se
+ * dibujan cuando hay histórico suficiente para calcularlos. La serie llega
  * hasta hoy solo si el precio está al día; si no, termina en el último registro.
  */
 export function PriceChart({ history, price, months, width, height, className }: PriceChartProps) {
@@ -57,7 +58,7 @@ export function PriceChart({ history, price, months, width, height, className }:
   const lastX = x(points.length - 1);
   const lastY = y(last.price);
   const endsToday = price.freshness === "current";
-  const { average90, historicalMin } = price;
+  const { average30, min30 } = price;
 
   return (
     <svg
@@ -71,40 +72,40 @@ export function PriceChart({ history, price, months, width, height, className }:
       className={cn("w-full font-sans", className)}
     >
       <path d={area} fill="#f2f9de" />
-      {average90 !== null && (
+      {average30 !== null && (
         <>
           <line
             x1="0"
             x2={innerWidth}
-            y1={y(average90)}
-            y2={y(average90)}
+            y1={y(average30)}
+            y2={y(average30)}
             stroke="#9a9f95"
             strokeDasharray="2 4"
           />
-          <text x="4" y={y(average90) - 8} fontSize="12" fill="#5b6058" {...LABEL_HALO}>
-            Media 90 días · {formatEuroCompact(average90)}
+          <text x="4" y={y(average30) - 8} fontSize="12" fill="#5b6058" {...LABEL_HALO}>
+            Media 30 días · {formatEuroCompact(average30)}
           </text>
         </>
       )}
-      {historicalMin && (
+      {min30 && (
         <>
           <line
             x1="0"
             x2={innerWidth}
-            y1={y(historicalMin.price)}
-            y2={y(historicalMin.price)}
+            y1={y(min30.price)}
+            y2={y(min30.price)}
             stroke="#7fb800"
             strokeDasharray="5 4"
           />
           <text
             x="4"
-            y={y(historicalMin.price) + 16}
+            y={y(min30.price) + 16}
             fontSize="12"
             fontWeight="700"
             fill="#3b6a00"
             {...LABEL_HALO}
           >
-            Mínimo histórico · {formatEuroCompact(historicalMin.price)}
+            Mínimo 30 días · {formatEuroCompact(min30.price)}
           </text>
         </>
       )}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
 import { PriceDropBadge } from "@/components/ui/PriceDropBadge";
 import { RatingInline } from "@/components/ui/Rating";
+import { RecentPriceNote } from "@/components/ui/RecentPriceNote";
 import { cn } from "@/lib/cn";
 import { formatEuro, formatRating, pluralize } from "@/lib/format";
 import { SHAPE_LABELS } from "@/lib/labels";
@@ -32,25 +33,36 @@ function CardPrice({ pala, variant }: { pala: PalaSummary; variant: Variant }) {
     return <p className="mt-2 text-[13px] text-muted">Sin precio disponible ahora</p>;
   }
 
+  // Sin 30 días de histórico no hay veredicto: se dice, sin destacarlo.
+  const recent = pala.priceRecent && <RecentPriceNote className="mt-0.5 block" />;
+
   if (variant === "offer") {
     return (
-      <p className="mt-1.5 flex flex-wrap items-baseline gap-2">
-        <span className={cn(priceClass, "text-xl")}>{formatEuro(pala.price)}</span>
-        {pala.previousPrice !== null && pala.dropPercent !== null && (
-          <>
-            <s className="text-[13px] whitespace-nowrap text-muted tabular-nums">
-              <span className="sr-only">Antes </span>
-              {formatEuro(pala.previousPrice)}
-            </s>
-            <PriceDropBadge percent={pala.dropPercent} />
-          </>
-        )}
-      </p>
+      <>
+        <p className="mt-1.5 flex flex-wrap items-baseline gap-2">
+          <span className={cn(priceClass, "text-xl")}>{formatEuro(pala.price)}</span>
+          {pala.previousPrice !== null && pala.dropPercent !== null && (
+            <>
+              <s className="text-[13px] whitespace-nowrap text-muted tabular-nums">
+                <span className="sr-only">Antes </span>
+                {formatEuro(pala.previousPrice)}
+              </s>
+              <PriceDropBadge percent={pala.dropPercent} />
+            </>
+          )}
+        </p>
+        {recent}
+      </>
     );
   }
 
   if (variant === "alternative") {
-    return <p className={cn(priceClass, "mt-1.5 text-[19px]")}>{formatEuro(pala.price)}</p>;
+    return (
+      <>
+        <p className={cn(priceClass, "mt-1.5 text-[19px]")}>{formatEuro(pala.price)}</p>
+        {recent}
+      </>
+    );
   }
 
   return (
@@ -67,6 +79,7 @@ function CardPrice({ pala, variant }: { pala: PalaSummary; variant: Variant }) {
           {pala.priceNote}
         </p>
       )}
+      {recent}
     </>
   );
 }

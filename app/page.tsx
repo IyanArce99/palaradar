@@ -6,7 +6,7 @@ import {
   DiscoverSection,
   GuidesSection,
   MonthlyDropsSection,
-  PopularSection,
+  MostStoresSection,
   PriceWatchSection,
 } from "@/components/home/HomeSections";
 import { ScannerBanner } from "@/components/pala/ScannerBanner";
@@ -18,7 +18,7 @@ import {
   getFeaturedPala,
   getGuides,
   getPalaBySlug,
-  getPopularPalas,
+  getTopPalas,
 } from "@/data";
 import type { Pala } from "@/types/catalog";
 import { siteConfig } from "@/config/site";
@@ -28,11 +28,11 @@ import { pageMetadata } from "@/lib/seo";
 // Ofertas y bajadas dependen de la fecha: la portada se regenera cada hora.
 export const revalidate = 3600;
 
-const POPULAR_COUNT = 3;
+const TOP_COUNT = 3;
 // Se piden algunas más para elegir la segunda pala de «¿Dudas entre dos?».
-const POPULAR_POOL = 8;
+const TOP_POOL = 8;
 
-const HOME_TITLE = `${siteConfig.name}: compara palas de pádel, opiniones y precios`;
+const HOME_TITLE = `${siteConfig.name}: compara palas de pádel, características y precios`;
 
 export const metadata: Metadata = {
   ...pageMetadata({
@@ -45,9 +45,9 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const [deals, popular, drops, guides, featuredPala, shortcuts] = await Promise.all([
+  const [deals, top, drops, guides, featuredPala, shortcuts] = await Promise.all([
     getDeals(4),
-    getPopularPalas(POPULAR_POOL),
+    getTopPalas(TOP_POOL),
     getBiggestMonthlyDrops(3),
     getGuides(),
     getFeaturedPala(),
@@ -61,9 +61,9 @@ export default async function HomePage() {
 
   const featured = featuredPala?.price ? { pala: featuredPala, price: featuredPala.price } : null;
 
-  // «¿Dudas entre dos?»: la destacada frente a la primera popular de otra forma.
+  // «¿Dudas entre dos?»: la destacada frente a la primera del listado con otra forma.
   const first = featuredPala ?? null;
-  const rivals = popular.filter((pala) => pala.id !== first?.id);
+  const rivals = top.filter((pala) => pala.id !== first?.id);
   const rival = rivals.find((pala) => pala.shape !== first?.shape) ?? rivals[0];
   const second = rival ? await getPalaBySlug(rival.slug) : null;
   const pair: [Pala, Pala] | null = first && second ? [first, second] : null;
@@ -75,7 +75,7 @@ export default async function HomePage() {
       <div className="mx-auto flex max-w-[1280px] flex-col gap-10 px-5 pt-10 lg:gap-20 lg:px-12 lg:pt-6">
         <DealsSection deals={deals} />
         <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-14">
-          <PopularSection palas={popular.slice(0, POPULAR_COUNT)} />
+          <MostStoresSection palas={top.slice(0, TOP_COUNT)} />
           <MonthlyDropsSection drops={drops} />
         </div>
         <DiscoverSection shortcuts={shortcuts} />

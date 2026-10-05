@@ -52,10 +52,13 @@ const BALANCE_NOTES: Record<PalaBalance, string> = {
   alto: "Concentra más peso hacia la cabeza y suele favorecer una sensación más contundente.",
 };
 
+// Peso, nivel, estilo y precio recomendado llegan de la fuente de cada pala
+// (fabricante, PadelZoom o una tienda): el texto no se los atribuye al fabricante.
+// La fuente del dato técnico principal se enseña al pie de la tabla de características.
 const STYLE_NOTES: Record<PlayStyle, string> = {
-  control: "El fabricante la orienta a colocar la bola y jugar con seguridad.",
-  polivalente: "El fabricante la orienta a un juego equilibrado entre control y potencia.",
-  potencia: "El fabricante la orienta a los golpes de ataque y al remate.",
+  control: "Se declara orientada a colocar la bola y jugar con seguridad.",
+  polivalente: "Se declara orientada a un juego equilibrado entre control y potencia.",
+  potencia: "Se declara orientada a los golpes de ataque y al remate.",
 };
 
 const TOUCH_NOTE =
@@ -78,11 +81,11 @@ export function glanceItems(pala: Pala): GlanceItem[] {
     pala.weight && {
       label: "Peso",
       value: formatWeight(pala.weight),
-      note: "Peso declarado por el fabricante; puede variar unos gramos de una unidad a otra.",
+      note: "Peso declarado; puede variar unos gramos de una unidad a otra.",
     },
     pala.balance && { label: "Balance", value: BALANCE_LABELS[pala.balance], note: BALANCE_NOTES[pala.balance] },
     pala.levels.length > 0
-      ? { label: "Nivel", value: formatLevels(pala.levels), note: "Nivel de juego al que la dirige el fabricante." }
+      ? { label: "Nivel", value: formatLevels(pala.levels), note: "Nivel de juego al que se dirige, según los datos declarados." }
       : null,
     pala.playStyle && {
       label: "Estilo de juego",
@@ -165,7 +168,7 @@ export function describePala(pala: Pala): string {
         ])}.`
       : null,
     style || levels
-      ? `El fabricante la orienta ${list([
+      ? `Según los datos declarados, está orientada ${list([
           style && `a un juego de ${style}`,
           levels && `a jugadores de nivel ${levels}`,
         ])}.`
@@ -184,7 +187,7 @@ export function describePala(pala: Pala): string {
         ])}.`
       : null,
     pala.player ? `Es el modelo de ${pala.player}.` : null,
-    pala.msrp ? `Su precio recomendado por el fabricante es de ${formatEuroCompact(pala.msrp)}.` : null,
+    pala.msrp ? `Su precio de venta recomendado (PVPR) es de ${formatEuroCompact(pala.msrp)}.` : null,
   ];
   return sentences.filter(Boolean).join(" ");
 }
@@ -220,7 +223,7 @@ export function buildFaq(pala: Pala): FaqItem[] {
   const items: (FaqItem | null | false)[] = [
     pala.weight && {
       question: `¿Cuánto pesa la ${name}?`,
-      answer: `La ${name} pesa ${formatWeight(pala.weight)}, según los datos del fabricante.`,
+      answer: `La ${name} pesa ${formatWeight(pala.weight)}, según los datos declarados.`,
     },
     {
       question: `¿Qué forma tiene la ${name}?`,
@@ -233,7 +236,7 @@ export function buildFaq(pala: Pala): FaqItem[] {
     levels
       ? {
           question: `¿Para qué nivel de juego es la ${name}?`,
-          answer: `El fabricante la dirige a jugadores de nivel ${levels}.`,
+          answer: `Según los datos declarados, se dirige a jugadores de nivel ${levels}.`,
         }
       : null,
     touch && {
@@ -254,7 +257,7 @@ export function buildFaq(pala: Pala): FaqItem[] {
       ? {
           question: `¿Cuánto cuesta la ${name}?`,
           answer: `Su mejor precio ahora es de ${formatEuro(price.current)} en ${price.bestOffer.store.name}, entre ${pluralize(price.storeCount, "tienda que seguimos", "tiendas que seguimos")}.${
-            pala.msrp ? ` El precio recomendado por el fabricante es de ${formatEuroCompact(pala.msrp)}.` : ""
+            pala.msrp ? ` Su precio de venta recomendado (PVPR) es de ${formatEuroCompact(pala.msrp)}.` : ""
           }`,
         }
       : null,

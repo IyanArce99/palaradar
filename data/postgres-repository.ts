@@ -70,6 +70,7 @@ function whereClause(sql: Sql, query: CatalogQuery): Fragment {
   if (query.collection === "grandes-descuentos") {
     conditions.push(sql`drop_percent >= ${BIG_DISCOUNT_PERCENT} and ${current}`);
   }
+  // Solo entran palas con veredicto: sin 30 días de histórico no hay «buen precio».
   if (query.collection === "mejor-precio") {
     conditions.push(sql`price_status = 'good' and ${current}`);
   }
@@ -90,13 +91,12 @@ function whereClause(sql: Sql, query: CatalogQuery): Fragment {
 }
 
 /**
- * Popularidad, con datos que se pueden comprobar: primero las palas con más
- * opiniones de jugadores; a igualdad, las que más tiendas tienen a la venta
- * ahora mismo y, después, las más recientes. No hay visitas ni ventas detrás.
+ * Orden por defecto, con datos que se pueden comprobar: primero las palas que
+ * más tiendas tienen a la venta ahora mismo y, a igualdad, las más recientes.
+ * No es popularidad: no hay visitas, ventas ni opiniones detrás.
  */
-function popularityOrder(sql: Sql): Fragment {
-  return sql`review_count desc,
-    case when ${hasCurrentPrice(sql)} then store_count end desc nulls last, year desc, slug`;
+function availabilityOrder(sql: Sql): Fragment {
+  return sql`case when ${hasCurrentPrice(sql)} then store_count end desc nulls last, year desc, slug`;
 }
 
 /** ORDER BY de cada criterio; las palas sin precio actual van al final. */
@@ -111,9 +111,9 @@ function orderClause(sql: Sql, sort: SortId): Fragment {
     case "minimo":
       return sql`case when ${current} then best_price / nullif(min_price, 0) end asc nulls last, slug`;
     case "novedades":
-      return sql`year desc, review_count desc, slug`;
+      return sql`year desc, case when ${current} then store_count end desc nulls last, slug`;
     default:
-      return popularityOrder(sql);
+      return availabilityOrder(sql);
   }
 }
 
@@ -351,7 +351,7 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
           + coalesce(${prefs.style ? sql`play_style::text = ${prefs.style}` : no}, false)::int
           + coalesce(${prefs.side ? sql`balance::text in ${sql(SIDE_BALANCES[prefs.side])}` : no}, false)::int
           + (${touchMatch})::int desc,
-          ${popularityOrder(sql)}
+          ${availabilityOrder(sql)}
         limit ${limit}`;
 
       const at = now();

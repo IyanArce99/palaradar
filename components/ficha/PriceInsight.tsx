@@ -38,14 +38,16 @@ export function PriceInsight({ price, history, className }: PriceInsightProps) {
   );
 
   if (chartSeries(history, price, 12).length < MIN_CHART_POINTS) {
-    const since = history[0]?.date ?? price.checkedAt;
+    const since = price.trackedSince ?? price.checkedAt;
     return (
       <section aria-labelledby={TITLE_ID} className={className}>
         {title}
         {answer}
         <EmptyNote className="mt-4 lg:mt-[18px]">
-          Seguimos el precio de esta pala desde el {formatDate(since)}. Su evolución aparecerá
-          aquí cuando tengamos más días de histórico.
+          {/* Con «Precio reciente» la respuesta ya dice desde cuándo se sigue. */}
+          {price.verdict.status === "recent"
+            ? "La evolución de su precio aparecerá aquí cuando tengamos más días de histórico."
+            : `Seguimos el precio de esta pala desde el ${formatDate(since)}. Su evolución aparecerá aquí cuando tengamos más días de histórico.`}
         </EmptyNote>
       </section>
     );

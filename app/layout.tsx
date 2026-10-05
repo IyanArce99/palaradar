@@ -21,7 +21,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: `${siteConfig.name}: compara palas de pádel, opiniones y precios`,
+    default: `${siteConfig.name}: compara palas de pádel, características y precios`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,

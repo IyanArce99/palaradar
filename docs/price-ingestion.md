@@ -4,7 +4,7 @@ Investigación y diseño del sistema que sustituirá los precios de prueba por p
 
 ## Estado de la implementación
 
-La ingestión está construida en `ingestion/`. **Hay dos tiendas reales conectadas, las dos con autorización expresa: PadelProShop**, a través del JSON de su colección de palas, **y Padel Nuestro**, a través de los datos estructurados del listado de su categoría de palas. La ingestión está preparada para ejecutarse de forma programada (ver más abajo), pero todavía no hay ninguna tarea configurada.
+La ingestión está construida en `ingestion/`. **Hay dos tiendas reales conectadas, las dos con autorización expresa: PadelProShop**, a través del JSON de su colección de palas, **y Padel Nuestro**, a través de los datos estructurados del listado de su categoría de palas. La ingestión se ejecuta de forma programada con un workflow de GitHub Actions (ver «Ejecución programada»), que empieza a funcionar cuando el repositorio tiene el secreto `DATABASE_URL`.
 
 ```bash
 npm run prices:dry-run                        # descarga, empareja y muestra el resultado; no escribe nada
@@ -71,31 +71,25 @@ Una pasada son 27 peticiones (26 páginas y la comprobación del final) y unos 4
 | 1 | Alguna tienda ha fallado, o no se ha podido conectar |
 | 3 | No se ha ejecutado: ya había otra ingestión en marcha |
 
-**Cómo programarlo.** Cualquier planificador externo que ejecute un comando y avise si el código de salida no es 0: cron de un servidor, el Programador de tareas de Windows o un workflow programado de CI. Lo único que necesita es Node, el repositorio y `DATABASE_URL` como secreto. Recomendado: cada 6 horas, con lo que un fallo aislado no llega a degradar el precio (deja de ser «de hoy» a las 24 h) y hacen falta dos días de fallos para que caduque.
+**Cómo se programa: GitHub Actions.** El workflow `.github/workflows/price-ingestion.yml` ejecuta `npm run prices:ingest` cada 6 horas (minuto 17 de las 0, 6, 12 y 18 UTC). Con esa cadencia un fallo aislado no llega a degradar el precio (deja de ser «de hoy» a las 24 h) y hacen falta dos días de fallos para que caduque.
 
-```
-# cron: cada 6 horas
-0 */6 * * *  cd /ruta/a/palaradar && npm run prices:ingest >> /var/log/palaradar-ingest.log 2>&1
-```
+Se eligió frente a las alternativas porque es lo único que ejecuta el comando tal cual, sin infraestructura nueva:
 
-```yaml
-# GitHub Actions (ejemplo; no está añadido al repositorio)
-on:
-  schedule:
-    - cron: "0 */6 * * *"
-jobs:
-  ingest:
-    runs-on: ubuntu-latest
-    concurrency: price-ingestion
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: npm }
-      - run: npm ci
-      - run: npm run prices:ingest
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-```
+| Opción | Por qué no |
+|---|---|
+| Cron de Vercel | En el plan Hobby un cron solo puede ejecutarse una vez al día: una expresión de cada 6 horas hace fallar el despliegue (documentación de Vercel, julio de 2026). Además llama a una función de la web, no a un script: habría que exponer la ingestión en una ruta protegida y someterla a los límites de duración de las funciones, cuando una pasada dura unos dos minutos |
+| `pg_cron` de Supabase | Programa SQL o una llamada HTTP; no ejecuta Node. Acabaría llamando a la misma función de Vercel |
+| Programador de tareas del ordenador | Gratis, pero solo funciona con el ordenador encendido |
+
+- **Configuración:** un único secreto del repositorio, `DATABASE_URL` (la misma cadena que usa la web). El workflow fija `NODE_ENV=production` y `DATABASE_POOL_MAX=2`. No necesita `SUPABASE_URL` ni la clave de servicio. Mientras no existan `RESEND_API_KEY` y `ALERTS_FROM_EMAIL`, el paso de alertas solo informa.
+- **Solo producción, sin datos demo:** con `NODE_ENV=production` las tiendas demo no cuentan nunca, y `prices:ingest` solo conoce los adaptadores de tiendas reales (`ingestion/adapters/index.ts`).
+- **Una sola a la vez:** `concurrency: price-ingestion` pone en cola las ejecuciones del workflow, y el advisory lock sigue protegiendo frente a una ingestión lanzada a mano desde otro sitio.
+- **Códigos de salida:** `0` termina en verde y `1` en rojo (GitHub avisa por correo de un workflow programado que falla). `3` (ya había otra ingestión en marcha) termina en verde con un aviso: no es un fallo y no se ha escrito nada.
+- **A mano:** «Run workflow» permite elegir `dry-run` (descarga y empareja sin escribir; es el modo por defecto) o `ingest`, y limitar a una tienda.
+- **Límites de GitHub:** la hora programada puede retrasarse unos minutos, y GitHub desactiva los workflows programados de un repositorio sin actividad durante 60 días (se reactivan desde la pestaña Actions).
+- **Sin verificar hasta la primera ejecución:** que las dos tiendas respondan igual a los servidores de GitHub (fuera de España) que desde aquí. El adaptador de PadelProShop da por hecho que los precios vienen en euros; el primer `dry-run` desde GitHub sirve para comprobarlo antes de escribir nada.
+
+Fuera de GitHub sirve cualquier planificador que ejecute el comando y avise si el código de salida no es 0: solo necesita Node 22, el repositorio y `DATABASE_URL`.
 
 La web regenera cada página como mucho una vez por hora (`revalidate`), así que un precio nuevo tarda hasta una hora en verse. Para vigilarlo: `select * from ingestion_runs order by started_at desc limit 20`.
 
@@ -173,6 +167,7 @@ Para probarlo: `npm test` (reglas de negocio, sin base de datos), `npm run test:
 - Anunciante de CJ (identificador 1598839 en su código). **Sin verificar** que el programa esté activo y tenga catálogo cargado.
 - Respaldo: el sitemap lleva `lastmod` y el EAN dentro de cada URL de pala, así que basta para descubrir y casar productos; el precio sale del JSON-LD.
 - Detrás de Cloudflare, que bloqueó una de las lecturas de prueba. Otro motivo para ir por CJ.
+- **5 de octubre de 2026: no se ha construido adaptador.** Cloudflare responde 403 («Sorry, you have been blocked») a cualquier cliente automático, se identifique como se identifique, también en `robots.txt`. No se ha intentado esquivar el bloqueo. Para conectarla hace falta una de estas tres cosas, que dependen de la tienda: un feed de producto (el de CJ o el que tuviera acordado con PadelZoom), que autoricen en su Cloudflare al bot de PalaRadar (por cabecera o IP), o una API. Con su formato de URL (`…/41416-bullpadel-indiga-ctr-26-8445402993833.html`) el emparejamiento sería por EAN: 266 de las 785 palas del catálogo lo tienen.
 
 Padel Nuestro y Ofertas de Padel comparten localidad, red de afiliación y formato de SKU, lo que sugiere un mismo grupo. Es una deducción, pero si se confirma, una sola gestión cubriría las dos.
 

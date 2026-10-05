@@ -1,7 +1,10 @@
 import type { PricePoint, Store, StoreOffer } from "./catalog";
 
-/** Valoración del precio actual frente a su histórico */
-export type PriceStatus = "good" | "fair" | "wait";
+/**
+ * Valoración del precio actual frente a su histórico de los últimos 30 días.
+ * `recent`: la pala lleva menos de 30 días en seguimiento y aún no se valora.
+ */
+export type PriceStatus = "good" | "fair" | "wait" | "recent";
 
 /**
  * Antigüedad de la última comprobación del precio:
@@ -27,10 +30,14 @@ export interface PriceStats {
   storeCount: number;
   previousPrice: number | null;
   dropPercent: number | null;
-  average90: number | null;
+  /** Media y mínimo de los últimos 30 días; null sin histórico suficiente */
+  average30: number | null;
   minPrice: number | null;
   minPriceDate: string | null;
+  /** Precio de hace 30 días; null si la pala no llevaba entonces en seguimiento */
   price30dAgo: number | null;
+  /** Primer día con precio registrado (YYYY-MM-DD) */
+  trackedSince: string | null;
   status: PriceStatus;
   /** Última comprobación del mejor precio (ISO con hora) */
   priceCheckedAt: string;
@@ -81,8 +88,12 @@ export interface PriceSummary {
   storeCount: number;
   previous: number | null;
   dropPercent: number | null;
-  average90: number | null;
-  historicalMin: PricePoint | null;
+  /** Media de los últimos 30 días; null sin histórico suficiente */
+  average30: number | null;
+  /** Precio más bajo de los últimos 30 días y su fecha; null sin histórico suficiente */
+  min30: PricePoint | null;
+  /** Primer día con precio registrado (YYYY-MM-DD) */
+  trackedSince: string | null;
   /** Momento en que se comprobó el mejor precio (ISO con hora) */
   checkedAt: string;
   /** Fecha actual respecto a la que se ha calculado todo (ISO con hora) */

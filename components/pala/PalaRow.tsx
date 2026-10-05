@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
 import { RatingInline } from "@/components/ui/Rating";
+import { RecentPriceNote } from "@/components/ui/RecentPriceNote";
 import { formatEuro } from "@/lib/format";
 import { palaAlt } from "@/lib/media";
 import { routes } from "@/lib/routes";
@@ -10,7 +11,7 @@ interface PalaRowProps {
   pala: PalaSummary;
 }
 
-/** Pala en formato fila, para listas editoriales ("Las más populares"). */
+/** Pala en formato fila, para listas editoriales («En más tiendas»). */
 export function PalaRow({ pala }: PalaRowProps) {
   return (
     <article className="relative grid grid-cols-[84px_minmax(0,1fr)] items-center gap-3.5 border-b border-line py-3">
@@ -31,11 +32,11 @@ export function PalaRow({ pala }: PalaRowProps) {
         </h3>
         <p className="mt-[3px] text-sm leading-[1.35] text-ink">{pala.description}</p>
         <div className="mt-1.5 flex items-baseline justify-between text-[13px]">
-          {pala.reviewCount > 0 ? (
-            <RatingInline rating={pala.rating} reviewCount={pala.reviewCount} />
-          ) : (
-            <span />
-          )}
+          {/* A la izquierda del precio: la valoración si hay opiniones; si no, el aviso de precio reciente. */}
+          <span>
+            {pala.reviewCount > 0 && <RatingInline rating={pala.rating} reviewCount={pala.reviewCount} />}
+            {pala.reviewCount === 0 && pala.priceRecent && <RecentPriceNote />}
+          </span>
           {pala.price !== null && (
             <span className="whitespace-nowrap text-muted">
               desde{" "}

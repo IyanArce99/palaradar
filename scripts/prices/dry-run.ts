@@ -8,6 +8,7 @@ import { buildSeed } from "@/data/seed/build";
 import { getAdapter } from "@/ingestion/adapters";
 import { createMemoryIngestionRepository } from "@/ingestion/memory-repository";
 import { createPostgresIngestionRepository } from "@/ingestion/postgres-repository";
+import type { IngestionStore } from "@/ingestion/repository";
 import { runIngestion } from "@/ingestion/run";
 import type { CatalogRacket, StoreProduct } from "@/ingestion/types";
 import { euros, storeFromArgs } from "./shared";
@@ -17,6 +18,8 @@ const MAX_EXAMPLES = 15;
 
 interface Known {
   catalog: CatalogRacket[];
+  /** La tienda tal como está en la base de datos: sus productos conocidos llevan su id */
+  stores: IngestionStore[];
   storeProducts: StoreProduct[];
   source: string;
 }
@@ -29,6 +32,7 @@ async function loadKnown(storeSlug: string): Promise<Known> {
     const brandName = new Map(seed.brands.map((brand) => [brand.id, brand.name]));
     return {
       source: "seed en memoria",
+      stores: [],
       storeProducts: [],
       catalog: seed.rackets.map((racket) => ({
         id: racket.id,
@@ -49,6 +53,7 @@ async function loadKnown(storeSlug: string): Promise<Known> {
     return {
       source: "base de datos",
       catalog: await repository.loadCatalog(),
+      stores: store ? [store] : [],
       storeProducts: store ? await repository.listStoreProducts(store.id) : [],
     };
   } finally {
@@ -67,7 +72,8 @@ async function main(): Promise<void> {
 
   console.log(`DRY RUN · ${adapter.store.name} · catálogo de ${known.source} · no se escribe nada`);
 
-  const repository = createMemoryIngestionRepository([], known.catalog, known.storeProducts);
+  // Con la tienda ya conocida, sus productos se reconocen y sus decisiones manuales se respetan.
+  const repository = createMemoryIngestionRepository(known.stores, known.catalog, known.storeProducts);
   const summary = await runIngestion(adapter, repository);
 
   if (summary.status === "failed") {

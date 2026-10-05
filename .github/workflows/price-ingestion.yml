@@ -1,0 +1,93 @@
+# Ingestión de precios programada: `npm run prices:ingest` cada 6 horas contra la
+# base de datos de producción. Ver docs/price-ingestion.md («Ejecución programada»).
+#
+# Necesita un único secreto del repositorio: DATABASE_URL.
+# Nunca hay dos a la vez: aquí lo impide `concurrency` y, en la base de datos, el
+# advisory lock de la propia ingestión (data/db/lock.ts), que también cubre una
+# ejecución lanzada a mano desde otro sitio.
+name: Ingestión de precios
+
+on:
+  schedule:
+    # Cada 6 horas (UTC), fuera del minuto 0 para evitar las colas de GitHub.
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      modo:
+        description: "ingest escribe precios · dry-run solo descarga y empareja, sin escribir nada"
+        type: choice
+        options: [dry-run, ingest]
+        default: dry-run
+      tienda:
+        description: "Slug de la tienda. Vacío: todas (ingest) o padelproshop (dry-run)"
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: price-ingestion
+  # Una ejecución en curso se deja terminar; la siguiente espera su turno.
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    name: prices:ingest
+    # Solo en el repositorio original: un fork no tiene el secreto ni debe escribir precios.
+    if: github.repository == 'IyanArce99/palaradar'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Producción: las tiendas demo no cuentan nunca, diga lo que diga INCLUDE_DEMO_PRICES.
+      NODE_ENV: production
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      # Una conexión la ocupa el bloqueo; la otra hace el trabajo.
+      DATABASE_POOL_MAX: "2"
+      MODO: ${{ github.event_name == 'schedule' && 'ingest' || inputs.modo }}
+      TIENDA: ${{ inputs.tienda }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Con NODE_ENV=production npm omitiría las dependencias de desarrollo, y tsx lo es.
+      - name: Instalar dependencias
+        run: npm ci --include=dev
+
+      - name: Comprobar la configuración
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::Falta el secreto DATABASE_URL (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+          if ! printf '%s' "$TIENDA" | grep -Eq '^[a-z0-9-]*$'; then
+            echo "::error::Slug de tienda no válido."
+            exit 1
+          fi
+
+      - name: Ingestión de precios
+        run: |
+          args=()
+          if [ -n "$TIENDA" ]; then args+=("--store=$TIENDA"); fi
+
+          if [ "$MODO" = "dry-run" ]; then
+            npm run prices:dry-run -- "${args[@]}"
+            exit $?
+          fi
+
+          # Códigos de salida de prices:ingest: 0 correcto · 1 alguna tienda ha
+          # fallado · 3 no se ha ejecutado porque ya había otra ingestión en marcha.
+          set +e
+          npm run prices:ingest -- "${args[@]}"
+          code=$?
+          set -e
+          if [ "$code" -eq 3 ]; then
+            # No es un fallo: otra ingestión está escribiendo y esta no ha tocado nada.
+            echo "::warning::Ya había otra ingestión en marcha: esta ejecución no ha escrito nada."
+            exit 0
+          fi
+          exit "$code"

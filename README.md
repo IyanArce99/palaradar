@@ -152,6 +152,25 @@ Según la antigüedad de `checked_at`, el precio se presenta como:
 
 Un precio desactualizado nunca se presenta como precio actual: en la ficha no compite con las ofertas comprobadas de otras tiendas, y en los listados la pala aparece sin precio y queda fuera de ofertas, del filtro de precio máximo y del orden por precio.
 
+### Veredicto de precio: ventana de 30 días
+
+Todo lo que se dice de un precio frente a su histórico (`lib/pricing.ts`, `HISTORY_WINDOW_DAYS`) sale de los últimos 30 días, y solo cuando el seguimiento de la pala cubre esa ventana: su primer registro en `price_history` tiene 30 días o más.
+
+| Histórico de la pala | En pantalla | En el catálogo |
+|---|---|---|
+| menos de 30 días | «Precio reciente · Seguimos este precio desde el…». Sin media, sin mínimo y sin veredicto | `price_status = 'recent'`, sin nota en la tarjeta y fuera de «Mejor precio hoy» |
+| 30 días o más | «Buen momento para comprar», «Precio normal» o «Puedes esperar», con «Media últimos 30 días» y «Mínimo últimos 30 días» | `good`, `fair` o `wait`; solo `good` entra en «Mejor precio hoy» |
+
+- **Buen momento:** un 8 % o más por debajo de la media de 30 días, o en el mínimo de esos 30 días y al menos un 3 % por debajo de la media. Estar en el mínimo no basta: un precio que no se ha movido también lo está.
+- **Puedes esperar:** más de un 10 % por encima del mínimo de 30 días y sin estar por debajo de la media.
+- **Precio normal:** el resto, incluido un precio que no ha cambiado.
+
+Con pocos días de histórico cualquier precio es «el más bajo que hemos visto»; por eso antes de los 30 días no se afirma nada. La migración `009_price_window.sql` añade el estado `recent`, renombra `avg_90d` a `avg_30d` y guarda `tracked_since`.
+
+### Orden por defecto del catálogo
+
+No hay datos de popularidad (visitas, ventas ni opiniones). El orden por defecto es «En más tiendas»: primero las palas que más tiendas tienen a la venta con precio vigente y, a igualdad, las más recientes. Es también el criterio del bloque de portada y del desempate del recomendador.
+
 ### Seed
 
 `data/seed/rackets.ts` contiene 28 palas reales de 8 marcas. Cada una indica la página de la que salen sus datos; lo que la fuente no declara, o declara de forma ambigua, va en nulo. El campo `pending` recoge las dudas por revisar a mano. Varias marcas bloquean el acceso automático a su web, así que sus palas proceden de la ficha de una tienda (`source: "tienda"`) y conviene revisarlas.

@@ -62,7 +62,8 @@ export interface CatalogRepository {
   /**
    * Palas con precio actual que mejor encajan con las respuestas del recomendador.
    * Presupuesto, forma elegida y tacto blando exigido son filtros; el orden lo da
-   * cuántas de las demás respuestas cumple cada pala y, a igualdad, la popularidad.
+   * cuántas de las demás respuestas cumple cada pala y, a igualdad, el orden por
+   * defecto del catálogo (más tiendas con precio y más recientes).
    */
   recommendPalas(prefs: RecommenderPrefs, limit: number): Promise<Recommendation[]>;
   /**

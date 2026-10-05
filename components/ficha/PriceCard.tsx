@@ -7,6 +7,7 @@ const STATUS_DOT: Record<PriceVerdict["status"], string> = {
   good: "bg-lime-deep shadow-[0_0_0_4px_#e3f5b0]",
   fair: "bg-muted shadow-[0_0_0_4px_var(--color-line)]",
   wait: "bg-wait shadow-[0_0_0_4px_#f8e9c8]",
+  recent: "bg-muted shadow-[0_0_0_4px_var(--color-line)]",
   stale: "bg-ash shadow-[0_0_0_4px_var(--color-line-soft)]",
 };
 
@@ -28,7 +29,7 @@ interface PriceCardProps {
   className?: string;
 }
 
-/** Mejor precio hoy, con el veredicto en una frase y solo tres cifras de contexto. */
+/** Mejor precio hoy, con el veredicto en una frase y, como mucho, tres cifras de contexto. */
 export function PriceCard({ price, storesHref, alertHref, className }: PriceCardProps) {
   const frame = cn("rounded-[22px] border-2 border-carbon p-5 lg:p-6", className);
 
@@ -77,12 +78,11 @@ export function PriceCard({ price, storesHref, alertHref, className }: PriceCard
 
       <dl className="mt-3.5">
         <PriceRow label="Precio actual" value={price.current} />
-        {price.average90 !== null && (
-          <PriceRow label="Media últimos 90 días" value={price.average90} />
+        {/* Media y mínimo solo existen con 30 días de histórico. */}
+        {price.average30 !== null && (
+          <PriceRow label="Media últimos 30 días" value={price.average30} />
         )}
-        {price.historicalMin && (
-          <PriceRow label="Mínimo histórico" value={price.historicalMin.price} />
-        )}
+        {price.min30 && <PriceRow label="Mínimo últimos 30 días" value={price.min30.price} />}
       </dl>
 
       <div className="mt-4 grid gap-2">

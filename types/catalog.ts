@@ -103,6 +103,8 @@ export interface PalaSummary {
   dropPercent: number | null;
   storeCount: number;
   priceNote: string | null;
+  /** Hay precio actual, pero la pala lleva menos de 30 días en seguimiento y aún no tiene veredicto */
+  priceRecent: boolean;
 }
 
 /** Lo mínimo de una pala para una sugerencia del buscador */

@@ -54,11 +54,18 @@ describe("descripción de la pala", () => {
 
     assert.match(text, /^La Adidas Metalbone HRD\+ es una pala de 2026 con forma diamante y balance alto\./);
     assert.match(text, /Pesa 345–360 g y tiene un perfil de 38 mm\./);
-    assert.match(text, /El fabricante la orienta a un juego de potencia y a jugadores de nivel avanzado y competición\./);
+    assert.match(text, /Según los datos declarados, está orientada a un juego de potencia y a jugadores de nivel avanzado y competición\./);
     assert.match(text, /Su núcleo es EVA High Memory, las caras son de Carbon Aluminized 16K y el marco es de Fibra de carbono\./);
     assert.match(text, /Declara un tacto medio-duro y una superficie rugosa con acabado brillo\./);
     assert.match(text, /Es el modelo de Ale Galán\./);
-    assert.match(text, /precio recomendado por el fabricante es de 390\s€/);
+    assert.match(text, /precio de venta recomendado \(PVPR\) es de 390\s€/);
+  });
+
+  it("no atribuye al fabricante datos que pueden venir de PadelZoom o de una tienda", async () => {
+    const pala = await base();
+    const texts = [describePala(pala), ...buildFaq(pala).map((item) => item.answer), ...glanceItems(pala).map((item) => item.note)];
+
+    assert.ok(texts.every((text) => !/fabricante/i.test(text)), texts.find((text) => /fabricante/i.test(text)));
   });
 
   it("sin datos se queda en lo único que sabe: no rellena", async () => {

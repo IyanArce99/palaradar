@@ -3,11 +3,13 @@ import { BALANCE_LABELS, LEVEL_LABELS, SHAPE_LABELS, STYLE_LABELS } from "@/lib/
 import { routes } from "@/lib/routes";
 import type { PalaBalance, PalaShape, PlayerLevel, PlayStyle } from "@/types/catalog";
 
+// No hay datos de popularidad (visitas, ventas u opiniones): el orden por defecto
+// es por disponibilidad, que sí se puede comprobar.
 export const SORT_OPTIONS = [
-  { id: "popularidad", label: "Popularidad" },
+  { id: "disponibilidad", label: "En más tiendas" },
   { id: "precio", label: "Precio" },
   { id: "descuento", label: "Descuento" },
-  { id: "minimo", label: "Mejor precio histórico" },
+  { id: "minimo", label: "Cerca de su mínimo (30 días)" },
   { id: "novedades", label: "Novedades" },
 ] as const;
 
@@ -49,7 +51,7 @@ export const DEFAULT_QUERY: CatalogQuery = {
   balances: [],
   years: [],
   maxPrice: null,
-  sort: "popularidad",
+  sort: "disponibilidad",
   page: 1,
 };
 

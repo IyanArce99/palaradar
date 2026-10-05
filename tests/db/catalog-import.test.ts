@@ -178,7 +178,7 @@ describe("carga del catálogo enriquecido", { skip: !url && "DATABASE_URL no con
       assert.equal((await repository.getAllPalaSlugs()).includes(SLUG), false);
       const search = await repository.searchCatalog({
         q: "modelo inventado", collection: "todas", levels: [], styles: [], brands: [], shapes: [],
-        balances: [], years: [], maxPrice: null, sort: "popularidad", page: 1,
+        balances: [], years: [], maxPrice: null, sort: "disponibilidad", page: 1,
       });
       assert.equal(search.total, 0);
     });

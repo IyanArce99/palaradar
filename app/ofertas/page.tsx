@@ -11,7 +11,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata: Metadata = pageMetadata({
   title: "Ofertas en palas de pádel: las mayores bajadas de precio",
   description:
-    "Palas de pádel rebajadas hoy, ordenadas por descuento. Comprueba en cada ficha si de verdad es buen momento para comprar.",
+    "Palas de pádel rebajadas hoy respecto a su precio anterior, ordenadas por descuento. Compara su precio en cada tienda antes de comprar.",
   path: routes.deals,
 });
 

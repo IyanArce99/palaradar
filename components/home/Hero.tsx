@@ -3,6 +3,7 @@ import { SearchForm } from "@/components/layout/SearchForm";
 import { ButtonLink } from "@/components/ui/Button";
 import { ScanIcon } from "@/components/ui/icons";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
+import { RecentPriceNote } from "@/components/ui/RecentPriceNote";
 import { siteConfig } from "@/config/site";
 import { formatEuro } from "@/lib/format";
 import { routes } from "@/lib/routes";
@@ -25,7 +26,7 @@ export function Hero({ featured }: HeroProps) {
           {siteConfig.tagline}
         </h1>
         <p className="mt-3.5 text-[17px] leading-[1.6] text-pretty text-ink lg:mt-[22px] lg:text-xl">
-          Compara cientos de palas, descubre qué opinan otros jugadores y encuentra el mejor precio.
+          Compara cientos de palas, consulta sus características y encuentra el mejor precio.
         </p>
         <SearchForm variant="hero" className="mt-[22px] max-w-[580px] lg:mt-8" />
         <div className="mt-2.5 flex flex-col gap-3.5 lg:mt-4 lg:flex-row lg:items-center">
@@ -64,6 +65,7 @@ export function Hero({ featured }: HeroProps) {
                   {featured.price.verdict.label}
                 </span>
               )}
+              {featured.price.verdict.status === "recent" && <RecentPriceNote className="block lg:text-[13px]" />}
             </span>
             <span className="text-right">
               <span className="block text-[11px] text-muted lg:text-[13px]">desde</span>

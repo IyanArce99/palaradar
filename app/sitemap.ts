@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { siteConfig } from "@/config/site";
 import { getAllPalaSlugs, getAlternativePairs, getBrands } from "@/data";
 import { comparePath, uniquePairs } from "@/lib/compare";
 import { routes } from "@/lib/routes";
@@ -8,6 +9,9 @@ import { absoluteUrl } from "@/lib/seo";
 // contenido propio. Del comparador entran la portada y las comparaciones
 // curadas (palas «parecidas»); el resto de combinaciones no se indexan.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // Antes del lanzamiento no se anuncia ninguna dirección.
+  if (!siteConfig.allowIndexing) return [];
+
   const [brands, slugs, pairs] = await Promise.all([
     getBrands(),
     getAllPalaSlugs(),

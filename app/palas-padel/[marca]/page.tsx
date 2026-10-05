@@ -39,8 +39,8 @@ export async function generateMetadata({
 
   // Cada página es canónica de sí misma e indexable, como en el catálogo.
   return pageMetadata({
-    title: `Palas de pádel ${brand.name}: opiniones y precios${pageSuffix(page)}`,
-    description: `Todas las palas ${brand.name} con opiniones de jugadores y su mejor precio en cada tienda. ${brand.description}`,
+    title: `Palas de pádel ${brand.name}: características y precios${pageSuffix(page)}`,
+    description: `Todas las palas ${brand.name} con sus características y su mejor precio en cada tienda. ${brand.description}`,
     path: pageHref(routes.brand(brand.slug), page),
   });
 }
@@ -75,7 +75,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
         <section aria-labelledby="palas-marca" className="px-5 pt-6 lg:px-12 lg:pt-8">
           <h2 id="palas-marca" className="text-sm font-normal text-muted">
             <strong className="text-carbon">{pluralize(result.total, "pala", "palas")}</strong> de{" "}
-            {brand.name}, de más a menos popular
+            {brand.name}, primero las que están en más tiendas
           </h2>
           <PalaGrid palas={result.items} columns={4} className="mt-5 lg:mt-6" />
           <Pagination

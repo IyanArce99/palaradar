@@ -5,9 +5,21 @@ import type { NextConfig } from "next";
 const storageUrl = process.env.SUPABASE_URL?.trim();
 const storageHost = storageUrl ? new URL(storageUrl) : null;
 
+// El mismo interruptor de lanzamiento que config/site.ts: mientras no valga "true",
+// el sitio no debe indexarse.
+const allowIndexing = process.env.NEXT_PUBLIC_ALLOW_INDEXING === "true";
+
 const nextConfig: NextConfig = {
   // Las URLs canónicas del proyecto terminan en barra: /palas-padel/, /pala/[slug]/
   trailingSlash: true,
+  // Antes del lanzamiento, todas las respuestas llevan noindex en la cabecera: también
+  // las que no son HTML (imágenes, sitemap, API) y no pueden llevar la etiqueta meta.
+  headers: () =>
+    Promise.resolve(
+      allowIndexing
+        ? []
+        : [{ source: "/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }],
+    ),
   turbopack: {
     root: __dirname,
   },

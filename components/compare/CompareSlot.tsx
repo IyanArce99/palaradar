@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
+import { RecentPriceNote } from "@/components/ui/RecentPriceNote";
 import { compareSelectPath, priceHeading, type CompareSlotId } from "@/lib/compare";
 import { formatEuro } from "@/lib/format";
 import { palaAlt } from "@/lib/media";
@@ -44,6 +45,7 @@ export function CompareSlot({ slot, pala, other, search, results }: CompareSlotP
             {formatEuro(pala.price.current)}
           </p>
         )}
+        {pala.price?.verdict.status === "recent" && <RecentPriceNote className="block" />}
         <Link
           href={compareSelectPath({ [otherSlot]: other })}
           className="mt-2 inline-flex min-h-11 items-center text-sm font-bold underline"

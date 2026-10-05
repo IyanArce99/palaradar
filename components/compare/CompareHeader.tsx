@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
+import { RecentPriceNote } from "@/components/ui/RecentPriceNote";
 import { priceHeading } from "@/lib/compare";
 import { formatEuro, formatTimeAgo, pluralize } from "@/lib/format";
 import { palaAlt } from "@/lib/media";
@@ -26,6 +27,7 @@ function HeaderPrice({ pala }: { pala: Pala }) {
             {price.freshness !== "current" &&
               ` · comprobado ${formatTimeAgo(price.checkedAt, price.asOf)}`}
           </p>
+          {price.verdict.status === "recent" && <RecentPriceNote className="block leading-[1.4]" />}
         </>
       )}
     </div>

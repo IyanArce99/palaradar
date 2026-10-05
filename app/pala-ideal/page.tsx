@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Finder, type FinderShowcase } from "@/components/finder/Finder";
 import { FinderEmpty, FinderResults } from "@/components/finder/FinderResults";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { countPalas, getPalaBySlug, getPopularPalas, recommendPalas } from "@/data";
+import { countPalas, getPalaBySlug, getTopPalas, recommendPalas } from "@/data";
 import { isProductPhoto } from "@/lib/media";
 import { isComplete, parseFinderAnswers, toPrefs } from "@/lib/recommender";
 import { routes } from "@/lib/routes";
@@ -34,9 +34,9 @@ export async function generateMetadata({ searchParams }: IdealPalaPageProps): Pr
 
 /** Tres palas del catálogo para ilustrar la entrada: primero las que tienen foto real. */
 async function getShowcase(): Promise<FinderShowcase[]> {
-  const popular = (await getPopularPalas(SHOWCASE_POOL)).filter((pala) => pala.image !== null);
-  const withPhoto = popular.filter((pala) => isProductPhoto(pala.image ?? ""));
-  return [...withPhoto, ...popular.filter((pala) => !withPhoto.includes(pala))]
+  const top = (await getTopPalas(SHOWCASE_POOL)).filter((pala) => pala.image !== null);
+  const withPhoto = top.filter((pala) => isProductPhoto(pala.image ?? ""));
+  return [...withPhoto, ...top.filter((pala) => !withPhoto.includes(pala))]
     .slice(0, SHOWCASE_COUNT)
     .map((pala) => ({ name: `${pala.brand.name} ${pala.model}`, image: pala.image as string }));
 }

@@ -10,7 +10,7 @@ import type {
   PriceVerdict,
   RankedOffer,
 } from "@/types/pricing";
-import { formatDate, formatEuroCompact, formatMonthYear, formatPercent } from "./format";
+import { formatDate, formatEuroCompact, formatPercent } from "./format";
 
 // Tres fechas distintas que esta lógica nunca mezcla:
 //   · now        → la fecha actual, siempre recibida como parámetro
@@ -19,9 +19,17 @@ import { formatDate, formatEuroCompact, formatMonthYear, formatPercent } from ".
 
 const DAY_MS = 86_400_000;
 const HOUR_MS = 3_600_000;
-const AVERAGE_WINDOW_DAYS = 90;
-const MONTH_DAYS = 30;
 const DAYS_PER_MONTH = 30.5;
+
+/**
+ * Ventana de todo lo que se dice de un precio frente a su histórico: la media,
+ * el mínimo y el veredicto se calculan sobre estos días, y una pala no tiene
+ * veredicto hasta que su seguimiento cubre la ventana entera.
+ */
+export const HISTORY_WINDOW_DAYS = 30;
+
+/** Cómo se presenta un precio que aún no tiene veredicto, en la ficha y en los listados. */
+export const RECENT_PRICE_LABEL = "Precio reciente";
 
 // Umbrales del veredicto de precio
 const AT_MIN_RATIO = 1.03;
@@ -139,22 +147,40 @@ function lowest(points: PricePoint[]): PricePoint | null {
   );
 }
 
-function priceSignals(current: number, average90: number | null, minPrice: number | null) {
+/** Primer día con precio registrado, o null si todavía no hay ninguno. */
+export function trackedSince(history: PricePoint[], now: Date): string | null {
+  const today = dayTime(toIsoDate(now));
+  return history.find((point) => dayTime(point.date) <= today)?.date.slice(0, 10) ?? null;
+}
+
+/** true si el seguimiento de la pala cubre la ventana entera: su primer registro tiene 30 días o más. */
+export function hasEnoughHistory(history: PricePoint[], now: Date): boolean {
+  return priceDaysAgo(history, HISTORY_WINDOW_DAYS, now) !== null;
+}
+
+function priceSignals(current: number, average: number | null, minPrice: number | null) {
   return {
-    belowAverage: average90 ? (average90 - current) / average90 : 0,
-    isHistoricalMin: minPrice !== null && current <= minPrice,
+    belowAverage: average ? (average - current) / average : 0,
+    isWindowMin: minPrice !== null && current <= minPrice,
     atMin: minPrice !== null && current <= minPrice * AT_MIN_RATIO,
     nearMin: minPrice !== null && current <= minPrice * NEAR_MIN_RATIO,
   };
 }
 
+/**
+ * Veredicto del precio actual frente a la media y el mínimo de la ventana. Solo
+ * se llama con histórico suficiente. Estar en el mínimo no basta: un precio que
+ * no se ha movido también lo está, y eso no es una oportunidad. Hace falta,
+ * además, que esté por debajo de lo que ha costado de media.
+ */
 export function classifyPrice(
   current: number,
-  average90: number | null,
+  average: number | null,
   minPrice: number | null,
-): PriceStatus {
-  const { belowAverage, atMin, nearMin } = priceSignals(current, average90, minPrice);
-  if (atMin || belowAverage >= GOOD_BELOW_AVERAGE) return "good";
+): Exclude<PriceStatus, "recent"> {
+  const { belowAverage, atMin, nearMin } = priceSignals(current, average, minPrice);
+  if (belowAverage >= GOOD_BELOW_AVERAGE) return "good";
+  if (atMin && belowAverage >= WAIT_BELOW_AVERAGE) return "good";
   if (minPrice !== null && !nearMin && belowAverage < WAIT_BELOW_AVERAGE) return "wait";
   return "fair";
 }
@@ -174,10 +200,12 @@ export function computePriceStats(
   const best = usable[0];
   if (!best) return null;
 
-  const today = dayTime(toIsoDate(now));
-  const recorded = history.filter((point) => dayTime(point.date) <= today);
-  const average90 = average(historyWindow(history, AVERAGE_WINDOW_DAYS, now));
-  const min = lowest(recorded);
+  // Sin la ventana cubierta no hay media, mínimo ni veredicto: con pocos días,
+  // cualquier precio es «el más bajo que hemos visto».
+  const enough = hasEnoughHistory(history, now);
+  const window = enough ? historyWindow(history, HISTORY_WINDOW_DAYS, now) : [];
+  const average30 = average(window);
+  const min = lowest(window);
   const previousPrice =
     best.previousPrice === null ? null : round2(best.previousPrice + (best.shipping ?? 0));
 
@@ -190,11 +218,12 @@ export function computePriceStats(
       previousPrice !== null && previousPrice > best.total
         ? Math.round(((previousPrice - best.total) / previousPrice) * 100)
         : null,
-    average90,
+    average30,
     minPrice: min?.price ?? null,
     minPriceDate: min?.date ?? null,
-    price30dAgo: priceDaysAgo(history, MONTH_DAYS, now),
-    status: classifyPrice(best.total, average90, min?.price ?? null),
+    price30dAgo: priceDaysAgo(history, HISTORY_WINDOW_DAYS, now),
+    trackedSince: trackedSince(history, now),
+    status: enough ? classifyPrice(best.total, average30, min?.price ?? null) : "recent",
     priceCheckedAt: best.checkedAt,
     computedAt: now.toISOString(),
   };
@@ -202,7 +231,10 @@ export function computePriceStats(
 
 type NoteInput = Pick<PriceStats, "status" | "bestPrice" | "minPrice">;
 
-/** Nota corta para tarjetas; null si no hay nada que destacar o el precio está desactualizado. */
+/**
+ * Nota corta para tarjetas; null si no hay nada que destacar, si el precio está
+ * desactualizado o si la pala aún no tiene histórico suficiente.
+ */
 export function priceCardNote(stats: NoteInput, freshness: PriceFreshness): string | null {
   if (freshness === "stale" || stats.status !== "good") return null;
   const atMin = stats.minPrice !== null && stats.bestPrice <= stats.minPrice * AT_MIN_RATIO;
@@ -220,26 +252,35 @@ function describePrice(stats: PriceStats, freshness: PriceFreshness): PriceVerdi
     };
   }
 
-  const { bestPrice, average90, minPrice, minPriceDate, status } = stats;
-  const signals = priceSignals(bestPrice, average90, minPrice);
+  const { bestPrice, average30, minPrice, minPriceDate, status } = stats;
+
+  if (status === "recent") {
+    const since = formatDate(stats.trackedSince ?? stats.priceCheckedAt);
+    return {
+      status,
+      label: RECENT_PRICE_LABEL,
+      detail: `Seguimos este precio desde el ${since}. Todavía no hay histórico suficiente para valorarlo.`,
+      answer: `Todavía no podemos decírtelo. Seguimos el precio de esta pala desde el ${since} y hacen falta ${HISTORY_WINDOW_DAYS} días de histórico para compararlo con lo que ha costado.`,
+    };
+  }
+
+  const signals = priceSignals(bestPrice, average30, minPrice);
   const belowAveragePct = formatPercent(Math.round(signals.belowAverage * 100));
   const minText = minPrice === null ? null : formatEuroCompact(minPrice);
-  const minWhen = minPriceDate === null ? null : formatMonthYear(minPriceDate);
+  const minWhen = minPriceDate === null ? null : formatDate(minPriceDate);
+  const window = `los últimos ${HISTORY_WINDOW_DAYS} días`;
 
   if (status === "good") {
-    let answer = `Sí. Está un ${belowAveragePct} por debajo de lo que ha costado de media en los últimos 90 días.`;
-    if (signals.isHistoricalMin) {
-      answer = "Sí. Está en su precio más bajo desde que seguimos esta pala.";
-    } else if (signals.nearMin && minWhen) {
-      answer = `Sí, bastante. Ahora mismo está cerca de su precio más bajo: solo ha estado más barata en ${minWhen}.`;
+    let answer = `Sí. Está un ${belowAveragePct} por debajo de lo que ha costado de media en ${window}.`;
+    if (signals.isWindowMin) {
+      answer = `Sí. Está en su precio más bajo de ${window}, un ${belowAveragePct} por debajo de la media.`;
+    } else if (signals.nearMin && minText && minWhen) {
+      answer = `Sí, bastante. Está cerca de su precio más bajo de ${window}: ${minText}, el ${minWhen}.`;
     }
     return {
       status,
       label: "Buen momento para comprar",
-      detail:
-        signals.belowAverage >= WAIT_BELOW_AVERAGE
-          ? `Está un ${belowAveragePct} por debajo de su precio medio de los últimos 90 días.`
-          : "Está prácticamente en su precio más bajo.",
+      detail: `Está un ${belowAveragePct} por debajo de su precio medio de ${window}.`,
       answer,
     };
   }
@@ -248,19 +289,19 @@ function describePrice(stats: PriceStats, freshness: PriceFreshness): PriceVerdi
     return {
       status,
       label: "Puedes esperar",
-      detail: `Ahora mismo no es especialmente barata. Ha llegado a estar a ${minText}.`,
-      answer: `No especialmente. Su precio está en línea con el de los últimos meses y ha llegado a estar a ${minText} en ${minWhen}. Si no tienes prisa, puedes esperar a la siguiente bajada.`,
+      detail: `Ahora mismo no es especialmente barata. En ${window} ha llegado a estar a ${minText}.`,
+      answer: `No especialmente. En ${window} ha llegado a estar a ${minText}, el ${minWhen}. Si no tienes prisa, puedes esperar a la siguiente bajada.`,
     };
   }
 
   return {
     status,
     label: "Precio normal",
-    detail: "Está en línea con lo que ha costado en los últimos 90 días.",
+    detail: `Está en línea con lo que ha costado en ${window}.`,
     answer:
-      minText && minWhen
-        ? `Ni cara ni barata. Está en su precio habitual; su mínimo fue de ${minText} en ${minWhen}.`
-        : "Ni cara ni barata. Está en su precio habitual.",
+      minText && minWhen && minPrice !== null && minPrice < bestPrice
+        ? `Ni cara ni barata. Está en su precio habitual; en ${window} su mínimo fue de ${minText}, el ${minWhen}.`
+        : `Ni cara ni barata. Está en su precio habitual de ${window}.`,
   };
 }
 
@@ -283,11 +324,12 @@ export function buildPriceSummary(
     storeCount: stats.storeCount,
     previous: stats.previousPrice,
     dropPercent: stats.dropPercent,
-    average90: stats.average90,
-    historicalMin:
+    average30: stats.average30,
+    min30:
       stats.minPrice !== null && stats.minPriceDate !== null
         ? { price: stats.minPrice, date: stats.minPriceDate }
         : null,
+    trackedSince: stats.trackedSince,
     checkedAt: stats.priceCheckedAt,
     asOf: now.toISOString(),
     freshness,

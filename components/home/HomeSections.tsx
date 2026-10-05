@@ -52,14 +52,16 @@ export function DealsSection({ deals }: { deals: PalaSummary[] }) {
   );
 }
 
-export function PopularSection({ palas }: { palas: PalaSummary[] }) {
+export function MostStoresSection({ palas }: { palas: PalaSummary[] }) {
   return (
-    <section aria-labelledby="populares">
-      <h2 id="populares" className={titleClass}>
-        Las más populares
+    <section aria-labelledby="mas-tiendas">
+      <h2 id="mas-tiendas" className={titleClass}>
+        En más tiendas
       </h2>
-      {/* El criterio es el del orden «popularidad» del catálogo: opiniones, tiendas y año. */}
-      <p className={leadClass}>Las que más tiendas tienen a la venta ahora mismo.</p>
+      {/* El criterio es el orden por defecto del catálogo: tiendas con precio vigente y año. */}
+      <p className={leadClass}>
+        Las palas que más tiendas tienen a la venta ahora mismo; a igualdad, las más recientes.
+      </p>
       <ul className="mt-2 lg:mt-2.5">
         {palas.map((pala) => (
           <li key={pala.id}>
@@ -244,8 +246,8 @@ export function PriceWatchSection({ featured }: PriceWatchSectionProps) {
         ¿Está barata ahora?
       </h2>
       <p className="mt-2 text-base leading-[1.6] text-pretty text-ink lg:mt-2.5">
-        Seguimos el precio de cada pala todos los días. En cada ficha te decimos, en una frase, si
-        es buen momento para comprar o si te conviene esperar.
+        Seguimos el precio de cada pala. Cuando una lleva 30 días en seguimiento, su ficha te dice,
+        en una frase, si es buen momento para comprar o si te conviene esperar.
       </p>
       {featured && (
         <Link
@@ -273,7 +275,12 @@ export function PriceWatchSection({ featured }: PriceWatchSectionProps) {
               días de histórico.
             </span>
           )}
-          <span className="mt-1.5 block text-sm font-bold text-forest">
+          <span
+            className={cn(
+              "mt-1.5 block text-sm font-bold",
+              featured.price.verdict.status === "good" ? "text-forest" : "text-muted",
+            )}
+          >
             <span aria-hidden="true">● </span>
             {featured.price.verdict.label}
           </span>

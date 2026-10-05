@@ -40,8 +40,8 @@ export function ScannerBanner({ variant = "full", example, className }: ScannerB
             ¿Tienes una pala delante y no sabes cuál es?
           </h2>
           <p className="mt-3 mb-[18px] max-w-[480px] text-[15px] leading-[1.55] text-ash lg:mt-[18px] lg:mb-[26px] lg:text-lg">
-            Hazle una foto: te decimos qué pala es, qué opinan otros jugadores y dónde está más
-            barata. <span className="lg:hidden">También puedes fotografiar dos y compararlas.</span>
+            Hazle una foto: te decimos qué pala es y dónde está más barata.{" "}
+            <span className="lg:hidden">También puedes fotografiar dos y compararlas.</span>
             <span className="hidden lg:inline">O fotografía dos y compáralas.</span>
           </p>
           <div className="flex gap-2.5">
