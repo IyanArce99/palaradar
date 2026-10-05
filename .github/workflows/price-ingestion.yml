@@ -19,7 +19,7 @@ on:
         options: [dry-run, ingest]
         default: dry-run
       tienda:
-        description: "Slug de la tienda. Vacío: todas (ingest) o padelproshop (dry-run)"
+        description: "padelproshop o padelnuestro. Vacío = todas, solo con ingest (dry-run necesita una tienda)"
         type: string
         default: ""
 
@@ -46,6 +46,8 @@ jobs:
       DATABASE_POOL_MAX: "2"
       MODO: ${{ github.event_name == 'schedule' && 'ingest' || inputs.modo }}
       TIENDA: ${{ inputs.tienda }}
+      # Tiendas con adaptador (ingestion/adapters/index.ts). Un test comprueba que coinciden.
+      TIENDAS_VALIDAS: "padelproshop padelnuestro"
     steps:
       - uses: actions/checkout@v4
 
@@ -64,9 +66,29 @@ jobs:
             echo "::error::Falta el secreto DATABASE_URL (Settings → Secrets and variables → Actions)."
             exit 1
           fi
-          if ! printf '%s' "$TIENDA" | grep -Eq '^[a-z0-9-]*$'; then
-            echo "::error::Slug de tienda no válido."
+          if [ "$MODO" != "ingest" ] && [ "$MODO" != "dry-run" ]; then
+            echo "::error::Modo no válido. Valores permitidos: ingest, dry-run."
             exit 1
+          fi
+
+          permitidas="${TIENDAS_VALIDAS// /, }"
+          if [ -z "$TIENDA" ]; then
+            # Sin tienda: todas en una ingestión real; un dry-run simula una sola.
+            if [ "$MODO" = "dry-run" ]; then
+              echo "::error::El modo dry-run necesita una tienda. Valores permitidos: $permitidas."
+              exit 1
+            fi
+          else
+            valida=false
+            for tienda in $TIENDAS_VALIDAS; do
+              if [ "$TIENDA" = "$tienda" ]; then valida=true; fi
+            done
+            if [ "$valida" != "true" ]; then
+              # Lo escrito se muestra sin caracteres raros y recortado.
+              escrita="${TIENDA//[^a-zA-Z0-9_-]/}"
+              echo "::error::Slug de tienda no válido: «${escrita:0:40}». Valores permitidos: $permitidas (vacío = todas, solo con ingest)."
+              exit 1
+            fi
           fi
 
       - name: Ingestión de precios
