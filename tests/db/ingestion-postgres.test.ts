@@ -619,9 +619,11 @@ describe("cola de revisión", { skip: !url && "DATABASE_URL no configurada" }, (
       for (const id of ["51891194921265", "47072563659057", "54347404902705"]) {
         assert.ok(pendingIds.has(id), `el producto ${id} debería seguir en revisión`);
       }
+      // En revisión nunca hay pala asignada. Como mucho, una decisión manual que fija el
+      // motivo («sin ficha equivalente en catálogo») para que la ingestión no lo reescriba.
       const [{ matched }] = await tx<{ matched: number }[]>`
         select count(*)::int as matched from store_products
-        where matching_status = 'pending_review' and (racket_id is not null or matching_method is not null)`;
+        where matching_status = 'pending_review' and (racket_id is not null or matching_method in ('gtin', 'attributes'))`;
       assert.equal(matched, 0);
 
       const store = { storeSlug: REAL_TEST_STORE, isDemo: false };

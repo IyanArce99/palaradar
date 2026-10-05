@@ -101,7 +101,32 @@ La web regenera cada página como mucho una vez por hora (`revalidate`), así qu
 
 ### Cola de revisión
 
-Los emparejamientos ambiguos se guardan con `matching_status = 'pending_review'`, sin pala asignada y sin publicar precio. `npm run prices:pending` los lista (solo lectura). Se resuelven a mano en `store_products`: `racket_id` + `matching_status = 'matched'` (o `'rejected'`) y `matching_method = 'manual'`; la ingestión no recalcula una decisión manual.
+Los emparejamientos ambiguos se guardan con `matching_status = 'pending_review'`, sin pala asignada y sin publicar precio. `npm run prices:pending` los lista (solo lectura). Se resuelven con una decisión manual (`matching_method = 'manual'`), que la ingestión respeta y no recalcula.
+
+### Decisiones manuales
+
+Lo que una persona revisa y fija se guarda en un fichero versionado, `ingestion/decisions/<fecha>-<tema>.json`, y se aplica con `npm run prices:decisions`:
+
+```bash
+npm run prices:decisions -- --file=ingestion/decisions/2026-10-05-auditoria.json           # ensayo: no guarda nada
+npm run prices:decisions -- --file=ingestion/decisions/2026-10-05-auditoria.json --apply   # lo aplica
+npm run prices:ingest                                                                      # publica los precios
+```
+
+Cada producto lleva una de tres decisiones, siempre con su motivo:
+
+| Decisión | Queda como | Para qué |
+|---|---|---|
+| `match` | emparejado con una pala, con confianza `high` o `medium` | Es esa pala. Si el producto trae EAN, se guarda como identificador de la pala |
+| `reject` | rechazado | No es una pala suelta comparable: pack, pala de test, otro deporte |
+| `review` | en revisión, con el motivo fijado | Es una pala real, pero el catálogo no tiene su ficha (otra edición, otra colección, otro color) |
+
+- **Repetible.** Una decisión ya aplicada no cambia nada. Si el producto ya no está como cuando se revisó (otro estado, otra pala), la carga se detiene sin escribir nada.
+- **Corregir un enlace equivocado.** La decisión indica en `from` la pala a la que estaba enlazado. Con ella se retira o se mueve el precio que ese producto tenía publicado allí, y `history` dice qué hacer con el histórico que dejó (`move` a la pala correcta o `delete`). Del histórico solo se tocan las filas con el precio de ese producto.
+- **Catálogo.** El mismo fichero puede corregir una pala (`rackets`: modelo, año o dirección) y un identificador que estaba en la pala equivocada (`identifiers`).
+- **Tras una carga del catálogo.** `npm run catalog:import` fija los enlaces que trae su fichero. Si ese fichero se regenera desde las fuentes, conviene repetir después `npm run prices:decisions`: si la carga hubiera reintroducido algo ya corregido, lo vuelve a corregir o avisa.
+
+Criterios de la auditoría de octubre de 2026, por si sirven de guía: no se empareja por parecido. Hace falta un identificador oficial (EAN del fabricante o su referencia en la URL de la tienda) o que coincidan marca, modelo, variante y año, con cada diferencia de nombre explicada. El año de la colección no se deduce de que el catálogo solo tenga una temporada de ese modelo: así se enlazaron por error tres productos de la colección 2027 a palas de 2026.
 
 ### Histórico global y por tienda
 

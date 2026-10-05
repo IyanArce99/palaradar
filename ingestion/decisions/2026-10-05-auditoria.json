@@ -1,0 +1,1326 @@
+{
+  "title": "Auditoría del emparejamiento de PadelProShop y Padel Nuestro",
+  "decidedAt": "2026-10-05",
+  "rackets": [
+    {
+      "slug": "wilson-bela-v3-2025-2026",
+      "set": {
+        "slug": "wilson-bela-v3-2025",
+        "model": "Bela V3",
+        "year": 2025
+      },
+      "reason": "La generación V3 es de 2025: PadelZoom la llama «Bela V3 2025» y le pone el año 2026"
+    },
+    {
+      "slug": "wilson-bela-ls-v3-2025-2026",
+      "set": {
+        "slug": "wilson-bela-ls-v3-2025",
+        "model": "Bela LS V3",
+        "year": 2025
+      },
+      "reason": "La generación V3 es de 2025: PadelZoom la llama «Bela LS V3 2025» y le pone el año 2026"
+    },
+    {
+      "slug": "wilson-bela-pro-v3-2025-2026",
+      "set": {
+        "slug": "wilson-bela-pro-v3-2025",
+        "model": "Bela Pro V3",
+        "year": 2025
+      },
+      "reason": "La generación V3 es de 2025: PadelZoom la llama «Bela Pro V3 2025» y le pone el año 2026"
+    }
+  ],
+  "identifiers": [
+    {
+      "type": "manufacturer_ref",
+      "value": "PSTTP41000",
+      "racket": "starvie-triton-power-plus-2027",
+      "reason": "starvie.com: «Tritón Power +», etiqueta «coleccion:2027». Estaba en la Triton Power+ 2026"
+    },
+    {
+      "type": "manufacturer_ref",
+      "value": "PSTTB41000",
+      "racket": null,
+      "reason": "starvie.com: «Tritón Balance +», etiqueta «coleccion:2027». Estaba en la Triton Balance+ 2026 y el catálogo no tiene la 2027"
+    }
+  ],
+  "products": [
+    {
+      "store": "padelnuestro",
+      "externalId": "162975-P",
+      "title": "STARVIE TRITON POWER+",
+      "decision": "match",
+      "racket": "starvie-triton-power-plus-2027",
+      "confidence": "high",
+      "reason": "Es la Tritón Power + de la colección 2027: starvie.com la vende con la referencia PSTTP41000 y la etiqueta «coleccion:2027»; el código de la tienda es del lote 2027 y su precio es el de la 2027 en PadelProShop. La 2026 es otro producto de la tienda (121650-P, referencia PSTTP31000)",
+      "from": "starvie-triton-power-plus-2026",
+      "history": "move"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "162974-P",
+      "title": "STARVIE TRITON BALANCE+",
+      "decision": "reject",
+      "reason": "colección 2027, sin ficha en el catálogo",
+      "from": "starvie-triton-balance-plus-2026",
+      "history": "delete"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "160650-P",
+      "title": "BULLPADEL VERTEX 05 GEO",
+      "decision": "reject",
+      "reason": "colección 2027, sin ficha en el catálogo",
+      "from": "bullpadel-vertex-05-geo-pablo-cardona-2026"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "47875114762545",
+      "title": "Pala Adidas Metalbone 3.3 HRD+ Ale Galán",
+      "decision": "match",
+      "racket": "adidas-metalbone-hrd-plus-2024",
+      "confidence": "high",
+      "reason": "EAN 8436548248888 = «Metalbone Hrd + 3.3 - Ale Galán», colección 2024, en allforpadel.com (web oficial de Adidas Padel)"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "47875266969905",
+      "title": "Pala Adidas Metalbone Carbon CTRL",
+      "decision": "match",
+      "racket": "adidas-metalbone-carbon-ctrl-2024",
+      "confidence": "high",
+      "reason": "EAN 8436548248949 = «Metalbone Carbon Ctrl 3.3», colección 2024, en allforpadel.com"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "47876783964465",
+      "title": "Pala Adidas Cross IT LIGHT Marta Ortega 3.3",
+      "decision": "match",
+      "racket": "adidas-cross-it-light-2024",
+      "confidence": "high",
+      "reason": "EAN 8436548249120 = «Cross It Light 3.3 - Marta Ortega» en allforpadel.com; 3.3 es la generación 2024 y es la única Cross It Light 2024"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "47875672998193",
+      "title": "Pala Adidas Metalbone Team 3.3",
+      "decision": "match",
+      "racket": "adidas-metalbone-team-2024",
+      "confidence": "high",
+      "reason": "Modelo y variante exactos; 3.3 es la generación 2024; EAN contiguo a los de la colección 2024 de Adidas"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "53453143605553",
+      "title": "Pala Adidas Metalbone Team Light 3.3",
+      "decision": "match",
+      "racket": "adidas-metalbone-team-light-2024",
+      "confidence": "high",
+      "reason": "Modelo y variante exactos; 3.3 es la generación 2024; EAN contiguo a los de la colección 2024 (la tienda la vende como reedición)"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "50606617887025",
+      "title": "Pala Babolat Dyna Energy",
+      "decision": "match",
+      "racket": "babolat-dyna-energy-2023",
+      "confidence": "high",
+      "reason": "Nombre exacto; modelo de generación única en el catálogo oficial de Babolat (temporada 2023); EAN consecutivo con Stima Energy y Dyna Spirit"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "48436333576497",
+      "title": "Pala Babolat Dyna Spirit",
+      "decision": "match",
+      "racket": "babolat-dyna-spirit-2023",
+      "confidence": "high",
+      "reason": "Nombre exacto; modelo de generación única en el catálogo oficial de Babolat (temporada 2023); EAN consecutivo con Dyna Energy y Stima Energy"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "48436352123185",
+      "title": "Pala Babolat Stima Energy",
+      "decision": "match",
+      "racket": "babolat-stima-energy-2023",
+      "confidence": "high",
+      "reason": "Nombre exacto; modelo de generación única en el catálogo oficial de Babolat (temporada 2023); EAN consecutivo con Dyna Energy y Dyna Spirit"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "51790986674481",
+      "title": "Pala Bullpadel Elite Woman 2026",
+      "decision": "match",
+      "racket": "bullpadel-elite-woman-gemma-triay-2026",
+      "confidence": "high",
+      "reason": "Año 2026, modelo y variante exactos; solo falta la jugadora de la línea (Gemma Triay); EAN contiguo a la colección 2026"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "51790981923121",
+      "title": "Pala Bullpadel Flow Legend 2026",
+      "decision": "match",
+      "racket": "bullpadel-flow-legend-alejandra-salazar-2026",
+      "confidence": "high",
+      "reason": "Año 2026 y modelo exactos; solo falta la jugadora (Alejandra Salazar, confirmada en la ficha de Padel Nuestro); EAN contiguo a la colección 2026"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "52261608522033",
+      "title": "Pala Bullpadel Hack 04 Hybrid Cloud Paquito Navarro 2026",
+      "decision": "match",
+      "racket": "bullpadel-hack-04-hybrid-cloud-2026",
+      "confidence": "high",
+      "reason": "Año 2026, modelo, variante Hybrid y versión Cloud exactos; el título añade al jugador de la línea Hack"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "51790991524145",
+      "title": "Pala Bullpadel Icon 2026",
+      "decision": "match",
+      "racket": "bullpadel-icon-juan-martin-diaz-2026",
+      "confidence": "high",
+      "reason": "Año 2026 y modelo exactos; solo falta el jugador (Juan Martín Díaz, confirmado en la ficha de Padel Nuestro); EAN contiguo a la colección 2026"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "52261612388657",
+      "title": "Pala Bullpadel Vertex 05 W Cloud 2026 Delfi Brea",
+      "decision": "match",
+      "racket": "bullpadel-vertex-05-woman-cloud-2026",
+      "confidence": "high",
+      "reason": "Año 2026, modelo, variante Woman y versión Cloud exactos; el título añade a la jugadora"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "51790987264305",
+      "title": "Pala Bullpadel Wonder 2026",
+      "decision": "match",
+      "racket": "bullpadel-wonder-claudia-fernandez-2026",
+      "confidence": "high",
+      "reason": "Año 2026 y modelo exactos; solo falta la jugadora de la línea Wonder (Claudia Fernández, según las fichas de Padel Nuestro); EAN contiguo a la colección 2026"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "51867551498545",
+      "title": "Pala Drop Shot Axion Attack 1.0 LTD 2025 Jon Sanz (Exclusiva PadelPROShop)",
+      "decision": "match",
+      "racket": "drop-shot-axion-attack-1-ltd-jon-sanz-2025",
+      "confidence": "high",
+      "reason": "Año 2025, edición LTD y jugador exactos: el catálogo tiene la edición LTD como pala propia"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "50402487730481",
+      "title": "Pala Head Speed Motion 2025 Carmen Goenaga",
+      "decision": "match",
+      "racket": "head-speed-motion-2025",
+      "confidence": "high",
+      "reason": "Año 2025 y modelo exactos; EAN consecutivo con Speed One, Pro y Team 2025; «Carmen Goenaga» es la jugadora que cita la tienda"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "48382164926769",
+      "title": "Pala Lok Carb-on Flow",
+      "decision": "match",
+      "racket": "lok-carb-on-flow-2024",
+      "confidence": "high",
+      "reason": "Nombre exacto de la primera generación (la segunda se llama «Gen 2»): la generación va en el nombre; EAN del bloque de la primera colección de LOK"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "48382161322289",
+      "title": "Pala Lok Carb-on Hype",
+      "decision": "match",
+      "racket": "lok-carb-on-hype-2024",
+      "confidence": "high",
+      "reason": "Nombre exacto de la primera generación (la segunda se llama «Gen 2»): la generación va en el nombre; EAN del bloque de la primera colección de LOK"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "52154932166961",
+      "title": "Pala Lok Maxx Hype 2 Yanguas World",
+      "decision": "match",
+      "racket": "lok-maxx-hype-gen-2-yanguas-world-2026",
+      "confidence": "high",
+      "reason": "Edición Yanguas World de la segunda generación («2» = «Gen 2»); EAN del bloque 2026"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "48382158799153",
+      "title": "Pala Lok Maxx Hype Mike Yanguas",
+      "decision": "match",
+      "racket": "lok-maxx-hype-2024",
+      "confidence": "high",
+      "reason": "Primera generación (sin «Gen 2»); EAN del bloque de la primera colección; Mike Yanguas es el jugador de la línea"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "51937559249201",
+      "title": "Pala Nox AT10 Pro Cup Hard by Agustin Tapia 2026",
+      "decision": "match",
+      "racket": "nox-at10-pro-cup-hard-2026",
+      "confidence": "high",
+      "reason": "Año 2026, modelo y variante Hard exactos; EAN consecutivo con la Pro Cup Soft 2026; el título añade al jugador"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "50982784958769",
+      "title": "Pala Nox ML10 Pro Cup Silver 2025 Miguel Lamperti",
+      "decision": "match",
+      "racket": "nox-ml10-pro-cup-silver-2025",
+      "confidence": "high",
+      "reason": "Año 2025, modelo y acabado Silver exactos; el título añade al jugador"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "45518934507825",
+      "title": "Pala Oxdog Classics Ultimate Pro+",
+      "decision": "match",
+      "racket": "oxdog-ultimate-pro-plus-classics-series-2025",
+      "confidence": "high",
+      "reason": "EAN 7340151631535 = «Ultimate Pro+ Classics» en oxdogpadel.com; única edición Classics de ese modelo"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "50429412081969",
+      "title": "Pala Oxdog Sense pro Classic Series",
+      "decision": "match",
+      "racket": "oxdog-sense-pro-classic-series-2025",
+      "confidence": "high",
+      "reason": "EAN 7340151645068 = «Sense Pro Classics» en oxdogpadel.com; nombre exacto"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "48235092738353",
+      "title": "Pala Siux Diablo Revolution Sanyo Pro 3",
+      "decision": "match",
+      "racket": "siux-diablo-revolution-sanyo-pro-3-2024",
+      "confidence": "high",
+      "reason": "Nombre y jugador exactos (Pro 3): la generación va en el nombre; EAN del bloque de la colección 2024 de Siux"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "47843967959345",
+      "title": "Pala Siux Electra ST3 Go",
+      "decision": "match",
+      "racket": "siux-electra-go-st3-2024",
+      "confidence": "high",
+      "reason": "Nombre exacto (ST3): la generación va en el nombre; EAN del bloque de la colección 2024 de Siux"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "48113234837809",
+      "title": "Pala Siux Fenix Pro 4",
+      "decision": "match",
+      "racket": "siux-fenix-pro-4-2024",
+      "confidence": "high",
+      "reason": "Nombre exacto (Pro 4): la generación va en el nombre; EAN del bloque de la colección 2024 de Siux"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "50668599542065",
+      "title": "Pala Siux Fenix Pro 5 2025 Alex Chozas",
+      "decision": "match",
+      "racket": "siux-fenix-pro-5-2025",
+      "confidence": "high",
+      "reason": "Año 2025 y generación exactos; es la versión estándar (la Black es otro producto con otro EAN); EAN de la colección 2025"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "52115112460593",
+      "title": "Pala Siux Fenix Pro Black 2026",
+      "decision": "match",
+      "racket": "siux-fenix-pro-black-leo-ausburger-2026",
+      "confidence": "high",
+      "reason": "Año 2026 y color Black exactos; solo falta el jugador"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "51956314374449",
+      "title": "Pala Siux Pegasus Pro 2026 Lava Orange Alex Chozas",
+      "decision": "match",
+      "racket": "siux-pegasus-pro-lava-orange-2026",
+      "confidence": "high",
+      "reason": "Año 2026 y color Lava Orange exactos; el título añade al jugador"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "48235240751409",
+      "title": "Pala Siux Spyder Lite Ctrl 3",
+      "decision": "match",
+      "racket": "siux-spyder-lite-ctrl-3-2024",
+      "confidence": "high",
+      "reason": "Nombre y variante exactos (CTRL 3): la generación va en el nombre; EAN del bloque de la colección 2024 de Siux"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "49522610602289",
+      "title": "Pala Siux Ultra Pro",
+      "decision": "match",
+      "racket": "siux-ultra-pro-2024",
+      "confidence": "high",
+      "reason": "Nombre exacto; EAN del bloque de la colección 2024 de Siux, contiguo a Fenix Pro 4 y Electra ST3"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "51874584297777",
+      "title": "Pala VIBOR-A Black Mamba Yarara Pro White 2.0 2026",
+      "decision": "match",
+      "racket": "vibora-yarara-pro-white-2-0-2026",
+      "confidence": "high",
+      "reason": "Año 2026, versión 2.0 y color exactos; «Black Mamba» es el prefijo de familia que usa la tienda, y la Black Mamba Pro 2.0 tiene otro EAN"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "51874607956273",
+      "title": "Pala VIBOR-A Black Mamba Yarara Radical 12K 3.0 2026",
+      "decision": "match",
+      "racket": "vibora-yarara-radical-12k-3-0-2026",
+      "confidence": "high",
+      "reason": "Año 2026 y versión 3.0 exactos; «Black Mamba» es el prefijo de familia que usa la tienda, y la Black Mamba Radical 12K 3.0 tiene otro EAN"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "51485882253617",
+      "title": "Pala Wilson Bela LS V3",
+      "decision": "match",
+      "racket": "wilson-bela-ls-v3-2025",
+      "confidence": "high",
+      "reason": "Nombre exacto (V3): la generación va en el nombre; EAN consecutivos de la familia Bela V3"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "51485889626417",
+      "title": "Pala Wilson Bela Pro V3",
+      "decision": "match",
+      "racket": "wilson-bela-pro-v3-2025",
+      "confidence": "high",
+      "reason": "Nombre exacto (V3): la generación va en el nombre; EAN consecutivos de la familia Bela V3"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "51485872095537",
+      "title": "Pala Wilson Bela V3",
+      "decision": "match",
+      "racket": "wilson-bela-v3-2025",
+      "confidence": "high",
+      "reason": "Nombre exacto (V3): la generación va en el nombre; EAN consecutivos de la familia Bela V3"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "52798532878641",
+      "title": "Pala Wilson Endure Pro V1 2026",
+      "decision": "match",
+      "racket": "wilson-endure-pro-v1-momo-gonzalez-2026",
+      "confidence": "high",
+      "reason": "Año 2026 y modelo exactos; EAN consecutivo con Endure y Endure LS 2026; solo falta el jugador (Momo González, confirmado en la ficha de Padel Nuestro)"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "113673-P",
+      "title": "ADIDAS ADIPOWER CARBON CTRL 2025",
+      "decision": "match",
+      "racket": "adidas-adipower-carbon-ctrl-3-4-2025",
+      "confidence": "high",
+      "reason": "Referencia oficial AR1CA3U38 en la URL = «Adipower Carbon CTRL 3.4», colección 2025; es la referencia guardada en la pala"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "113674-P",
+      "title": "ADIDAS ADIPOWER CARBON LIGHT 2025",
+      "decision": "match",
+      "racket": "adidas-adipower-carbon-light-3-4-2025",
+      "confidence": "high",
+      "reason": "Referencia oficial AR1CA4U68 en la URL = «Adipower Carbon Light 3.4», colección 2025; es la referencia guardada en la pala"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "120450-P",
+      "title": "ADIDAS ARROW HIT ATTK 2026",
+      "decision": "match",
+      "racket": "adidas-arrow-hit-2026",
+      "confidence": "high",
+      "reason": "Referencia oficial AR1AB0U30 en la URL = «Arrow Hit», colección 2026; es la referencia guardada en la pala («Attk» es como la llaman las tiendas)"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "120451-P",
+      "title": "ADIDAS ARROW HIT CARBON ATTK",
+      "decision": "match",
+      "racket": "adidas-arrow-hit-carbon-2026",
+      "confidence": "high",
+      "reason": "Referencia oficial AR2AA4U01 en la URL = «Arrow Hit Carbon», colección 2026; es la referencia guardada en la pala"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "113678-P",
+      "title": "ADIDAS CROSS IT CARBON CTRL 2025",
+      "decision": "match",
+      "racket": "adidas-cross-it-carbon-ctrl-3-4-2025",
+      "confidence": "high",
+      "reason": "Referencia oficial AR1CA7U12 en la URL = «Cross IT Carbon CTRL 3.4», colección 2025; es la referencia guardada en la pala"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "113681-P",
+      "title": "ADIDAS CROSS IT TEAM 2025",
+      "decision": "match",
+      "racket": "adidas-cross-it-team-3-4-2025",
+      "confidence": "high",
+      "reason": "Referencia oficial AR2AA1U23 en la URL = «Cross IT Team 3.4», colección 2025; es la referencia guardada en la pala"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "121761-P",
+      "title": "BABOLAT AIR VERON 2.6",
+      "decision": "match",
+      "racket": "babolat-air-veron-2026",
+      "confidence": "high",
+      "reason": "Referencia oficial 150180 en la URL = «Air Veron 2.6», temporada 2026 en babolat.com"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "121762-P",
+      "title": "BABOLAT AIR VERTUO 2.6",
+      "decision": "match",
+      "racket": "babolat-air-vertuo-2-6-2026",
+      "confidence": "high",
+      "reason": "Referencia oficial 150184 en la URL = «Air Vertuo 2.6», temporada 2026 en babolat.com (la misma ficha oficial de la que sale el EAN de la pala)"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "121763-P",
+      "title": "BABOLAT AIR VIPER 2.6",
+      "decision": "match",
+      "racket": "babolat-air-viper-2026",
+      "confidence": "high",
+      "reason": "Referencia oficial 150176 en la URL = «Air Viper 2.6», temporada 2026 en babolat.com"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "121764-P",
+      "title": "BABOLAT COUNTER VERON 2.6",
+      "decision": "match",
+      "racket": "babolat-counter-veron-2-6-2026",
+      "confidence": "high",
+      "reason": "Referencia oficial 150181 en la URL = «Counter Veron 2.6», temporada 2026 en babolat.com (la misma ficha oficial de la que sale el EAN de la pala)"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "121765-P",
+      "title": "BABOLAT COUNTER VERTUO 2.6",
+      "decision": "match",
+      "racket": "babolat-counter-vertuo-2026",
+      "confidence": "high",
+      "reason": "Referencia oficial 150185 en la URL = «Counter Vertuo 2.6», temporada 2026 en babolat.com"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "121766-P",
+      "title": "BABOLAT COUNTER VIPER 2.6",
+      "decision": "match",
+      "racket": "babolat-counter-viper-2026",
+      "confidence": "high",
+      "reason": "Referencia oficial 150177 en la URL = «Counter Viper 2.6», temporada 2026 en babolat.com"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "120980-P",
+      "title": "NOX VENTUS HYBRID 12K LITE PVENTUS12HL",
+      "decision": "match",
+      "racket": "nox-ventus-hybrid-12k-lite-2026",
+      "confidence": "high",
+      "reason": "Referencia oficial PVENTUS12HL en el título y la URL = «Ventus Hybrid 12K Lite», colección 2026 en noxsport.com (la 2027 es PVENTUS12HL27)"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "120985-P",
+      "title": "NOX X-ZERO BLUE",
+      "decision": "match",
+      "racket": "nox-x-zero-blue-2026",
+      "confidence": "high",
+      "reason": "Referencia oficial PXZEROBL en la URL = «X-Zero Blue», colección 2026 en noxsport.com; la ficha dice 2026"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "121648-P",
+      "title": "STARVIE RAPTOR +",
+      "decision": "match",
+      "racket": "starvie-raptor-plus-2026",
+      "confidence": "high",
+      "reason": "Referencia oficial PSTRP31000 en la URL = «Raptor +», colección 2026 en starvie.com (la misma ficha oficial de la que sale el EAN de la pala)"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "113676-P",
+      "title": "ADIDAS ADIPOWER MULTIWEIGHT CTRL 3.4 2025",
+      "decision": "match",
+      "racket": "adidas-adipower-multiweight-ctrl-3-4-alex-ruiz-2025",
+      "confidence": "high",
+      "reason": "Año 2025, modelo, variante CTRL y versión 3.4 exactos; solo falta el jugador (Álex Ruiz)"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "110143-P",
+      "title": "ADIDAS METALBONE CARBON CTRL 3.3 REEDICIÓN 2024",
+      "decision": "match",
+      "racket": "adidas-metalbone-carbon-ctrl-2024",
+      "confidence": "high",
+      "reason": "Año 2024, modelo, variante y versión 3.3 exactos; forma, núcleo y caras coinciden; la tienda la llama «reedición»"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "115755-P",
+      "title": "BABOLAT VIPER JUAN LEBRÓN 2025",
+      "decision": "match",
+      "racket": "babolat-technical-viper-juan-lebron-2025",
+      "confidence": "high",
+      "reason": "Año 2025 y jugador exactos; la URL de la tienda lleva el nombre completo «technical-viper-juan-lebron»"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "120898-P",
+      "title": "BULLPADEL ICON 26",
+      "decision": "match",
+      "racket": "bullpadel-icon-juan-martin-diaz-2026",
+      "confidence": "high",
+      "reason": "Año 2026 («26») y modelo exactos; jugador confirmado en la ficha; forma, núcleo y caras coinciden"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "124164-P",
+      "title": "DROP SHOT AXION ATTACK 2.0 JON SANZ",
+      "decision": "match",
+      "racket": "drop-shot-axion-attack-2-0-jon-sanz-2026",
+      "confidence": "high",
+      "reason": "Nombre, versión 2.0 y jugador exactos; la ficha dice 2026; núcleo y caras coinciden"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "124167-P",
+      "title": "DROP SHOT AXION COMFORT 1.0",
+      "decision": "match",
+      "racket": "drop-shot-axion-comfort-1-0-2026",
+      "confidence": "high",
+      "reason": "Nombre y versión 1.0 exactos; la ficha dice 2026"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "114576-P",
+      "title": "DROP SHOT BLITZ ATTACK",
+      "decision": "match",
+      "racket": "drop-shot-blitz-attack-2025",
+      "confidence": "high",
+      "reason": "Nombre exacto; la ficha dice 2025; núcleo y caras coinciden"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "114579-P",
+      "title": "DROP SHOT CANYON PRO CONTROL 1.0 2025",
+      "decision": "match",
+      "racket": "drop-shot-canyon-pro-control-2025",
+      "confidence": "high",
+      "reason": "Año 2025, modelo y variante exactos (el catálogo omite «1.0»); referencia de la serie 2025; forma, núcleo y caras coinciden"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "114582-P",
+      "title": "DROP SHOT CONQUEROR CONTROL 1.0 2025",
+      "decision": "match",
+      "racket": "drop-shot-conqueror-control-2025",
+      "confidence": "high",
+      "reason": "Año 2025, modelo y variante exactos (el catálogo omite «1.0»); referencia de la serie 2025; forma, núcleo y caras coinciden"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "124173-P",
+      "title": "DROP SHOT EXPLORER 9.0",
+      "decision": "match",
+      "racket": "drop-shot-explorer-9-0-2026",
+      "confidence": "high",
+      "reason": "Nombre y versión 9.0 exactos; la ficha dice 2026"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "114584-P",
+      "title": "DROP SHOT EXPLORER PRO ATTACK 1.0 2025",
+      "decision": "match",
+      "racket": "drop-shot-explorer-pro-attack-1-0-lucas-campagnolo-2025",
+      "confidence": "high",
+      "reason": "Año 2025, modelo, variante y versión 1.0 exactos; solo falta el jugador de la línea (Lucas Campagnolo)"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "120219-P",
+      "title": "DROP SHOT EXPLORER PRO ATTACK 1.5",
+      "decision": "match",
+      "racket": "drop-shot-explorer-pro-attack-1-5-lucas-campagnolo-2025",
+      "confidence": "high",
+      "reason": "Modelo, variante y versión 1.5 exactos (solo existe una 1.5); solo falta el jugador de la línea"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "124174-P",
+      "title": "DROP SHOT EXPLORER PRO ATTACK 2.0",
+      "decision": "match",
+      "racket": "drop-shot-explorer-pro-attack-2-0-lucas-campagnolo-2026",
+      "confidence": "high",
+      "reason": "Nombre y versión 2.0 exactos; jugador confirmado en la ficha; la ficha dice 2026"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "124176-P",
+      "title": "DROP SHOT EXPLORER PRO COMFORT 2.0",
+      "decision": "match",
+      "racket": "drop-shot-explorer-pro-comfort-2-0-lucas-campagnolo-2026",
+      "confidence": "high",
+      "reason": "Nombre y versión 2.0 exactos; jugador confirmado en la ficha; la ficha dice 2026"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "124178-P",
+      "title": "DROP SHOT FLAME SOFT",
+      "decision": "match",
+      "racket": "drop-shot-flame-soft-2026",
+      "confidence": "high",
+      "reason": "Nombre exacto; la ficha dice 2026"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "124179-P",
+      "title": "DROP SHOT FURIA ATTACK 2.0",
+      "decision": "match",
+      "racket": "drop-shot-furia-attack-2-0-2026",
+      "confidence": "high",
+      "reason": "Nombre y versión 2.0 exactos; la ficha dice 2026"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "111891-P",
+      "title": "ENEBE MUSTANG 2024",
+      "decision": "match",
+      "racket": "enebe-mustang-12k-2024",
+      "confidence": "high",
+      "reason": "Año 2024 exacto; única Mustang de 2024; la ficha confirma las caras de carbono 12K"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "32512-P",
+      "title": "HEAD SPEED PRO X 2023 221043",
+      "decision": "match",
+      "racket": "head-speed-pro-x-2023",
+      "confidence": "high",
+      "reason": "Año 2023 y modelo exactos; «221043» es el número de artículo de Head; forma, núcleo y caras coinciden"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "121730-P",
+      "title": "LOK MAXX HYPE YANGUAS WORLD",
+      "decision": "match",
+      "racket": "lok-maxx-hype-gen-2-yanguas-world-2026",
+      "confidence": "high",
+      "reason": "Edición Yanguas World (única); la ficha dice 2026; código de tienda del lote Gen 2"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "110804-P",
+      "title": "NOX AT10 GENIUS 12K AGUSTIN TAPIA 2024",
+      "decision": "match",
+      "racket": "nox-at10-genius-12k-2024",
+      "confidence": "high",
+      "reason": "Año 2024 y modelo exactos; el título añade al jugador de la línea AT10"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "120968-P",
+      "title": "NOX AT10 GENIUS 12K ALUM XTREM BY AGUSTIN TAPIA 2026",
+      "decision": "match",
+      "racket": "nox-at10-luxury-genius-12k-alum-xtrem-agustin-tapia-2026",
+      "confidence": "high",
+      "reason": "Año 2026, modelo y jugador exactos; «Luxury» es la etiqueta del catálogo para la gama Genius; las versiones Lite y Attack son otras palas"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "113542-P",
+      "title": "NOX AT10 GENIUS ATTACK 18K ALUM BY AGUSTIN TAPIA 2025",
+      "decision": "match",
+      "racket": "nox-at10-genius-attack-18k-alum-2025",
+      "confidence": "high",
+      "reason": "Año 2025, modelo y variante Attack exactos; el título añade al jugador"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "120973-P",
+      "title": "NOX AT10 PRO CUP HARD BY AGUSTIN TAPIA",
+      "decision": "match",
+      "racket": "nox-at10-pro-cup-hard-2026",
+      "confidence": "high",
+      "reason": "Modelo y variante exactos; el texto de la ficha dice 2026 y el núcleo HR3 Hard es el de la 2026 (la 2027 es otro producto de la tienda)"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "31580-P",
+      "title": "NOX ML10 PRO CUP LUXURY SERIES 23",
+      "decision": "match",
+      "racket": "nox-ml10-pro-cup-luxury-2023",
+      "confidence": "high",
+      "reason": "Año 2023 y modelo exactos («Luxury Series 23» es el nombre oficial en noxsport.com)"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "31584-P",
+      "title": "NOX ML10 PRO CUP ROUGH SURFACE EDITION 23",
+      "decision": "match",
+      "racket": "nox-ml10-pro-cup-rough-surface-2023",
+      "confidence": "high",
+      "reason": "Año 2023 y modelo exactos"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "117965-P",
+      "title": "NOX ML10 PRO CUP SILVER BY MIGUEL LAMPERTI 2025",
+      "decision": "match",
+      "racket": "nox-ml10-pro-cup-silver-2025",
+      "confidence": "high",
+      "reason": "Año 2025, modelo y acabado Silver exactos; el título añade al jugador"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "121736-P",
+      "title": "SIUX ASTRA HYBRID",
+      "decision": "match",
+      "racket": "siux-astra-hybrid-2026",
+      "confidence": "high",
+      "reason": "Nombre exacto; la línea Astra solo existe en la colección 2026 de Siux; códigos contiguos a Astra Control y Astra Hybrid Air"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "112629-P",
+      "title": "SIUX DIABLO GO 4",
+      "decision": "match",
+      "racket": "siux-diablo-go-4-2025",
+      "confidence": "high",
+      "reason": "Nombre exacto (Go 4): la generación va en el nombre; el código de la tienda es la referencia Siux, del bloque de la colección 2025"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "109473-P",
+      "title": "SIUX DIABLO REVOLUTION PRO 3",
+      "decision": "match",
+      "racket": "siux-diablo-revolution-sanyo-pro-3-2024",
+      "confidence": "high",
+      "reason": "Nombre exacto (Pro 3): la generación va en el nombre; referencia Siux del bloque de la colección 2024; solo falta el jugador (Sanyo)"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "121750-P",
+      "title": "SIUX FENIX PRO BLACK 2026",
+      "decision": "match",
+      "racket": "siux-fenix-pro-black-leo-ausburger-2026",
+      "confidence": "high",
+      "reason": "Año 2026 y color Black exactos; jugador confirmado en la ficha"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "121751-P",
+      "title": "SIUX FENIX PRO GLOW PURPLE 2026",
+      "decision": "match",
+      "racket": "siux-fenix-pro-2026",
+      "confidence": "high",
+      "reason": "Año 2026 exacto; la pala del catálogo es la Glow Purple: su EAN sale de la ficha oficial de ese color"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "109481-P",
+      "title": "SIUX PEGASUS REVOLUTION 2",
+      "decision": "match",
+      "racket": "siux-pegasus-revolution-2-2024",
+      "confidence": "high",
+      "reason": "Nombre exacto: la generación va en el nombre; referencia Siux del bloque de la colección 2024"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "109487-P",
+      "title": "SIUX ULTRA PRO",
+      "decision": "match",
+      "racket": "siux-ultra-pro-2024",
+      "confidence": "high",
+      "reason": "Nombre exacto; referencia Siux del bloque de la colección 2024"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "121644-P",
+      "title": "STARVIE DRAX +",
+      "decision": "match",
+      "racket": "starvie-drax-plus-2026",
+      "confidence": "high",
+      "reason": "Referencia de la serie 31000 (colección 2026) en la URL; la Drax+ 2027 es otro producto de la tienda, ya enlazado a su pala"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "162980-P",
+      "title": "STARVIE KYRA",
+      "decision": "match",
+      "racket": "starvie-kyra-2027",
+      "confidence": "high",
+      "reason": "Nombre exacto; la Kyra solo existe en la colección 2027 de StarVie; código de tienda del lote 2027; forma y caras coinciden"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "121650-P",
+      "title": "STARVIE TRITON POWER  +",
+      "decision": "match",
+      "racket": "starvie-triton-power-plus-2026",
+      "confidence": "high",
+      "reason": "Referencia PSTTP31000 (serie 2026) en la URL; mismo precio que la 2026 en PadelProShop"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "115118-P",
+      "title": "VIBOR-A YARARA XTREME 3K 2.0",
+      "decision": "match",
+      "racket": "vibora-yarara-xtreme-3k-2-0-2025",
+      "confidence": "high",
+      "reason": "Nombre y versión 2.0 exactos; única Yarara Xtreme 3K del catálogo; código de tienda del lote 2025"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "119458-P",
+      "title": "WILSON BELA LS V3",
+      "decision": "match",
+      "racket": "wilson-bela-ls-v3-2025",
+      "confidence": "high",
+      "reason": "Nombre exacto (V3): la generación va en el nombre; la ficha dice 2025"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "119460-P",
+      "title": "WILSON BELA V3",
+      "decision": "match",
+      "racket": "wilson-bela-v3-2025",
+      "confidence": "high",
+      "reason": "Nombre exacto (V3): la generación va en el nombre; la ficha dice 2025"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "113569-P",
+      "title": "WILSON BLADE LS V3 PADEL 2",
+      "decision": "match",
+      "racket": "wilson-blade-ls-v3-2024",
+      "confidence": "high",
+      "reason": "Nombre exacto (V3): la generación va en el nombre; forma, núcleo y caras coinciden; «Padel 2» es el sufijo de talla de Wilson"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "113593-P",
+      "title": "WILSON BLADE PRO V3 PADEL",
+      "decision": "match",
+      "racket": "wilson-blade-pro-v3-2024",
+      "confidence": "high",
+      "reason": "Nombre exacto (V3): la generación va en el nombre"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "109496-P",
+      "title": "WILSON CARBON FORCE PADEL 2 2024",
+      "decision": "match",
+      "racket": "wilson-carbon-force-2024",
+      "confidence": "high",
+      "reason": "Año 2024 y modelo exactos; forma, núcleo y caras coinciden; «Padel 2» es el sufijo de talla de Wilson"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "122475-P",
+      "title": "WILSON ENDURE PRO V1 AZUL",
+      "decision": "match",
+      "racket": "wilson-endure-pro-v1-momo-gonzalez-2026",
+      "confidence": "high",
+      "reason": "Modelo exacto (V1): la generación va en el nombre; jugador confirmado en la ficha; forma, núcleo y caras coinciden"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "52106021470513",
+      "title": "Pack Ale Galán Metalbone 3.3 HRD+",
+      "decision": "reject",
+      "reason": "Pack: no es la pala suelta"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "52016030449969",
+      "title": "Pack Bullpadel Vertex 04 Men",
+      "decision": "reject",
+      "reason": "Pack: no es la pala suelta"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "53249153007921",
+      "title": "Pack dúo Nox ML10 Pro Cup Coorp Negro/Oro (Exclusivas PadelPROShop)",
+      "decision": "reject",
+      "reason": "Pack de dos palas: no es la pala suelta"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "52073449390385",
+      "title": "Pack dúo Pala Adidas Metalbone 3.3 HRD+ Ale Galán",
+      "decision": "reject",
+      "reason": "Pack de dos palas: no es la pala suelta"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "52037444665649",
+      "title": "Pack dúo Pala Nox AT10 Genius 12K Limited Edition Agustín Tapia (Exclusivas PadelPROShop)",
+      "decision": "reject",
+      "reason": "Pack de dos palas: no es la pala suelta"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "52073450438961",
+      "title": "Pack dúo Pala Siux Electra ST2 Stupa Pro",
+      "decision": "reject",
+      "reason": "Pack de dos palas: no es la pala suelta"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "54200612258097",
+      "title": "Pack Nox AT10 Genius 12K Alum Xtrem Official Riyadh Season P1",
+      "decision": "reject",
+      "reason": "Pack: no es la pala suelta"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "52074861920561",
+      "title": "Pack Pala Adidas Metalbone 3.3 HRD+ Ale Galán + Paletero Oxdog Ultra Tour Negro + Pelotas Oxdog BOOST+",
+      "decision": "reject",
+      "reason": "Pack con paletero y pelotas: no es la pala suelta"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "122990-P",
+      "title": "PACK BULLPADEL VERTEX 04 COMFORT",
+      "decision": "reject",
+      "reason": "Pack: no es la pala suelta"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "122976-P",
+      "title": "PACK BULLPADEL VERTEX 04 WOMAN",
+      "decision": "reject",
+      "reason": "Pack: no es la pala suelta"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "119243-P",
+      "title": "PACK DUO SIUX DIABLO GO 3",
+      "decision": "reject",
+      "reason": "Pack de dos palas: no es la pala suelta"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "119246-P",
+      "title": "PACK DUO SIUX TRILOGY GO 4",
+      "decision": "reject",
+      "reason": "Pack de dos palas: no es la pala suelta"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "122977-P",
+      "title": "PACK NOX AT10 GENIUS 12K LTD",
+      "decision": "reject",
+      "reason": "Pack: no es la pala suelta"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "119255-P",
+      "title": "PACK TRIO SIUX DIABLO GO 3",
+      "decision": "reject",
+      "reason": "Pack de tres palas: no es la pala suelta"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "123815-P",
+      "title": "PALA TEST BABOLAT VERON JUAN LEBRÓN 3.0",
+      "decision": "reject",
+      "reason": "Pala de test (prueba con devolución): no es una venta normal"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "123816-P",
+      "title": "PALA TEST BABOLAT VIPER JUAN LEBRON 3.0",
+      "decision": "reject",
+      "reason": "Pala de test (prueba con devolución): no es una venta normal"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "123818-P",
+      "title": "PALA TEST BABOLAT VIPER SOFT JUAN LEBRÓN 3.0",
+      "decision": "reject",
+      "reason": "Pala de test (prueba con devolución): no es una venta normal"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "122979-P",
+      "title": "BEACH TENNIS NOX ML10 PRO CUP",
+      "decision": "reject",
+      "reason": "Pala de beach tennis: no es una pala de pádel"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "118526-P",
+      "title": "PICKLEBALL DROP SHOT FURIA ATTACK 1.0",
+      "decision": "reject",
+      "reason": "Pala de pickleball: no es una pala de pádel"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "49637887213873",
+      "title": "Pala Nox AT10 Genius 12K Limited Edition Agustín Tapia (Exclusiva PadelPROShop)",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "51637382185265",
+      "title": "Pala Nox AT10 Luxury Genius 18K Alum Agustin Tapia Edicion Especial Buenos Aires",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "55014183665969",
+      "title": "Pala Nox Equation Advanced Series (Exclusiva PadelPROShop)",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "52965224841521",
+      "title": "Pala Nox ML10 Pro Cup Coorp Negro/Oro (Exclusiva PadelPROShop)",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelproshop",
+      "externalId": "51194594427185",
+      "title": "Pala Siux Fenix Pro 5 Black 2025 Leo Augsburger",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "110130-P",
+      "title": "ADIDAS ADIPOWER MULTIWEIGHT CTRL 3.3",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "125250-P",
+      "title": "ADIDAS ARROW HIT 2026 PRO-EDT",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "123435-P",
+      "title": "ADIDAS ARROW HIT HEXAGON",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "117956-P",
+      "title": "ADIDAS CROSS IT CARBON BLUE BY MAXI ARCE",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "32324-P",
+      "title": "ADIDAS MATCH LIGHT 3.2",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "123436-P",
+      "title": "ADIDAS METALBONE RESERVE ALE GALÁN 2026",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "110148-P",
+      "title": "ADIDAS METALBONE YOUTH 3.3 2024",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "154888-P",
+      "title": "BLACK CROWN PITON BLUE",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "119682-P",
+      "title": "BULLPADEL HACK 03 CMF X-SERIES",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "121804-P",
+      "title": "BULLPADEL HACK 04 PREMIER PADEL 26",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "123415-P",
+      "title": "BULLPADEL NEURON 02 EDGE TOUR FINAL 25",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "120524-P",
+      "title": "BULLPADEL VERTEX 04 LTD ED. JUAN TELLO ARGENTINA",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "114860-P",
+      "title": "BULLPADEL VERTEX 04 W TF 2024 MUJER",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "119545-P",
+      "title": "DROP SHOT QUANTUM",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "124182-P",
+      "title": "DROP SHOT RENEGADE LITE CONTROL 1.0",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "125152-P",
+      "title": "DUNLOP GALACTICA OS LITE",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "111896-P",
+      "title": "ENEBE RESPONSE 24K",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "111897-P",
+      "title": "ENEBE RESPONSE 3K",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "123903-P",
+      "title": "HEAD COELLO PRO SPECIAL PACKAGING 2026",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "117957-P",
+      "title": "LOK CARB-ON HYPE BY FRANCO DAL BIANCO",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "162212-P",
+      "title": "NOX AT10 GENIUS 18K ALUM BUENOS AIRES EDITION BY AGUSTÍN TAPIA",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "120489-P",
+      "title": "NOX ML10 PRO CUP LUXURY SERIES EX",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "162309-P",
+      "title": "NOX VENTUS HYBRID 12K XTREM BY EDU ALONSO",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "28173-P",
+      "title": "ROYAL PADEL 130 FACTOR",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "115239-P",
+      "title": "SIUX FENIX PRO 5 BLACK",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "163901-P",
+      "title": "SIUX FENIX PRO MAD SE",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "112645-P",
+      "title": "SIUX GEA",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "162972-P",
+      "title": "STARVIE RAPTOR +",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "164103-P",
+      "title": "VIBOR-A BLACK MAMBA PRO NEO",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "157138-P",
+      "title": "WILSON DEFY PRO V1 SE",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "157125-P",
+      "title": "WILSON DEFY V1 SE",
+      "decision": "review",
+      "reason": "sin ficha equivalente en catálogo"
+    }
+  ]
+}

@@ -74,6 +74,7 @@ El sistema que sustituye los precios de prueba está en `ingestion/`. Cada tiend
 npm run prices:dry-run                        # simula la ingestión y muestra el emparejamiento; no escribe nada
 npm run prices:ingest                         # ingestión real de todas las tiendas (o -- --store=padelproshop)
 npm run prices:pending                        # productos pendientes de revisión manual; solo lectura
+npm run prices:decisions -- --file=<fichero>  # ensaya un fichero de decisiones manuales; con --apply lo aplica
 npm run ingest:demo                           # flujo completo con datos ficticios, sin base de datos
 npm run db:purge-demo                         # qué datos demo hay en la base; solo borra con confirmación
 ```
