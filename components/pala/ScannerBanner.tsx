@@ -13,7 +13,12 @@ interface ScannerBannerProps {
   className?: string;
 }
 
-/** Llamada al escáner IA, la herramienta diferencial de PalaRadar. */
+/**
+ * Llamada al escáner IA, la herramienta diferencial de PalaRadar.
+ *
+ * NO se usa en ninguna página mientras el escáner no exista: enlaza a una función
+ * que hoy solo dice «en preparación». Se conserva para cuando esté construido.
+ */
 export function ScannerBanner({ variant = "full", example, className }: ScannerBannerProps) {
   if (variant === "compact") {
     return (

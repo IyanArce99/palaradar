@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ScanIcon, TabIcon } from "@/components/ui/icons";
+import { TabIcon } from "@/components/ui/icons";
 import { mobileTabs, type TabItem } from "@/config/navigation";
 import { cn } from "@/lib/cn";
 import { routes } from "@/lib/routes";
@@ -16,25 +16,22 @@ function isActive(tab: TabItem, pathname: string): boolean {
   return tab.match.some((prefix) => pathname.startsWith(prefix));
 }
 
-/** Barra inferior móvil con el botón flotante «Escanear». */
+/**
+ * Barra inferior móvil. No lleva ningún botón flotante encima: tapaba precios y
+ * enlaces del contenido.
+ */
 export function TabBar() {
   const pathname = usePathname();
 
   if (HIDDEN_ON.some((prefix) => pathname.startsWith(prefix))) return null;
+  // El resultado de una comparación lleva su propia barra, con el precio de cada pala.
+  if (pathname.startsWith(routes.compare) && pathname !== routes.compare) return null;
 
   return (
     <nav
       aria-label="Navegación móvil"
       className="sticky bottom-0 z-20 border-t border-line bg-white px-1 pt-2 pb-[calc(10px+env(safe-area-inset-bottom))] lg:hidden"
     >
-      <Link
-        href={routes.scan}
-        className="absolute -top-[66px] right-3.5 flex h-[52px] items-center gap-[9px] rounded-full bg-lime pr-5 pl-3.5 text-[15px] font-extrabold shadow-[0_8px_22px_rgb(21_23_26/0.22)]"
-      >
-        <ScanIcon />
-        Escanear
-      </Link>
-
       <ul className="mx-auto grid max-w-[520px] grid-cols-5">
         {mobileTabs.map((tab) => {
           const active = isActive(tab, pathname);

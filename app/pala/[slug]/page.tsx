@@ -4,6 +4,8 @@ import { AlertBox } from "@/components/ficha/AlertBox";
 import { Alternatives } from "@/components/ficha/Alternatives";
 import { AtAGlance } from "@/components/ficha/AtAGlance";
 import { AudienceFit } from "@/components/ficha/AudienceFit";
+import { CollectionLinks } from "@/components/catalog/CollectionLinks";
+import { collectionsForPala } from "@/lib/catalog/collections";
 import { CompareAction } from "@/components/ficha/CompareAction";
 import { EditorialSummary } from "@/components/ficha/EditorialSummary";
 import { Faq } from "@/components/ficha/Faq";
@@ -18,11 +20,22 @@ import { StoreList } from "@/components/ficha/StoreList";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
-import { getPalaBySlug, getPricedPalaSlugs, hasTestPrices, searchCatalog } from "@/data";
-import { DEFAULT_QUERY } from "@/lib/catalog/query";
+import { ModelSeasons } from "@/components/ficha/ModelSeasons";
+import {
+  alertsAvailable,
+  getPalaBySlug,
+  getPricedPalaSlugs,
+  getSimilarPalas,
+  hasTestPrices,
+  searchCatalog,
+} from "@/data";
+import { sameModelSeasons, similarityReason, similarityTarget } from "@/lib/similar";
+import { catalogHref, DEFAULT_QUERY, type CatalogQuery } from "@/lib/catalog/query";
 import { cn } from "@/lib/cn";
+import { isIndexablePala } from "@/lib/indexability";
+import { SHAPE_LABELS } from "@/lib/labels";
 import { palaAlt } from "@/lib/media";
-import { buildFaq, describePala, metaDescription, palaName } from "@/lib/pala-content";
+import { buildFaq, describePala, metaDescription, palaTitle } from "@/lib/pala-content";
 import { routes } from "@/lib/routes";
 import { faqJsonLd, pageMetadata, palaShareImage, productJsonLd } from "@/lib/seo";
 import type { Pala, PalaSummary } from "@/types/catalog";
@@ -35,10 +48,13 @@ const HIGHLIGHTS_ID = "opiniones-destacadas";
 const STORES_ID = "tiendas";
 const ALERT_ID = "alerta";
 const RELATED_COUNT = 4;
+/** Resultados de la búsqueda por modelo entre los que se buscan sus otras temporadas */
+const SEASONS_POOL = 24;
 
-// La ficha se recorre como quien decide una compra: qué es → características
-// → para quién → cómo se siente → precio → alternativas → especificaciones →
-// preguntas. Solo aparece cada bloque si tiene datos reales detrás.
+// La ficha se recorre como quien decide una compra: qué es → precio y tiendas →
+// características → cómo se siente → evolución del precio → otras temporadas y
+// parecidas → especificaciones → preguntas. Solo aparece cada bloque si tiene
+// datos reales detrás.
 //
 // En móvil es una sola columna y el orden lo fija `max-lg:order-*`; en
 // escritorio, el contenido va a la izquierda y el precio y la alerta, fijos a
@@ -62,20 +78,64 @@ export async function generateMetadata({ params }: PalaPageProps): Promise<Metad
   if (!pala) return {};
 
   return pageMetadata({
-    title: `${palaName(pala)} ${pala.year}: características, precio y tiendas`,
+    title: palaTitle(pala),
     description: metaDescription(pala),
     path: routes.pala(pala.slug),
+    // Las fichas pobres siguen publicadas, pero en noindex y fuera del sitemap (lib/indexability.ts).
+    index: isIndexablePala(pala),
     image: palaShareImage(pala),
   });
 }
 
-/** Otras palas de la misma marca, para quien no tiene alternativas elegidas a mano. */
-async function sameBrandPalas(pala: Pala): Promise<PalaSummary[]> {
-  const { items } = await searchCatalog(
-    { ...DEFAULT_QUERY, brands: [pala.brand.slug] },
-    { pageSize: RELATED_COUNT + 1 },
-  );
+/** Otras palas del catálogo que cumplen un filtro, sin la de la ficha. */
+async function otherPalas(pala: Pala, query: Partial<CatalogQuery>): Promise<PalaSummary[]> {
+  const { items } = await searchCatalog({ ...DEFAULT_QUERY, ...query }, { pageSize: RELATED_COUNT + 1 });
   return items.filter((item) => item.slug !== pala.slug).slice(0, RELATED_COUNT);
+}
+
+interface Related {
+  title: string;
+  lead: string;
+  items: { pala: PalaSummary; reason?: string }[];
+}
+
+/**
+ * Palas relacionadas de la ficha: las elegidas a mano si las hay; si no, las
+ * parecidas calculadas con datos declarados (lib/similar.ts), que siempre están
+ * a la venta; y, si no hay ninguna de su forma con precio, otras de la marca.
+ */
+async function relatedPalas(pala: Pala): Promise<Related> {
+  if (pala.alternatives.length > 0) {
+    return {
+      title: "¿Buscas algo parecido?",
+      lead: `Palas con características próximas a las de la ${pala.model}.`,
+      items: pala.alternatives.map(({ pala: other, reason }) => ({ pala: other, reason })),
+    };
+  }
+
+  const similar = await getSimilarPalas(similarityTarget(pala), RELATED_COUNT);
+  if (similar.length > 0) {
+    return {
+      title: `Palas parecidas a la ${pala.model}`,
+      lead: "Tienen su misma forma y, donde se indica, el mismo balance, estilo o nivel, según los datos declarados. Todas tienen precio hoy.",
+      items: similar.map(({ pala: other, shared }) => ({ pala: other, reason: similarityReason(shared) })),
+    };
+  }
+
+  return {
+    title: `Más palas de ${pala.brand.name}`,
+    lead: `Otros modelos de ${pala.brand.name} en el catálogo, para comparar con la ${pala.model}.`,
+    items: (await otherPalas(pala, { brands: [pala.brand.slug] })).map((other) => ({ pala: other })),
+  };
+}
+
+/** Otras temporadas del mismo modelo que están en el catálogo. */
+async function modelSeasons(pala: Pala): Promise<PalaSummary[]> {
+  const { items } = await searchCatalog(
+    { ...DEFAULT_QUERY, q: pala.model, brands: [pala.brand.slug] },
+    { pageSize: SEASONS_POOL },
+  );
+  return sameModelSeasons(pala, items);
 }
 
 export default async function PalaPage({ params }: PalaPageProps) {
@@ -89,19 +149,16 @@ export default async function PalaPage({ params }: PalaPageProps) {
   const currentPrice = price && price.freshness !== "stale" ? price.current : null;
   const faq = [...pala.faq, ...buildFaq(pala)];
   const hasReviews = pala.reviews.length > 0;
+  const [related, seasons] = await Promise.all([relatedPalas(pala), modelSeasons(pala)]);
 
-  const related =
-    pala.alternatives.length > 0
-      ? {
-          title: "¿Buscas algo parecido?",
-          lead: `Palas con características próximas a las de la ${pala.model}.`,
-          items: pala.alternatives.map(({ pala: other, reason }) => ({ pala: other, reason })),
-        }
-      : {
-          title: `Más palas de ${pala.brand.name}`,
-          lead: `Otros modelos de ${pala.brand.name} en el catálogo, para comparar con la ${pala.model}.`,
-          items: (await sameBrandPalas(pala)).map((other) => ({ pala: other })),
-        };
+  // Las alertas solo se ofrecen si funcionan de principio a fin (alerts/availability.ts).
+  const alertHref = alertsAvailable() ? `#${ALERT_ID}` : null;
+  // Sin precio y sin alertas, la salida de la ficha son palas de su forma que sí están a la venta.
+  const shape = SHAPE_LABELS[pala.shape].toLowerCase();
+  const onSale = {
+    label: `Ver palas de forma ${shape} a la venta`,
+    href: catalogHref({ shapes: [pala.shape], sort: "precio" }),
+  };
 
   return (
     <article>
@@ -128,7 +185,7 @@ export default async function PalaPage({ params }: PalaPageProps) {
             sizes="(min-width: 1024px) 600px, 100vw"
             priority
             placeholderLabel="foto pala · fondo neutro, recortada"
-            className="h-[340px] rounded-3xl lg:h-[600px] lg:rounded-[28px]"
+            className="h-[320px] rounded-3xl lg:h-[520px] lg:rounded-[28px]"
           />
           {/* Miniaturas (escritorio) e indicador (móvil): solo si hay más de una imagen. */}
           {pala.images.length > 1 && (
@@ -161,7 +218,8 @@ export default async function PalaPage({ params }: PalaPageProps) {
             pala={pala}
             reviewsHref={`#${REVIEWS_ID}`}
             storesHref={`#${STORES_ID}`}
-            alertHref={`#${ALERT_ID}`}
+            alertHref={alertHref}
+            onSale={onSale}
           />
           {/* Con un resumen editorial revisado se enseña ese; si no, la descripción con sus datos. */}
           {pala.editorial.status === "reviewed" ? (
@@ -179,15 +237,16 @@ export default async function PalaPage({ params }: PalaPageProps) {
 
       <div className="mx-auto flex max-w-[1280px] flex-col pb-8 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-14 lg:px-12 lg:pt-[72px] lg:pb-20">
         <div className="contents lg:flex lg:flex-col lg:gap-16">
-          <AtAGlance pala={pala} className={cn(BLOCK, "max-lg:order-1")} />
+          <AtAGlance pala={pala} className={cn(BLOCK, "max-lg:order-3")} />
 
           <div className="contents lg:grid lg:grid-cols-2 lg:items-start lg:gap-10 lg:empty:hidden">
-            {/* Si solo hay uno de los dos, ocupa todo el ancho. */}
+            {/* «¿Para quién es?» (paso 4 del recorrido del diseño). Sin datos no aparece; si
+                solo hay uno de los dos bloques, ocupa todo el ancho. */}
             <AudienceFit
               editorial={pala.editorial}
-              className={cn(BLOCK, "max-lg:order-2 lg:only:col-span-2")}
+              className={cn(BLOCK, "max-lg:order-4 lg:only:col-span-2")}
             />
-            <PlayFeel pala={pala} className={cn(BLOCK, "max-lg:order-3 lg:only:col-span-2")} />
+            <PlayFeel pala={pala} className={cn(BLOCK, "max-lg:order-4 lg:only:col-span-2")} />
           </div>
 
           {price && (
@@ -197,7 +256,8 @@ export default async function PalaPage({ params }: PalaPageProps) {
                 history={pala.priceHistory}
                 className={cn(BLOCK, "max-lg:order-5")}
               />
-              <StoreList price={price} id={STORES_ID} className={cn(BLOCK_WIDE, "max-lg:order-6")} />
+              {/* En móvil las tiendas van justo debajo del precio: es lo que busca quien quiere comprar. */}
+              <StoreList price={price} id={STORES_ID} className={cn(BLOCK_WIDE, "max-lg:order-2")} />
             </>
           )}
 
@@ -208,6 +268,7 @@ export default async function PalaPage({ params }: PalaPageProps) {
             </div>
           )}
 
+          <ModelSeasons pala={pala} seasons={seasons} className={cn(BLOCK, "max-lg:order-9")} />
           <Alternatives pala={pala} {...related} className={cn(BLOCK, "max-lg:order-9")} />
           <SpecsTable pala={pala} className={cn(BLOCK, "max-lg:order-10")} />
           {faq.length > 0 && (
@@ -215,16 +276,37 @@ export default async function PalaPage({ params }: PalaPageProps) {
               <Faq items={faq} />
             </div>
           )}
+          {/* Las colecciones en las que entra esta pala: enlaces a listados de palas del mismo tipo. */}
+          <CollectionLinks
+            id="mas-palas-como-esta"
+            title="Más palas como esta"
+            items={collectionsForPala({
+              shape: pala.shape,
+              playStyle: pala.playStyle,
+              levels: pala.levels,
+              year: pala.year,
+              price: currentPrice,
+            })}
+            className={cn(BLOCK, "max-lg:order-12")}
+          />
         </div>
 
         {/* Precio y alerta: fijos a la derecha en escritorio; en móvil, cada uno en su sitio del recorrido. */}
         <aside className="contents lg:sticky lg:top-5 lg:flex lg:flex-col lg:gap-3.5">
-          <div className={cn(BLOCK_WIDE, "max-lg:order-4")}>
-            <PriceCard price={price} storesHref={`#${STORES_ID}`} alertHref={`#${ALERT_ID}`} />
+          <div className={cn(BLOCK_WIDE, "max-lg:order-1")}>
+            <PriceCard
+              price={price}
+              msrp={pala.msrp}
+              storesHref={`#${STORES_ID}`}
+              alertHref={alertHref}
+              onSale={onSale}
+            />
           </div>
-          <div className={cn(BLOCK_WIDE, "max-lg:order-7")}>
-            <AlertBox id={ALERT_ID} slug={pala.slug} currentPrice={currentPrice} />
-          </div>
+          {alertHref && (
+            <div className={cn(BLOCK_WIDE, "max-lg:order-7")}>
+              <AlertBox id={ALERT_ID} slug={pala.slug} currentPrice={currentPrice} />
+            </div>
+          )}
         </aside>
       </div>
 

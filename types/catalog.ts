@@ -114,6 +114,9 @@ export interface PalaSuggestion {
   model: string;
   year: number;
   image: string | null;
+  shape: PalaShape;
+  /** Mejor precio vigente; null si ahora no tiene */
+  price: number | null;
 }
 
 export interface Alternative {

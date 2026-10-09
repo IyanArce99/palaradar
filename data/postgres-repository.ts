@@ -3,8 +3,16 @@
 // `racket_catalog`, nunca trayendo el catálogo para filtrarlo en memoria.
 import { pricingConfig } from "@/config/pricing";
 import { CATALOG_PAGE_SIZE, DEFAULT_QUERY, type CatalogQuery, type SortId } from "@/lib/catalog/query";
+import { assessIndexability } from "@/lib/indexability";
 import { buildPriceHistory } from "@/lib/pricing";
-import { matchCriteria, SIDE_BALANCES, TOUCH_MATCHES } from "@/lib/recommender";
+import {
+  affinity,
+  matchCriteria,
+  rankRecommendations,
+  SIDE_BALANCES,
+  TOUCH_MATCHES,
+} from "@/lib/recommender";
+import { sharedTraits } from "@/lib/similar";
 import type {
   BrandRow,
   RacketCatalogRow,
@@ -15,13 +23,23 @@ import type {
 } from "@/types/db";
 import { getSql, type Sql } from "./db/client";
 import { activeStores } from "./db/sources";
-import { toBrand, toMonthlyDrop, toPala, toPalaSummary, toStoreOffer } from "./mappers";
+import {
+  toBrand,
+  toIndexabilitySource,
+  toMonthlyDrop,
+  toPala,
+  toPalaSummary,
+  toStoreOffer,
+  type IndexabilityRow,
+} from "./mappers";
 import type { CatalogRepository } from "./repository";
 
 const BIG_DISCOUNT_PERCENT = 20;
 const PRICE_CEILING_STEP = 50;
 const HOUR_MS = 3_600_000;
 const MAX_REVIEWS = 50;
+/** Candidatas del recomendador que se traen para ordenarlas por afinidad */
+const RECOMMENDATION_POOL = 60;
 /** Fuente cuyas valoraciones se enseñan en la ficha, siempre con su nombre */
 const RATINGS_SOURCE = "padelzoom";
 
@@ -92,11 +110,14 @@ function whereClause(sql: Sql, query: CatalogQuery): Fragment {
 
 /**
  * Orden por defecto, con datos que se pueden comprobar: primero las palas que
- * más tiendas tienen a la venta ahora mismo y, a igualdad, las más recientes.
- * No es popularidad: no hay visitas, ventas ni opiniones detrás.
+ * más tiendas tienen a la venta ahora mismo; a igualdad, las que tienen foto
+ * real y, después, las más recientes. No es popularidad: no hay visitas, ventas
+ * ni opiniones detrás. El desempate final es un orden fijo sin significado (el
+ * hash del slug) para que las empatadas no salgan agrupadas por marca.
  */
 function availabilityOrder(sql: Sql): Fragment {
-  return sql`case when ${hasCurrentPrice(sql)} then store_count end desc nulls last, year desc, slug`;
+  return sql`case when ${hasCurrentPrice(sql)} then store_count end desc nulls last,
+    (photo_path is not null) desc, year desc, md5(slug) collate "C", slug`;
 }
 
 /** ORDER BY de cada criterio; las palas sin precio actual van al final. */
@@ -269,6 +290,17 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
       );
     },
 
+    async getPalaSummaries(slugs) {
+      if (slugs.length === 0) return [];
+      const rows = await sql<RacketCatalogRow[]>`
+        select c.* from racket_catalog c join rackets r on r.id = c.id
+        where r.is_available and c.slug in ${sql(slugs)}
+        order by c.slug`;
+
+      const at = now();
+      return rows.map((row) => toPalaSummary(row, at));
+    },
+
     async getPriceHistory(slug) {
       const [racket] = await sql<{ id: string }[]>`select id from rackets where slug = ${slug}`;
       if (!racket) return null;
@@ -296,6 +328,20 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
       return rows.map((row) => row.slug);
     },
 
+    async getIndexablePalas() {
+      // Una sola consulta con lo que mira el criterio; la decisión es la misma función que usa la ficha.
+      const rows = await sql<IndexabilityRow[]>`
+        select c.*, r.weight_min, r.technical_specs, r.hardness
+        from racket_catalog c join rackets r on r.id = c.id
+        where r.is_available
+        order by c.slug`;
+
+      const at = now();
+      return rows
+        .filter((row) => assessIndexability(toIndexabilitySource(row, at)).indexable)
+        .map((row) => ({ slug: row.slug, brandSlug: row.brand_slug }));
+    },
+
     async getPricedPalaSlugs() {
       const rows = await sql<{ slug: string }[]>`
         select slug from racket_catalog where best_price is not null order by slug`;
@@ -321,6 +367,51 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
         join rackets b on b.id = x.alternative_id
         where a.is_available and b.is_available`;
       return rows.map((row) => [row.a, row.b]);
+    },
+
+    async getTopRatedPalas(filters, limit) {
+      const where = whereClause(sql, { ...DEFAULT_QUERY, ...filters });
+      const rows = await sql<(RacketCatalogRow & { score: number })[]>`
+        select c.*, f.score
+        from (
+          select * from racket_catalog
+          where ${where} and best_price is not null and ${hasCurrentPrice(sql)} and photo_path is not null
+        ) c
+        join lateral (
+          select max(value::numeric) as score from racket_facts
+          where racket_id = c.id and kind = 'rating' and attribute = 'score_total'
+            and source = ${RATINGS_SOURCE} and value ~ '^[0-9]+([.][0-9]+)?$'
+        ) f on f.score is not null
+        order by f.score desc, c.store_count desc nulls last, c.year desc, c.slug
+        limit ${limit}`;
+
+      const at = now();
+      return rows.map((row) => ({ pala: toPalaSummary(row, at), score: Number(row.score) }));
+    },
+
+    async getSimilarPalas(target, limit) {
+      const no = sql`false`;
+      const sameBalance = target.balance ? sql`coalesce(c.balance::text = ${target.balance}, false)` : no;
+      const sameStyle = target.playStyle ? sql`coalesce(c.play_style::text = ${target.playStyle}, false)` : no;
+      const sameLevel =
+        target.levels.length > 0 ? sql`(c.levels && string_to_array(${target.levels.join(",")}, ','))` : no;
+
+      // Solo palas a la venta: una parecida sin precio no ayuda a decidir.
+      const rows = await sql<RacketCatalogRow[]>`
+        select c.* from racket_catalog c join rackets r on r.id = c.id
+        where c.id <> ${target.id} and r.is_available and c.shape::text = ${target.shape}
+          and c.best_price is not null and c.price_checked_at > ${staleBefore()}
+        order by (${sameBalance})::int + (${sameStyle})::int + (${sameLevel})::int desc,
+          (c.photo_path is not null) desc,
+          ${target.price === null ? sql`0` : sql`abs(c.best_price - ${target.price})`} asc,
+          c.store_count desc nulls last, c.year desc, c.slug
+        limit ${limit}`;
+
+      const at = now();
+      return rows.map((row) => ({
+        pala: toPalaSummary(row, at),
+        shared: sharedTraits(target, { balance: row.balance, levels: row.levels, playStyle: row.play_style }),
+      }));
     },
 
     async recommendPalas(prefs, limit) {
@@ -352,12 +443,13 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
           + coalesce(${prefs.side ? sql`balance::text in ${sql(SIDE_BALANCES[prefs.side])}` : no}, false)::int
           + (${touchMatch})::int desc,
           ${availabilityOrder(sql)}
-        limit ${limit}`;
+        limit ${Math.max(limit, RECOMMENDATION_POOL)}`;
 
+      // La afinidad afina el orden entre las que más respuestas cumplen (lib/recommender.ts).
       const at = now();
-      return rows.flatMap((row) => {
+      const candidates = rows.flatMap((row) => {
         const pala = toPalaSummary(row, at);
-        const matched = matchCriteria(prefs, {
+        const traits = {
           levels: row.levels,
           playStyle: row.play_style,
           shape: row.shape,
@@ -365,9 +457,13 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
           touch: row.touch,
           hardness: row.hardness,
           price: pala.price,
-        });
-        return matched ? [{ pala, matched }] : [];
+        };
+        const matched = matchCriteria(prefs, traits);
+        return matched ? [{ pala, matched, affinity: affinity(prefs, traits), price: pala.price }] : [];
       });
+      return rankRecommendations(candidates)
+        .slice(0, limit)
+        .map(({ pala, matched, affinity: score }) => ({ pala, matched, affinity: score }));
     },
   };
 }

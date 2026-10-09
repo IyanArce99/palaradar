@@ -1,22 +1,26 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { CollectionLinks } from "@/components/catalog/CollectionLinks";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { PageHeading } from "@/components/ui/PageHeading";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
-import { getGuides } from "@/data";
+import { getGuideCovers } from "@/data/guides";
+import { readingMinutes } from "@/lib/guides";
 import { routes } from "@/lib/routes";
 import { pageMetadata } from "@/lib/seo";
+
+// Las fotos salen de las palas que cada guía selecciona hoy.
+export const revalidate = 3600;
 
 export const metadata: Metadata = pageMetadata({
   title: "Guías para elegir pala de pádel",
   description:
-    "Guías para elegir pala de pádel según tu nivel, tu forma de jugar y tu presupuesto.",
+    "Guías para elegir pala de pádel según tu nivel, tu forma de jugar y tu presupuesto: cómo elegir, formas, palas para empezar y las mejor puntuadas a la venta.",
   path: routes.guides,
-  // Se indexará cuando las guías tengan contenido propio.
-  index: false,
 });
 
 export default async function GuidesPage() {
-  const guides = await getGuides();
+  const covers = await getGuideCovers();
 
   return (
     <>
@@ -29,25 +33,35 @@ export default async function GuidesPage() {
       <div className="mx-auto max-w-[1280px] pb-10 lg:pb-[72px]">
         <PageHeading
           title="Guías para elegir bien"
-          lead="No existe la mejor pala para todo el mundo, pero sí la mejor para cómo juegas tú."
+          lead="No existe la mejor pala para todo el mundo, pero sí la mejor para cómo juegas tú. Estas guías explican en qué fijarse y enseñan, con los precios de hoy, las palas mejor puntuadas de cada tipo."
         />
-        <ul className="grid gap-6 px-5 pt-6 lg:grid-cols-3 lg:px-12 lg:pt-8">
-          {guides.map((guide) => (
+        <ul className="grid gap-x-6 gap-y-8 px-5 pt-6 lg:grid-cols-3 lg:gap-y-12 lg:px-12 lg:pt-10">
+          {covers.map(({ guide, image }) => (
             <li key={guide.slug}>
-              <PalaPhoto
-                src={guide.image}
-                alt=""
-                fit="cover"
-                sizes="(min-width: 1024px) 33vw, 100vw"
-                placeholderLabel="foto guía"
-                className="h-[180px] rounded-[20px] lg:h-[220px]"
-              />
-              <p className="mt-3.5 text-[13px] font-bold text-muted">En preparación</p>
-              <h2 className="mt-1 text-xl leading-[1.2] font-black">{guide.title}</h2>
-              <p className="mt-1 text-[15px] text-muted">{guide.subtitle}</p>
+              <article className="group relative">
+                <PalaPhoto
+                  src={image}
+                  alt=""
+                  sizes="(min-width: 1024px) 33vw, 100vw"
+                  className="h-[180px] rounded-[20px] transition-[filter] group-hover:brightness-[0.97] lg:h-[220px]"
+                />
+                <p className="mt-3.5 text-[13px] text-muted">{readingMinutes(guide)} min de lectura</p>
+                <h2 className="mt-1 text-xl leading-[1.2] font-black">
+                  <Link href={routes.guide(guide.slug)} className="after:absolute after:inset-0 group-hover:underline">
+                    {guide.title}
+                  </Link>
+                </h2>
+                <p className="mt-1 text-[15px] leading-[1.45] text-muted">{guide.subtitle}</p>
+              </article>
             </li>
           ))}
         </ul>
+
+        <CollectionLinks
+          id="palas-por-tipo"
+          title="Palas por tipo"
+          className="mx-5 mt-12 border-t border-line pt-10 lg:mx-12 lg:mt-[72px]"
+        />
       </div>
     </>
   );

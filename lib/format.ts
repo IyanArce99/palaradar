@@ -74,6 +74,12 @@ export function formatMonthYear(iso: string): string {
   return `${MONTHS[month]} de ${year}`;
 }
 
+/** "2025-10-16" → "16 oct" */
+export function formatDayMonthShort(iso: string): string {
+  const { month, day } = parseIsoDate(iso);
+  return `${day} ${MONTHS[month].slice(0, 3)}`;
+}
+
 /** "2025-10-16" → "oct 2025" */
 export function formatMonthYearShort(iso: string): string {
   const { year, month } = parseIsoDate(iso);

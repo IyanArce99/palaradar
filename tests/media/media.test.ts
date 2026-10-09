@@ -190,15 +190,15 @@ describe("controles de calidad de una imagen", () => {
     assert.match(result.note ?? "", /800 px preferidos/);
   });
 
-  it("publica desde 500 px de lado corto", async () => {
+  it("publica desde 375 px de lado corto", async () => {
     assert.equal(classifyImage(await inspectImage(await picture({ size: [500, 500] }))).status, "verified");
-    assert.equal(classifyImage(await inspectImage(await picture({ size: [500, 620] }))).status, "verified");
+    assert.equal(classifyImage(await inspectImage(await picture({ size: [375, 438] }))).status, "verified");
   });
 
   it("deja pendiente la baja resolución, sin descartarla", async () => {
-    const result = classifyImage(await inspectImage(await picture({ size: [450, 450] })));
+    const result = classifyImage(await inspectImage(await picture({ size: [360, 360] })));
     assert.equal(result.status, "pending");
-    assert.match(result.note ?? "", /Baja resolución \(450×450 px\)/);
+    assert.match(result.note ?? "", /Baja resolución \(360×360 px\)/);
   });
 
   it("admite AVIF como cualquier otro formato", async () => {

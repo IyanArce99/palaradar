@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ACCESS_LINK_DAYS } from "@/alerts/access";
 import { CLOSED_RETENTION_DAYS, UNCONFIRMED_RETENTION_DAYS } from "@/alerts/service";
 import { siteConfig } from "@/config/site";
 import { routes } from "@/lib/routes";
@@ -56,6 +57,18 @@ export default function PrivacyPage() {
           Solo para esa alerta: un correo para que confirmes que la dirección es tuya y otro cuando
           la pala alcanza el precio que pediste o vuelve a estar a la venta. No enviamos boletines
           ni publicidad, y no usamos tu correo para nada más.
+        </p>
+        <p>
+          Si guardas los resultados del test «Pala ideal», te enviamos un correo con las palas
+          recomendadas y creamos una alerta para cada una, que avisa cuando esa pala baja de precio.
+          Esas alertas funcionan igual que las demás: no se activan hasta que las confirmas y cada
+          una se puede quitar por separado.
+        </p>
+        <p>
+          Si pides ver tus alertas en «Mis alertas», te enviamos un enlace de acceso a ese mismo
+          correo. Solo lo enviamos si el correo tiene alguna alerta. El enlace caduca a los{" "}
+          {ACCESS_LINK_DAYS} días y quien lo tenga puede ver y quitar tus alertas, así que no lo
+          reenvíes.
         </p>
         <p>
           La huella de la dirección IP solo sirve para limitar cuántas alertas se pueden crear en

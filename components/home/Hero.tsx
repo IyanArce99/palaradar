@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { SearchForm } from "@/components/layout/SearchForm";
 import { ButtonLink } from "@/components/ui/Button";
-import { ScanIcon } from "@/components/ui/icons";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
 import { RecentPriceNote } from "@/components/ui/RecentPriceNote";
 import { siteConfig } from "@/config/site";
 import { formatEuro } from "@/lib/format";
+import { isProductPhoto, palaAlt } from "@/lib/media";
 import { routes } from "@/lib/routes";
 import type { Pala } from "@/types/catalog";
 import type { PriceSummary } from "@/types/pricing";
@@ -17,8 +17,12 @@ interface HeroProps {
   featured: { pala: Pala; price: PriceSummary } | null;
 }
 
-/** Portada: el buscador lidera y «Escanear mi pala» es la función diferencial. */
+/** Portada: el buscador lidera; debajo, el recomendador y el comparador. */
 export function Hero({ featured }: HeroProps) {
+  // Sin foto real de la destacada se mantiene la ilustración.
+  const main = featured?.pala.images[0];
+  const photo = featured && main && isProductPhoto(main) ? main : null;
+
   return (
     <section className="mx-auto max-w-[1280px] px-5 pt-5 lg:grid lg:grid-cols-2 lg:items-center lg:gap-14 lg:px-12 lg:pt-[72px] lg:pb-16">
       <div>
@@ -29,27 +33,39 @@ export function Hero({ featured }: HeroProps) {
           Compara cientos de palas, consulta sus características y encuentra el mejor precio.
         </p>
         <SearchForm variant="hero" className="mt-[22px] max-w-[580px] lg:mt-8" />
-        <div className="mt-2.5 flex flex-col gap-3.5 lg:mt-4 lg:flex-row lg:items-center">
-          <ButtonLink href={routes.scan} size="lg" pill>
-            <ScanIcon />
-            Escanear mi pala
+        <div className="mt-2.5 flex flex-col gap-2.5 lg:mt-4 lg:flex-row lg:items-center lg:gap-3.5">
+          <ButtonLink href={routes.idealPala} size="lg" pill>
+            Encontrar mi pala ideal
           </ButtonLink>
-          <span className="hidden text-sm text-muted lg:inline">
-            ¿No sabes cuál es? Hazle una foto.
-          </span>
+          <ButtonLink href={routes.compare} size="lg" variant="outline" pill>
+            Comparar dos palas
+          </ButtonLink>
         </div>
       </div>
 
       <div className="relative mt-7 lg:mt-0">
-        <PalaPhoto
-          src={HERO_IMAGE}
-          alt=""
-          sizes="(min-width: 1024px) 50vw, 100vw"
-          // En móvil la tarjeta de precio tapa la parte baja: se encuadra arriba.
-          imageClassName="object-cover object-top pt-3 lg:object-contain lg:object-center lg:p-[4%]"
-          placeholderLabel="foto · palas sobre fondo neutro"
-          className="h-[250px] rounded-[22px] lg:h-[520px] lg:rounded-[28px]"
-        />
+        {photo && featured ? (
+          // Foto real de la pala destacada: es la misma que anuncia la tarjeta de precio.
+          <PalaPhoto
+            src={photo}
+            alt={palaAlt(featured.pala)}
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            priority
+            // En móvil la tarjeta de precio tapa la parte baja: se deja aire abajo.
+            imageClassName="object-contain px-[12%] pt-[5%] pb-[30%] mix-blend-multiply lg:p-[9%] lg:pb-[20%]"
+            className="h-[300px] rounded-[22px] lg:h-[520px] lg:rounded-[28px]"
+          />
+        ) : (
+          <PalaPhoto
+            src={HERO_IMAGE}
+            alt=""
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            // En móvil la tarjeta de precio tapa la parte baja: se encuadra arriba.
+            imageClassName="object-cover object-top pt-3 lg:object-contain lg:object-center lg:p-[4%]"
+            placeholderLabel="foto · palas sobre fondo neutro"
+            className="h-[250px] rounded-[22px] lg:h-[520px] lg:rounded-[28px]"
+          />
+        )}
         {featured && (
           <Link
             href={routes.pala(featured.pala.slug)}

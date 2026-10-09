@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { searchCatalog } from "@/data";
 import { DEFAULT_QUERY, PARAMS } from "@/lib/catalog/query";
+import { toPalaSuggestion } from "@/lib/compare";
 import type { PalaSuggestion } from "@/types/catalog";
 
 const MIN_QUERY_LENGTH = 2;
@@ -16,13 +17,5 @@ export async function GET(request: NextRequest) {
   if (q.length < MIN_QUERY_LENGTH) return NextResponse.json<PalaSuggestion[]>([]);
 
   const { items } = await searchCatalog({ ...DEFAULT_QUERY, q }, { pageSize: SUGGESTION_COUNT });
-  const suggestions: PalaSuggestion[] = items.map((pala) => ({
-    slug: pala.slug,
-    brand: pala.brand.name,
-    model: pala.model,
-    year: pala.year,
-    image: pala.image,
-  }));
-
-  return NextResponse.json(suggestions, { headers: { "X-Robots-Tag": "noindex" } });
+  return NextResponse.json(items.map(toPalaSuggestion), { headers: { "X-Robots-Tag": "noindex" } });
 }

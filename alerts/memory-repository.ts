@@ -38,6 +38,12 @@ export function createMemoryAlertRepository(rackets: AlertRacket[], prices: Map<
     async findByToken(token) {
       return alerts.find((alert) => alert.token === token) ?? null;
     },
+    async listByEmail(email) {
+      const order: AlertStatus[] = ["notified", "active", "pending"];
+      return alerts
+        .filter((alert) => alert.email === email && alert.status !== "cancelled")
+        .sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status) || b.createdAt.localeCompare(a.createdAt));
+    },
     async countRecent({ email, ipHash }, since) {
       return alerts.filter(
         (alert) =>

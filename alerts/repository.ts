@@ -42,6 +42,8 @@ export interface AlertRepository {
   /** Alerta abierta (pendiente o activa) de ese correo para esa pala. */
   findOpen(racketId: string, email: string): Promise<Alert | null>;
   findByToken(token: string): Promise<Alert | null>;
+  /** Alertas de un correo que no se han dado de baja, para «Mis alertas»: avisadas, activas y pendientes. */
+  listByEmail(email: string): Promise<Alert[]>;
   /** Alertas creadas desde `since` por ese correo o desde esa huella de IP. */
   countRecent(by: { email?: string; ipHash?: string }, since: string): Promise<number>;
   create(alert: NewAlert): Promise<Alert>;
@@ -117,6 +119,13 @@ export function createPostgresAlertRepository(sql: Sql): AlertRepository {
     async findByToken(token) {
       const [row] = await sql<AlertRow[]>`${select} where a.token = ${token}`;
       return row ? toAlert(row) : null;
+    },
+
+    async listByEmail(email) {
+      const rows = await sql<AlertRow[]>`
+        ${select} where a.email = ${email} and a.status <> 'cancelled'
+        order by case a.status when 'notified' then 0 when 'active' then 1 else 2 end, a.created_at desc`;
+      return rows.map(toAlert);
     },
 
     async countRecent({ email, ipHash }, since) {

@@ -12,15 +12,30 @@ interface PalaGridProps {
   variant?: "catalog" | "offer";
   /** Columnas en escritorio; en móvil siempre son dos */
   columns?: keyof typeof COLUMNS;
+  /** Fotos más bajas, para cuadrículas de cuatro columnas junto a los filtros */
+  dense?: boolean;
   className?: string;
 }
 
-export function PalaGrid({ palas, variant = "catalog", columns = 3, className }: PalaGridProps) {
+export function PalaGrid({ palas, variant = "catalog", columns = 3, dense = false, className }: PalaGridProps) {
   return (
-    <ul className={cn("grid grid-cols-2 gap-x-3 gap-y-6 lg:gap-x-6 lg:gap-y-10", COLUMNS[columns], className)}>
+    <ul
+      className={cn(
+        "grid grid-cols-2 gap-x-3 gap-y-6",
+        dense ? "lg:gap-x-5 lg:gap-y-9" : "lg:gap-x-6 lg:gap-y-10",
+        COLUMNS[columns],
+        className,
+      )}
+    >
       {palas.map((pala) => (
         <li key={pala.id}>
-          <PalaCard pala={pala} variant={variant} />
+          {/* En el catálogo cada tarjeta se puede añadir a la comparación. */}
+          <PalaCard
+            pala={pala}
+            variant={variant}
+            compare={variant === "catalog"}
+            photoClassName={dense ? "h-[170px] lg:h-[210px]" : undefined}
+          />
         </li>
       ))}
     </ul>

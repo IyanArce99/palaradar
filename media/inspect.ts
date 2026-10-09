@@ -7,8 +7,12 @@
 import sharp from "sharp";
 import type { VerificationStatus } from "@/lib/media";
 
-/** Lado corto mínimo para publicar una imagen, en listados y en la ficha */
-export const MIN_SHORT_SIDE = 500;
+/**
+ * Lado corto mínimo para publicar una imagen, en listados y en la ficha. Se bajó
+ * de 500 a 375 px: una foto real algo blanda enseña la pala mejor que una
+ * ilustración genérica, y la mayoría de las que quedaban fuera medían 375×438.
+ */
+export const MIN_SHORT_SIDE = 375;
 /** Lado corto preferido para la imagen principal */
 export const PREFERRED_SHORT_SIDE = 800;
 /** Por debajo de esto no sirve ni para una tarjeta */

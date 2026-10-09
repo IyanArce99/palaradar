@@ -8,8 +8,10 @@ interface AlertTokenPageProps {
   /** Texto bajo el título */
   children: React.ReactNode;
   alert: Alert | null;
+  /** Otras alertas del mismo enlace (resultados guardados del quiz): se listan con la primera */
+  others?: Alert[];
   /** Botón que ejecuta la acción (confirmar o dar de baja); sin él, solo se informa */
-  action?: { label: string; run: (form: FormData) => Promise<void>; token: string };
+  action?: { label: string; run: (form: FormData) => Promise<void>; token: string | string[] };
 }
 
 /** Qué vigila una alerta, en una frase. */
@@ -21,7 +23,9 @@ export function alertWish(alert: Alert): string {
 }
 
 /** Página a la que llevan los enlaces de los correos de alerta: confirmar o darse de baja. */
-export function AlertTokenPage({ title, children, alert, action }: AlertTokenPageProps) {
+export function AlertTokenPage({ title, children, alert, others = [], action }: AlertTokenPageProps) {
+  const tokens = action ? [action.token].flat() : [];
+
   return (
     <div className="mx-auto max-w-[640px] px-5 py-12 lg:py-20">
       <h1 className="text-[32px] leading-none font-black tracking-[-0.035em] text-balance lg:text-[44px]">
@@ -30,15 +34,19 @@ export function AlertTokenPage({ title, children, alert, action }: AlertTokenPag
       <div className="mt-3 text-base leading-[1.6] text-pretty text-ink">{children}</div>
 
       {alert && (
-        <p className="mt-5 rounded-[18px] bg-mist p-[18px] text-[15px] leading-normal text-ink">
-          {alertWish(alert)}
-        </p>
+        <ul className="mt-5 flex flex-col gap-1.5 rounded-[18px] bg-mist p-[18px] text-[15px] leading-normal text-ink">
+          {[alert, ...others].map((item) => (
+            <li key={item.id}>{alertWish(item)}</li>
+          ))}
+        </ul>
       )}
 
       <div className="mt-6 flex flex-wrap gap-2.5">
         {action && (
           <form action={action.run}>
-            <input type="hidden" name="token" value={action.token} />
+            {tokens.map((token) => (
+              <input key={token} type="hidden" name="token" value={token} />
+            ))}
             <button type="submit" className={buttonClass({ size: "lg" })}>
               {action.label}
             </button>

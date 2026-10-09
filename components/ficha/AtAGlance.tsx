@@ -19,15 +19,16 @@ export function AtAGlance({ pala, className }: AtAGlanceProps) {
   return (
     <section aria-labelledby="vistazo" className={className}>
       <SectionTitle id="vistazo">De un vistazo</SectionTitle>
-      <dl className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-3.5">
+      {/* En móvil, dos columnas de dato y valor: la explicación de cada atributo solo cabe en escritorio. */}
+      <dl className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-3 lg:gap-3.5">
         {items.map((item) => (
-          <div key={item.label} className="rounded-[18px] border border-line p-4 lg:p-[18px]">
+          <div key={item.label} className="rounded-2xl border border-line p-3 lg:rounded-[18px] lg:p-[18px]">
             <dt className="font-mono text-[11px] leading-none font-bold tracking-[0.08em] text-muted uppercase">
               {item.label}
             </dt>
-            <dd className="mt-2">
-              <span className="block text-lg leading-[1.2] font-extrabold">{item.value}</span>
-              <span className="mt-1.5 block text-[13px] leading-[1.45] text-pretty text-muted">
+            <dd className="mt-1.5 lg:mt-2">
+              <span className="block text-base leading-[1.2] font-extrabold lg:text-lg">{item.value}</span>
+              <span className="mt-1.5 hidden text-[13px] leading-[1.45] text-pretty text-muted lg:block">
                 {item.note}
               </span>
             </dd>

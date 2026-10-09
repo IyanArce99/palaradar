@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ScannerBanner } from "@/components/pala/ScannerBanner";
 import { ButtonLink } from "@/components/ui/Button";
 import { catalogHref } from "@/lib/catalog/query";
 import { HISTORY_WINDOW_DAYS } from "@/lib/pricing";
@@ -66,8 +65,6 @@ export function NoResults({ searchTerm, suggestions, awaitingHistory = false }: 
           </ul>
         </>
       )}
-
-      <ScannerBanner variant="compact" className="mt-7" />
     </div>
   );
 }

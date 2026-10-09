@@ -6,6 +6,8 @@ export interface NavItem {
   href: string;
 }
 
+// Solo secciones que existen de verdad. El escáner (/escanear/) conserva su
+// ruta, pero no se enlaza desde ningún sitio hasta que funcione.
 export const mainNav: NavItem[] = [
   { label: "Palas", href: routes.catalog },
   { label: "Ofertas", href: routes.deals },
@@ -22,8 +24,7 @@ export interface TabItem extends NavItem {
   match: string[];
 }
 
-// Cinco pestañas caben en un móvil estrecho. Las guías, que aún no tienen
-// contenido, se alcanzan desde el pie.
+// Cinco pestañas caben en un móvil estrecho.
 export const mobileTabs: TabItem[] = [
   { label: "Inicio", href: routes.home, icon: "home", match: [] },
   { label: "Catálogo", href: routes.catalog, icon: "rackets", match: ["/palas-padel", "/pala/"] },

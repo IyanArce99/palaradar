@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { buttonClass } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
-import { formatEuro, formatTimeAgo, pluralize } from "@/lib/format";
+import { formatEuro, formatEuroCompact, formatPercent, formatTimeAgo, pluralize } from "@/lib/format";
+import { msrpSaving } from "@/lib/pricing";
 import type { PriceSummary, PriceVerdict } from "@/types/pricing";
 
 const STATUS_DOT: Record<PriceVerdict["status"], string> = {
@@ -22,16 +24,22 @@ function PriceRow({ label, value }: { label: string; value: number }) {
 
 interface PriceCardProps {
   price: PriceSummary | null;
+  /** Precio de venta recomendado (PVPR), si se conoce */
+  msrp: number | null;
   /** Ancla del listado de tiendas */
   storesHref: string;
-  /** Ancla del bloque «Avísame cuando baje» */
-  alertHref: string;
+  /** Ancla del bloque «Avísame cuando baje»; null si las alertas no están disponibles */
+  alertHref: string | null;
+  /** Salida para una pala sin precio cuando no hay alertas: otras palas que sí están a la venta */
+  onSale: { label: string; href: string };
   className?: string;
 }
 
 /** Mejor precio hoy, con el veredicto en una frase y, como mucho, tres cifras de contexto. */
-export function PriceCard({ price, storesHref, alertHref, className }: PriceCardProps) {
+export function PriceCard({ price, msrp, storesHref, alertHref, onSale, className }: PriceCardProps) {
   const frame = cn("rounded-[22px] border-2 border-carbon p-5 lg:p-6", className);
+  // El ahorro sobre el PVPR solo se dice con un precio vigente.
+  const saving = price && price.freshness !== "stale" ? msrpSaving(price.current, msrp) : null;
 
   if (!price) {
     return (
@@ -43,9 +51,15 @@ export function PriceCard({ price, storesHref, alertHref, className }: PriceCard
         <p className="mt-2 text-[15px] leading-normal text-ink">
           Ninguna de las tiendas que seguimos tiene esta pala a la venta en este momento.
         </p>
-        <a href={alertHref} className={buttonClass({ variant: "outline", className: "mt-4 w-full" })}>
-          Avísame cuando esté disponible
-        </a>
+        {alertHref ? (
+          <a href={alertHref} className={buttonClass({ variant: "outline", className: "mt-4 w-full" })}>
+            Avísame cuando esté disponible
+          </a>
+        ) : (
+          <Link href={onSale.href} className={buttonClass({ variant: "outline", className: "mt-4 w-full" })}>
+            {onSale.label}
+          </Link>
+        )}
       </section>
     );
   }
@@ -64,6 +78,11 @@ export function PriceCard({ price, storesHref, alertHref, className }: PriceCard
         {price.freshness !== "current" &&
           ` · comprobado ${formatTimeAgo(price.checkedAt, price.asOf)}`}
       </p>
+      {saving !== null && msrp !== null && (
+        <p className="mt-2 inline-block rounded-lg bg-lime-soft px-2 py-1 text-[13px] font-extrabold text-forest">
+          {formatPercent(saving)} por debajo de su PVPR ({formatEuroCompact(msrp)})
+        </p>
+      )}
 
       <div className="mt-4 border-t border-line pt-4">
         <p className="flex items-center gap-2 text-base font-extrabold">
@@ -83,15 +102,18 @@ export function PriceCard({ price, storesHref, alertHref, className }: PriceCard
           <PriceRow label="Media últimos 30 días" value={price.average30} />
         )}
         {price.min30 && <PriceRow label="Mínimo últimos 30 días" value={price.min30.price} />}
+        {msrp !== null && <PriceRow label="Precio recomendado (PVPR)" value={msrp} />}
       </dl>
 
       <div className="mt-4 grid gap-2">
         <a href={storesHref} className={buttonClass({ size: "lg" })}>
-          Ver precios en todas las tiendas
+          Ver el precio en cada tienda
         </a>
-        <a href={alertHref} className={buttonClass({ variant: "outline" })}>
-          Avísame cuando baje de precio
-        </a>
+        {alertHref && (
+          <a href={alertHref} className={buttonClass({ variant: "outline" })}>
+            Avísame cuando baje de precio
+          </a>
+        )}
       </div>
     </section>
   );

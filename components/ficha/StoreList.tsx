@@ -76,7 +76,7 @@ export function StoreList({ price, id, className }: StoreListProps) {
   if (!price) {
     return (
       <section aria-labelledby={id} className={className}>
-        <SectionTitle id={id}>Precios en todas las tiendas</SectionTitle>
+        <SectionTitle id={id}>Precios por tienda</SectionTitle>
         <EmptyNote className="mt-3.5">
           Ninguna de las tiendas que seguimos tiene esta pala a la venta ahora mismo. En cuanto
           vuelva a estar disponible, verás aquí su precio en cada tienda.
@@ -87,7 +87,7 @@ export function StoreList({ price, id, className }: StoreListProps) {
 
   return (
     <section aria-labelledby={id} className={className}>
-      <SectionTitle id={id}>Precios en todas las tiendas</SectionTitle>
+      <SectionTitle id={id}>Precios por tienda</SectionTitle>
       <p className="mt-1.5 text-[13px] leading-[1.45] text-pretty text-muted">
         {price.offers.some((offer) => offer.shipping === null)
           ? "De más barata a más cara. El envío solo está incluido donde se indica."

@@ -1,5 +1,6 @@
 // Conversión de filas de base de datos a modelos de dominio. Cualquier
 // implementación del repositorio (memoria, PostgreSQL) reutiliza estas funciones.
+import type { IndexabilitySource } from "@/lib/indexability";
 import { mediaUrl, publishedImages } from "@/lib/media";
 import { buildPriceSummary, priceCardNote, priceFreshness } from "@/lib/pricing";
 import type {
@@ -123,6 +124,29 @@ export function toPalaSummary(row: RacketCatalogRow, now: Date): PalaSummary {
           )
         : null,
     priceRecent: price !== null && row.price_status === "recent",
+  };
+}
+
+/** Fila del catálogo con los datos técnicos de la pala que hacen falta para decidir si su ficha se indexa */
+export type IndexabilityRow = RacketCatalogRow & Pick<RacketRow, "weight_min" | "technical_specs" | "hardness">;
+
+/**
+ * Los datos de la decisión de indexación a partir de una fila del catálogo: lo
+ * mismo que `palaIndexabilitySource` saca de la pala completa de la ficha.
+ */
+export function toIndexabilitySource(row: IndexabilityRow, now: Date): IndexabilitySource {
+  return {
+    brandName: row.brand_name,
+    model: row.model,
+    year: row.year,
+    image: publishedImages([mediaUrl(row.photo_path)], row.images)[0] ?? null,
+    hasCurrentPrice: currentPrice(row, now) !== null,
+    hasWeight: row.weight_min !== null,
+    specs: row.technical_specs,
+    hardness: row.hardness ?? null,
+    balance: row.balance,
+    levels: row.levels,
+    playStyle: row.play_style,
   };
 }
 

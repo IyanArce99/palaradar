@@ -192,6 +192,20 @@ export function describePala(pala: Pala): string {
   return sentences.filter(Boolean).join(" ");
 }
 
+/** true si la pala tiene ahora un precio vigente en alguna tienda: solo entonces se habla de precio y tiendas. */
+function hasCurrentPrice(pala: Pala): boolean {
+  return pala.price !== null && pala.price.freshness !== "stale";
+}
+
+/**
+ * Título de la ficha. Promete precio y tiendas solo si la pala los tiene ahora;
+ * sin precio vigente, la página es una ficha técnica y así se anuncia.
+ */
+export function palaTitle(pala: Pala): string {
+  const name = `${palaName(pala)} ${pala.year}`;
+  return hasCurrentPrice(pala) ? `${name}: características, precio y tiendas` : `${name}: características y ficha técnica`;
+}
+
 /** Resumen corto para la descripción SEO: forma, peso y balance, y el precio si está vigente. */
 export function metaDescription(pala: Pala): string {
   const traits = list([
@@ -199,11 +213,16 @@ export function metaDescription(pala: Pala): string {
     pala.weight && formatWeight(pala.weight),
     pala.balance && `balance ${lower(BALANCE_LABELS[pala.balance])}`,
   ]);
-  const price =
-    pala.price && pala.price.freshness !== "stale"
-      ? ` Desde ${formatEuro(pala.price.current)} en ${pluralize(pala.price.storeCount, "tienda", "tiendas")}.`
-      : "";
-  const extras = list(["características", pala.sourceRatings && `puntuaciones técnicas de ${pala.sourceRatings.source}`, "precio por tienda"]);
+  const current = hasCurrentPrice(pala) ? pala.price : null;
+  const price = current
+    ? ` Desde ${formatEuro(current.current)} en ${pluralize(current.storeCount, "tienda", "tiendas")}.`
+    : "";
+  const extras = list([
+    "características",
+    pala.sourceRatings && `puntuaciones técnicas de ${pala.sourceRatings.source}`,
+    // Sin precio vigente no se promete un precio por tienda.
+    current && "precio por tienda",
+  ]);
   return `${palaName(pala)} ${pala.year}: pala de ${traits}.${price} Consulta sus ${extras}.`;
 }
 

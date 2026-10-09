@@ -4,19 +4,22 @@ import {
   CompareTeaserSection,
   DealsSection,
   DiscoverSection,
+  FULL_ROW_DEALS,
   GuidesSection,
   MonthlyDropsSection,
   MostStoresSection,
   PriceWatchSection,
 } from "@/components/home/HomeSections";
-import { ScannerBanner } from "@/components/pala/ScannerBanner";
+import { BrandLinks } from "@/components/catalog/BrandLinks";
+import { CollectionLinks } from "@/components/catalog/CollectionLinks";
+import { getGuideCovers } from "@/data/guides";
 import { catalogShortcuts } from "@/config/navigation";
 import {
   countPalas,
   getBiggestMonthlyDrops,
+  getBrands,
   getDeals,
   getFeaturedPala,
-  getGuides,
   getPalaBySlug,
   getTopPalas,
 } from "@/data";
@@ -28,9 +31,10 @@ import { pageMetadata } from "@/lib/seo";
 // Ofertas y bajadas dependen de la fecha: la portada se regenera cada hora.
 export const revalidate = 3600;
 
-const TOP_COUNT = 3;
+const TOP_COUNT = 4;
 // Se piden algunas más para elegir la segunda pala de «¿Dudas entre dos?».
 const TOP_POOL = 8;
+const HOME_GUIDES = 3;
 
 const HOME_TITLE = `${siteConfig.name}: compara palas de pádel, características y precios`;
 
@@ -45,12 +49,13 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const [deals, top, drops, guides, featuredPala, shortcuts] = await Promise.all([
+  const [deals, top, drops, featuredPala, brands, guideCovers, shortcuts] = await Promise.all([
     getDeals(4),
     getTopPalas(TOP_POOL),
     getBiggestMonthlyDrops(3),
-    getGuides(),
     getFeaturedPala(),
+    getBrands(),
+    getGuideCovers(),
     Promise.all(
       catalogShortcuts.map(async (shortcut) => ({
         ...shortcut,
@@ -73,31 +78,30 @@ export default async function HomePage() {
       <Hero featured={featured} />
 
       <div className="mx-auto flex max-w-[1280px] flex-col gap-10 px-5 pt-10 lg:gap-20 lg:px-12 lg:pt-6">
-        <DealsSection deals={deals} />
-        <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-14">
-          <MostStoresSection palas={top.slice(0, TOP_COUNT)} />
-          <MonthlyDropsSection drops={drops} />
-        </div>
+        {/* Con pocas ofertas, comparten fila con las bajadas del mes para no dejar media fila vacía. */}
+        {deals.length >= FULL_ROW_DEALS ? (
+          <>
+            <DealsSection deals={deals} />
+            <MonthlyDropsSection drops={drops} wide />
+          </>
+        ) : (
+          <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-14">
+            <DealsSection deals={deals} />
+            <MonthlyDropsSection drops={drops} />
+          </div>
+        )}
+        <MostStoresSection palas={top.slice(0, TOP_COUNT)} />
         <DiscoverSection shortcuts={shortcuts} />
+        <BrandLinks id="marcas" title="Palas por marca" brands={brands} withCatalogLink />
       </div>
-
-      <ScannerBanner
-        className="mt-10 lg:mt-20"
-        example={
-          featured && {
-            name: `${featured.pala.brand.name} ${featured.pala.model}`,
-            price: featured.price.current,
-            storeCount: featured.price.storeCount,
-          }
-        }
-      />
 
       <div className="mx-auto flex max-w-[1280px] flex-col gap-10 px-5 py-10 lg:gap-20 lg:px-12 lg:py-20">
         <div className="grid gap-10 lg:grid-cols-2 lg:gap-7">
           <CompareTeaserSection pair={pair} />
           <PriceWatchSection featured={featured} />
         </div>
-        <GuidesSection guides={guides} />
+        <GuidesSection guides={guideCovers.slice(0, HOME_GUIDES)} />
+        <CollectionLinks id="palas-por-tipo" title="Palas por tipo" />
       </div>
     </>
   );

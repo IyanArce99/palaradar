@@ -13,12 +13,14 @@ interface PalaHeaderProps {
   reviewsHref: string;
   /** Ancla del listado de tiendas */
   storesHref: string;
-  /** Ancla de la alerta de precio */
-  alertHref: string;
+  /** Ancla de la alerta de precio; null si las alertas no están disponibles */
+  alertHref: string | null;
+  /** Salida para una pala sin precio cuando no hay alertas: otras palas que sí están a la venta */
+  onSale: { label: string; href: string };
 }
 
-/** Marca, año y forma; nombre de la pala; precio de partida y las dos acciones. */
-export function PalaHeader({ pala, reviewsHref, storesHref, alertHref }: PalaHeaderProps) {
+/** Marca, año y forma; nombre de la pala; precio de partida y las acciones que de verdad funcionan. */
+export function PalaHeader({ pala, reviewsHref, storesHref, alertHref, onSale }: PalaHeaderProps) {
   const { price } = pala;
   const hasPrice = price !== null && price.freshness !== "stale";
 
@@ -58,9 +60,17 @@ export function PalaHeader({ pala, reviewsHref, storesHref, alertHref }: PalaHea
             Ver precios
           </a>
         )}
-        <a href={alertHref} className={buttonClass({ variant: "outline" })}>
-          {hasPrice ? "Crear alerta de precio" : "Avísame cuando esté disponible"}
-        </a>
+        {alertHref && (
+          <a href={alertHref} className={buttonClass({ variant: "outline" })}>
+            {hasPrice ? "Crear alerta de precio" : "Avísame cuando esté disponible"}
+          </a>
+        )}
+        {/* Sin precio y sin alertas, la ficha no se queda sin salida. */}
+        {!hasPrice && !alertHref && (
+          <Link href={onSale.href} className={buttonClass({ variant: "outline" })}>
+            {onSale.label}
+          </Link>
+        )}
       </div>
     </header>
   );

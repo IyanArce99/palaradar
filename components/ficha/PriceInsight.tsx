@@ -1,7 +1,7 @@
 import { EmptyNote } from "@/components/ui/EmptyNote";
 import { cn } from "@/lib/cn";
 import { formatDate } from "@/lib/format";
-import { chartSeries } from "@/lib/pricing";
+import { chartSeries, MAX_CHART_RANGE } from "@/lib/pricing";
 import type { PricePoint } from "@/types/catalog";
 import type { PriceSummary } from "@/types/pricing";
 import { PriceHistory } from "./PriceHistory";
@@ -37,7 +37,7 @@ export function PriceInsight({ price, history, className }: PriceInsightProps) {
     <p className="mt-2.5 text-base leading-[1.6] text-pretty text-ink">{price.verdict.answer}</p>
   );
 
-  if (chartSeries(history, price, 12).length < MIN_CHART_POINTS) {
+  if (chartSeries(history, price, MAX_CHART_RANGE).length < MIN_CHART_POINTS) {
     const since = price.trackedSince ?? price.checkedAt;
     return (
       <section aria-labelledby={TITLE_ID} className={className}>

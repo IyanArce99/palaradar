@@ -1,10 +1,22 @@
 import Link from "next/link";
 import { Logo } from "@/components/ui/icons";
-import { catalogShortcuts, footerBrandSlugs, mainNav } from "@/config/navigation";
+import { footerBrandSlugs, mainNav } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
-import { getBrands, hasTestPrices } from "@/data";
-import { catalogHref } from "@/lib/catalog/query";
+import { getCollection } from "@/content/collections";
+import { alertsAvailable, getBrands, hasTestPrices } from "@/data";
 import { routes } from "@/lib/routes";
+
+/** Colecciones del pie, en este orden; el resto se alcanza desde el catálogo y las guías */
+const FOOTER_COLLECTIONS = [
+  "principiantes",
+  "nivel-intermedio",
+  "control",
+  "potencia",
+  "polivalentes",
+  "redondas",
+  "diamante",
+  "menos-de-150-euros",
+];
 
 interface FooterColumnProps {
   title: string;
@@ -42,7 +54,7 @@ export async function Footer() {
           </div>
           <p className="max-w-[320px]">
             El lugar al que vas antes de comprar una pala: características, comparativas y precios
-            en todas las tiendas.
+            de las tiendas que seguimos.
           </p>
           {hasTestPrices && (
             <p className="mt-3 max-w-[320px]">
@@ -61,14 +73,19 @@ export async function Footer() {
         />
         <FooterColumn
           title="Palas por tipo"
-          links={catalogShortcuts.filter((shortcut) => shortcut.inFooter).map((shortcut) => ({
-            label: shortcut.shortLabel,
-            href: catalogHref(shortcut.query),
-          }))}
+          links={FOOTER_COLLECTIONS.flatMap((slug) => {
+            const collection = getCollection(slug);
+            return collection ? [{ label: collection.label, href: routes.collection(collection.slug) }] : [];
+          })}
         />
         <FooterColumn
           title={siteConfig.name}
-          links={[...mainNav, { label: "Privacidad", href: routes.privacy }]}
+          links={[
+            ...mainNav,
+            // Solo si las alertas se pueden crear: sin ellas la página no tendría nada que enseñar.
+            ...(alertsAvailable() ? [{ label: "Mis alertas", href: routes.myAlerts }] : []),
+            { label: "Privacidad", href: routes.privacy },
+          ]}
         />
       </div>
     </footer>

@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/Button";
-import { Logo, ScanIcon, SearchIcon } from "@/components/ui/icons";
+import { Logo, SearchIcon } from "@/components/ui/icons";
 import { mainNav } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
-import { cn } from "@/lib/cn";
 import { routes } from "@/lib/routes";
 import { SearchForm } from "./SearchForm";
 
@@ -20,26 +19,25 @@ export function Header() {
 
         <nav aria-label="Principal" className="hidden lg:block">
           <ul className="flex gap-[22px] text-[15px] font-bold whitespace-nowrap">
-            {mainNav.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  // «Pala ideal» va en un peso más ligero, como en el diseño.
-                  className={cn("hover:underline", item.href === routes.idealPala && "font-medium text-ink")}
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
+            {/* «Pala ideal» no va en la lista: es el botón de la derecha. */}
+            {mainNav
+              .filter((item) => item.href !== routes.idealPala)
+              .map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href} className="hover:underline">
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
           </ul>
         </nav>
 
         <SearchForm variant="header" className="hidden max-w-[360px] flex-1 lg:flex" />
 
+        {/* La acción principal es encontrar una pala: el buscador y, para quien no sabe cuál, el recomendador. */}
         <div className="ml-auto hidden lg:block">
-          <ButtonLink href={routes.scan} size="nav" pill>
-            <ScanIcon size={20} />
-            Escanear mi pala
+          <ButtonLink href={routes.idealPala} size="nav" pill>
+            Encontrar mi pala
           </ButtonLink>
         </div>
 

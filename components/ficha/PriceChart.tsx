@@ -1,5 +1,5 @@
 import { cn } from "@/lib/cn";
-import { formatEuro, formatEuroCompact, formatMonthYearShort } from "@/lib/format";
+import { formatDayMonthShort, formatEuro, formatEuroCompact, formatMonthYearShort } from "@/lib/format";
 import { chartSeries } from "@/lib/pricing";
 import type { PricePoint } from "@/types/catalog";
 import type { PriceSummary } from "@/types/pricing";
@@ -7,6 +7,8 @@ import type { PriceSummary } from "@/types/pricing";
 const PAD_TOP = 26;
 const PAD_BOTTOM = 24;
 const PAD_RIGHT = 8;
+/** Hasta este número de registros se dibuja un punto por día */
+const MAX_DAY_MARKS = 45;
 
 // Halo blanco para que las etiquetas se lean cuando la línea de precio pasa por debajo.
 const LABEL_HALO = {
@@ -45,8 +47,17 @@ export function PriceChart({ history, price, months, width, height, className }:
   const innerHeight = height - PAD_TOP - PAD_BOTTOM;
   const innerWidth = width - PAD_RIGHT;
   const baseline = PAD_TOP + innerHeight;
-  const x = (i: number) => (i * innerWidth) / (points.length - 1);
+  // Eje de tiempo real: cada registro va en su día, así que un día sin dato deja su hueco.
+  const time = (point: PricePoint) => Date.parse(`${point.date.slice(0, 10)}T00:00:00Z`);
+  const start = time(points[0]);
+  const span = time(points[points.length - 1]) - start;
+  const x = (i: number) =>
+    span > 0 ? ((time(points[i]) - start) / span) * innerWidth : (i * innerWidth) / (points.length - 1);
   const y = (value: number) => PAD_TOP + innerHeight * (1 - (value - low) / (high - low));
+  // Con pocos registros se marca cada día; con muchos, la línea basta.
+  const showDays = points.length <= MAX_DAY_MARKS;
+  // En rangos cortos las fechas del eje llevan el día; en los largos, el mes.
+  const axisDate = months <= 3 ? formatDayMonthShort : formatMonthYearShort;
 
   const line = points
     .map((point, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(point.price).toFixed(1)}`)
@@ -58,6 +69,7 @@ export function PriceChart({ history, price, months, width, height, className }:
   const lastX = x(points.length - 1);
   const lastY = y(last.price);
   const endsToday = price.freshness === "current";
+  const period = months === 1 ? "el último mes" : `los últimos ${months} meses`;
   const { average30, min30 } = price;
 
   return (
@@ -66,10 +78,11 @@ export function PriceChart({ history, price, months, width, height, className }:
       role="img"
       aria-label={
         endsToday
-          ? `Evolución del precio en los últimos ${months} meses. Hoy cuesta ${formatEuro(last.price)}.`
-          : `Evolución del precio en los últimos ${months} meses. Último precio registrado: ${formatEuro(last.price)}.`
+          ? `Evolución diaria del precio en ${period}. Hoy cuesta ${formatEuro(last.price)}.`
+          : `Evolución diaria del precio en ${period}. Último precio registrado: ${formatEuro(last.price)}.`
       }
-      className={cn("w-full font-sans", className)}
+      // Los puntos del primer y del último día sobresalen medio radio del lienzo.
+      className={cn("w-full overflow-visible font-sans", className)}
     >
       <path d={area} fill="#f2f9de" />
       {average30 !== null && (
@@ -110,6 +123,12 @@ export function PriceChart({ history, price, months, width, height, className }:
         </>
       )}
       <path d={line} fill="none" stroke="#15171a" strokeWidth="2.5" strokeLinejoin="round" />
+      {showDays &&
+        points.slice(0, -1).map((point, i) => (
+          <circle key={point.date} cx={x(i)} cy={y(point.price)} r="3" fill="#fff" stroke="#15171a" strokeWidth="1.5">
+            <title>{`${formatDayMonthShort(point.date)} · ${formatEuro(point.price)}`}</title>
+          </circle>
+        ))}
       <circle
         cx={lastX}
         cy={lastY}
@@ -129,10 +148,10 @@ export function PriceChart({ history, price, months, width, height, className }:
         {endsToday ? "Hoy" : "Último"} · {formatEuro(last.price)}
       </text>
       <text x="0" y={height - 4} fontSize="12" fill="#5b6058">
-        {formatMonthYearShort(first.date)}
+        {axisDate(first.date)}
       </text>
       <text x={innerWidth} y={height - 4} fontSize="12" fill="#5b6058" textAnchor="end">
-        {endsToday ? "hoy" : formatMonthYearShort(last.date)}
+        {endsToday ? "hoy" : axisDate(last.date)}
       </text>
     </svg>
   );

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BrandLinks } from "@/components/catalog/BrandLinks";
 import { CatalogFilters } from "@/components/catalog/CatalogFilters";
+import { CollectionLinks } from "@/components/catalog/CollectionLinks";
 import {
   ActiveFilters,
   CollectionPills,
@@ -43,7 +44,7 @@ export async function generateMetadata({ searchParams }: CatalogPageProps): Prom
 
   return pageMetadata({
     title: `Palas de pádel: características y comparador de precios${pageSuffix(query.page)}`,
-    description: `Catálogo de palas de pádel con sus características y precios en todas las tiendas. Filtra por nivel, marca, forma y presupuesto${pageSuffix(query.page)}.`,
+    description: `Catálogo de palas de pádel con sus características y su precio en las tiendas que seguimos. Filtra por nivel, marca, forma y presupuesto${pageSuffix(query.page)}.`,
     path: seo.canonical,
     index: seo.index,
   });
@@ -84,7 +85,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       <div className="mx-auto max-w-[1280px]">
         <PageHeading
           title="Palas de pádel"
-          lead={`${pluralize(catalogSize, "pala", "palas")} de ${pluralize(facets.brands.length, "marca", "marcas")}. Compara características y precios en todas las tiendas para encontrar la tuya.`}
+          lead={`${pluralize(catalogSize, "pala", "palas")} de ${pluralize(facets.brands.length, "marca", "marcas")}. Compara características y precios en las tiendas que seguimos para encontrar la tuya.`}
         />
 
         <div className="px-5 pt-4 lg:hidden">
@@ -137,7 +138,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
 
             {result.total > 0 ? (
               <>
-                <PalaGrid palas={result.items} className="mt-5 lg:mt-6" />
+                <PalaGrid palas={result.items} columns={4} dense className="mt-5 lg:mt-6" />
                 <Pagination
                   page={result.page}
                   pageCount={result.pageCount}
@@ -171,11 +172,19 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
               de balance bajo te perdonará más los golpes descentrados. Si ya rematas a menudo,
               una de lágrima o diamante te dará más potencia a cambio de exigir más técnica.
             </p>
-            <Link href={routes.guides} className="mt-3 inline-block font-bold underline">
-              Ver las guías
-            </Link>
+            <p className="mt-3 flex flex-wrap gap-x-5 gap-y-1">
+              <Link href={routes.guide("como-elegir-pala-de-padel")} className="inline-flex min-h-11 items-center font-bold underline">
+                Guía: cómo elegir pala de pádel
+              </Link>
+              <Link href={routes.idealPala} className="inline-flex min-h-11 items-center font-bold underline">
+                Encontrar mi pala ideal
+              </Link>
+            </p>
           </section>
-          <BrandLinks id="palas-por-marca" title="Palas por marca" brands={facets.brands} />
+          <div className="flex flex-col gap-8">
+            <CollectionLinks id="palas-por-tipo" title="Palas por tipo" />
+            <BrandLinks id="palas-por-marca" title="Palas por marca" brands={facets.brands} />
+          </div>
         </div>
       </div>
     </>

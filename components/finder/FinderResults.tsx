@@ -4,13 +4,14 @@ import { PalaPhoto } from "@/components/ui/PalaPhoto";
 import { RecentPriceNote } from "@/components/ui/RecentPriceNote";
 import { siteConfig } from "@/config/site";
 import { comparePath, priceHeading } from "@/lib/compare";
-import { formatEuro, pluralize } from "@/lib/format";
+import { formatEuro, formatPercent, formatRating, pluralize } from "@/lib/format";
 import { SHAPE_LABELS } from "@/lib/labels";
 import { palaAlt } from "@/lib/media";
 import {
   buildReasons,
   CRITERION_LABELS,
   expressedCriteria,
+  finderPath,
   profileChips,
   toPrefs,
   type FinderAnswers,
@@ -19,6 +20,7 @@ import {
 import { routes } from "@/lib/routes";
 import type { Pala } from "@/types/catalog";
 import { FinderAction } from "./Finder";
+import { SaveResults } from "./SaveResults";
 
 const STORES_ANCHOR = "#tiendas";
 const ALERT_ANCHOR = "#alerta";
@@ -29,19 +31,12 @@ interface FinderResultsProps {
   top: Pala;
   /** Todas las recomendadas, la primera incluida */
   results: Recommendation[];
-}
-
-/** «N de M»: cuántas de las respuestas con preferencia cumple una pala. */
-function Fit({ matched, total }: { matched: number; total: number }) {
-  return (
-    <>
-      {matched} de {total}
-    </>
-  );
+  /** Las alertas de precio funcionan: solo entonces se enlaza a ellas */
+  alertsEnabled: boolean;
 }
 
 /** Resultado del quiz: la mejor opción, el perfil del jugador y las alternativas. */
-export function FinderResults({ answers, top, results }: FinderResultsProps) {
+export function FinderResults({ answers, top, results, alertsEnabled }: FinderResultsProps) {
   const prefs = toPrefs(answers);
   const total = expressedCriteria(prefs).length;
   const [best, ...alternatives] = results;
@@ -88,21 +83,19 @@ export function FinderResults({ answers, top, results }: FinderResultsProps) {
         </div>
 
         <div className="flex flex-col">
+          <p className="flex flex-wrap items-baseline gap-2">
+            <span className="text-[40px] leading-none font-black tracking-[-0.03em] whitespace-nowrap lg:text-5xl">
+              {formatPercent(best.affinity)}
+            </span>
+            <span className="text-[15px] font-bold whitespace-nowrap">de afinidad</span>
+          </p>
+          <div aria-hidden="true" className="mt-2.5 h-2 overflow-hidden rounded bg-line-soft">
+            <div className="h-full rounded border-r-2 border-carbon bg-lime" style={{ width: `${best.affinity}%` }} />
+          </div>
           {total > 0 && (
-            <>
-              <p className="flex flex-wrap items-baseline gap-2">
-                <span className="text-[40px] leading-none font-black tracking-[-0.03em] whitespace-nowrap lg:text-5xl">
-                  <Fit matched={best.matched.length} total={total} />
-                </span>
-                <span className="text-[15px] font-bold">de tus respuestas encajan</span>
-              </p>
-              <div aria-hidden="true" className="mt-2.5 h-2 overflow-hidden rounded bg-line-soft">
-                <div
-                  className="h-full rounded border-r-2 border-carbon bg-lime"
-                  style={{ width: `${(best.matched.length / total) * 100}%` }}
-                />
-              </div>
-            </>
+            <p className="mt-2 text-[13px] text-muted">
+              Cumple {best.matched.length} de tus {total} {total === 1 ? "preferencia" : "preferencias"}.
+            </p>
           )}
 
           <p className="mt-[18px] text-[13px] text-muted">
@@ -111,6 +104,13 @@ export function FinderResults({ answers, top, results }: FinderResultsProps) {
           <h2 className="mt-0.5 text-3xl leading-[1.05] font-black tracking-[-0.03em] lg:text-[38px]">
             {top.model}
           </h2>
+          {/* Sin opiniones no hay estrellas: va la puntuación técnica de la fuente, con su nombre. */}
+          {top.sourceRatings?.total != null && (
+            <p className="mt-1.5 text-sm">
+              <strong className="tabular-nums">{formatRating(top.sourceRatings.total)}</strong> sobre 10{" "}
+              <span className="text-muted">· puntuación técnica de {top.sourceRatings.source}</span>
+            </p>
+          )}
 
           {reasons.length > 0 && (
             <>
@@ -168,13 +168,15 @@ export function FinderResults({ answers, top, results }: FinderResultsProps) {
               Comparar precios
             </Link>
           </div>
-          <Link
-            href={`${routes.pala(top.slug)}${ALERT_ANCHOR}`}
-            className="mt-3 flex min-h-11 items-center justify-center gap-2 text-sm font-bold underline"
-          >
-            <span aria-hidden="true" className="size-2.5 rounded-full border-2 border-carbon" />
-            Avísame cuando baje de precio
-          </Link>
+          {alertsEnabled && (
+            <Link
+              href={`${routes.pala(top.slug)}${ALERT_ANCHOR}`}
+              className="mt-3 flex min-h-11 items-center justify-center gap-2 text-sm font-bold underline"
+            >
+              <span aria-hidden="true" className="size-2.5 rounded-full border-2 border-carbon" />
+              Avísame cuando baje de precio
+            </Link>
+          )}
         </div>
       </article>
 
@@ -198,7 +200,7 @@ export function FinderResults({ answers, top, results }: FinderResultsProps) {
             También pueden encajarte
           </h2>
           <ul className="mt-3.5 grid gap-3 lg:grid-cols-3">
-            {alternatives.map(({ pala, matched }) => (
+            {alternatives.map(({ pala, matched, affinity }) => (
               <li
                 key={pala.id}
                 className="grid grid-cols-[96px_minmax(0,1fr)] gap-3.5 rounded-[20px] border border-line p-3 transition-colors duration-150 hover:border-carbon lg:grid-cols-1"
@@ -214,11 +216,10 @@ export function FinderResults({ answers, top, results }: FinderResultsProps) {
                     <span className="text-xs text-muted">
                       {pala.brand.name} · {pala.year}
                     </span>
-                    {total > 0 && (
-                      <span className="rounded-[10px] bg-lime-soft px-2 py-[3px] text-xs font-extrabold whitespace-nowrap text-forest">
-                        <Fit matched={matched.length} total={total} />
-                      </span>
-                    )}
+                    <span className="rounded-[10px] bg-lime-soft px-2 py-[3px] text-xs font-extrabold whitespace-nowrap text-forest">
+                      {formatPercent(affinity)}
+                      <span className="sr-only"> de afinidad</span>
+                    </span>
                   </p>
                   <h3 className="mt-0.5 text-base leading-[1.15] font-extrabold">{pala.model}</h3>
                   {matched.length > 0 && (
@@ -256,10 +257,12 @@ export function FinderResults({ answers, top, results }: FinderResultsProps) {
         </section>
       )}
 
+      {alertsEnabled && <SaveResults answers={finderPath(answers).split("?")[1] ?? ""} />}
+
       <p className="mt-4 mb-7 text-xs leading-normal text-muted">
-        El orden sale de cuántas de tus respuestas cumple cada pala, según los datos que declaran
-        fabricantes y tiendas y su mejor precio de hoy. Es una orientación: la mejor forma de decidir
-        sigue siendo probarla.
+        Afinidad estimada a partir de tus respuestas y de las características que declaran
+        fabricantes y tiendas para cada pala. Es una orientación, no una nota de la pala: la mejor
+        forma de decidir sigue siendo probarla.
       </p>
     </div>
   );

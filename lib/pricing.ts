@@ -28,6 +28,13 @@ const DAYS_PER_MONTH = 30.5;
  */
 export const HISTORY_WINDOW_DAYS = 30;
 
+/** Periodos del gráfico de precio, en meses. Se abre en el más corto: el seguimiento es diario. */
+export const CHART_RANGES = [1, 3, 6] as const;
+export type ChartRange = (typeof CHART_RANGES)[number];
+export const DEFAULT_CHART_RANGE: ChartRange = 1;
+/** El periodo más largo: si ni en él hay dos registros, no hay gráfico que dibujar. */
+export const MAX_CHART_RANGE: ChartRange = 6;
+
 /** Cómo se presenta un precio que aún no tiene veredicto, en la ficha y en los listados. */
 export const RECENT_PRICE_LABEL = "Precio reciente";
 
@@ -145,6 +152,17 @@ function lowest(points: PricePoint[]): PricePoint | null {
     (min, point) => (min === null || point.price < min.price ? point : min),
     null,
   );
+}
+
+/**
+ * Cuánto está el precio actual por debajo del precio de venta recomendado
+ * (PVPR), en tanto por ciento. null si no hay PVPR o el precio no está por debajo.
+ * Es una comparación con un dato fijo, no con el histórico: no necesita 30 días.
+ */
+export function msrpSaving(current: number, msrp: number | null): number | null {
+  if (msrp === null || !(msrp > 0) || current >= msrp) return null;
+  const percent = Math.round(((msrp - current) / msrp) * 100);
+  return percent > 0 ? percent : null;
 }
 
 /** Primer día con precio registrado, o null si todavía no hay ninguno. */

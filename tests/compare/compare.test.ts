@@ -4,9 +4,11 @@ import { describe, it } from "node:test";
 import { createMemoryRepository } from "@/data/memory-repository";
 import {
   buildCompareRows,
+  buildSpecRows,
   canonicalPair,
   comparePath,
   compareSelectPath,
+  compareSetPath,
   describeDifferences,
   displayValue,
   hasEnoughHistory,
@@ -14,7 +16,7 @@ import {
   MIN_HISTORY_DAYS,
   priceDifference,
   priceHeading,
-  resolvePair,
+  resolveComparison,
   uniquePairs,
 } from "@/lib/compare";
 import type { Pala, PricePoint } from "@/types/catalog";
@@ -65,30 +67,29 @@ describe("URLs del comparador", () => {
   });
 
   it("acepta el par en orden canónico", () => {
-    assert.deepEqual(resolvePair("adidas-metalbone-2026-vs-nox-at10-2026"), {
+    assert.deepEqual(resolveComparison("adidas-metalbone-2026-vs-nox-at10-2026"), {
       type: "ok",
-      a: "adidas-metalbone-2026",
-      b: "nox-at10-2026",
+      slugs: ["adidas-metalbone-2026", "nox-at10-2026"],
     });
   });
 
   it("redirige el orden inverso al canónico", () => {
-    assert.deepEqual(resolvePair("nox-at10-2026-vs-adidas-metalbone-2026"), {
+    assert.deepEqual(resolveComparison("nox-at10-2026-vs-adidas-metalbone-2026"), {
       type: "reorder",
       path: "/comparar/adidas-metalbone-2026-vs-nox-at10-2026/",
     });
   });
 
   it("detecta la misma pala dos veces", () => {
-    assert.deepEqual(resolvePair("nox-at10-2026-vs-nox-at10-2026"), {
+    assert.deepEqual(resolveComparison("nox-at10-2026-vs-nox-at10-2026"), {
       type: "same",
       slug: "nox-at10-2026",
     });
   });
 
   it("rechaza las URLs mal formadas", () => {
-    for (const segment of ["nox-at10-2026", "-vs-nox-at10-2026", "a-vs-b-vs-c", "A-vs-b", "a_b-vs-c", ""]) {
-      assert.deepEqual(resolvePair(segment), { type: "invalid" }, segment);
+    for (const segment of ["nox-at10-2026", "-vs-nox-at10-2026", "a-vs-b-vs-c-vs-d", "A-vs-b", "a_b-vs-c", ""]) {
+      assert.deepEqual(resolveComparison(segment), { type: "invalid" }, segment);
     }
   });
 
@@ -96,6 +97,58 @@ describe("URLs del comparador", () => {
     assert.equal(compareSelectPath(), "/comparar/");
     assert.equal(compareSelectPath({ a: "x-2026", b: null }), "/comparar/?a=x-2026");
     assert.equal(compareSelectPath({ a: "x-2026", b: "y-2026" }), "/comparar/?a=x-2026&b=y-2026");
+  });
+});
+
+describe("comparación de tres palas", () => {
+  it("acepta tres palas en orden canónico", () => {
+    assert.deepEqual(resolveComparison("a-2026-vs-b-2026-vs-c-2026"), {
+      type: "ok",
+      slugs: ["a-2026", "b-2026", "c-2026"],
+    });
+    assert.equal(compareSetPath(["c-2026", "a-2026", "b-2026"]), "/comparar/a-2026-vs-b-2026-vs-c-2026/");
+  });
+
+  it("redirige al orden canónico y quita la pala repetida", () => {
+    assert.deepEqual(resolveComparison("c-2026-vs-a-2026-vs-b-2026"), {
+      type: "reorder",
+      path: "/comparar/a-2026-vs-b-2026-vs-c-2026/",
+    });
+    // Con una repetida quedan dos: es la comparación de ese par.
+    assert.deepEqual(resolveComparison("a-2026-vs-b-2026-vs-a-2026"), {
+      type: "reorder",
+      path: "/comparar/a-2026-vs-b-2026/",
+    });
+    assert.deepEqual(resolveComparison("a-2026-vs-a-2026-vs-a-2026"), { type: "same", slug: "a-2026" });
+  });
+
+  it("la selección recuerda la tercera pala o, sin ella, que el tercer hueco está abierto", () => {
+    assert.equal(
+      compareSelectPath({ a: "x-2026", b: "y-2026", c: "z-2026", third: true }),
+      "/comparar/?a=x-2026&b=y-2026&c=z-2026",
+    );
+    assert.equal(compareSelectPath({ a: "x-2026", third: true }), "/comparar/?a=x-2026&palas=3");
+    assert.equal(compareSelectPath({ a: "x-2026", c: null, third: false }), "/comparar/?a=x-2026");
+  });
+
+  it("la ficha técnica enfrenta las tres y marca las filas iguales", async () => {
+    const { a, b, unrelated } = await fixtures();
+    const rows = buildSpecRows([
+      { ...a, shape: "diamante", balance: "alto" },
+      { ...b, shape: "diamante", balance: "medio" },
+      { ...unrelated, shape: "diamante", balance: null },
+    ]);
+    assert.deepEqual(rows.find((row) => row.label === "Forma"), {
+      label: "Forma",
+      values: ["Diamante", "Diamante", "Diamante"],
+      equal: true,
+    });
+    // Sin datos en una de ellas, la fila no es «igual».
+    assert.deepEqual(rows.find((row) => row.label === "Balance"), {
+      label: "Balance",
+      values: ["Alto", "Medio", null],
+      equal: false,
+    });
   });
 });
 

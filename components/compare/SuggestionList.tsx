@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
+import { formatEuro } from "@/lib/format";
+import { SHAPE_LABELS } from "@/lib/labels";
 import type { PalaSuggestion } from "@/types/catalog";
 
 interface SuggestionListProps {
@@ -8,34 +10,34 @@ interface SuggestionListProps {
   hrefFor: (slug: string) => string;
 }
 
-/** Palas que encajan con lo buscado: foto, marca, modelo y año. */
+/** Palas que encajan con lo buscado: foto, marca y modelo, año y forma, y su precio si lo tiene. */
 export function SuggestionList({ suggestions, hrefFor }: SuggestionListProps) {
   return (
-    <ul className="mt-2 overflow-hidden rounded-2xl border border-line">
+    <ul>
       {suggestions.map((pala) => (
-        <li key={pala.slug} className="border-b border-line-soft last:border-b-0">
+        <li key={pala.slug} className="border-t border-line-soft first:border-t-0">
           <Link
             href={hrefFor(pala.slug)}
-            className="flex min-h-14 items-center gap-2 px-2 py-2 hover:bg-mist lg:gap-2.5 lg:px-2.5"
+            className="grid min-h-11 grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-2.5 rounded-lg px-1 py-2 hover:bg-mist"
           >
-            <PalaPhoto
-              src={pala.image}
-              alt=""
-              sizes="40px"
-              className="size-8 flex-none rounded-lg lg:size-10"
-            />
+            <PalaPhoto src={pala.image} alt="" sizes="40px" className="h-12 w-10 rounded-lg" />
             <span className="min-w-0">
-              <span className="block truncate text-xs text-muted">
-                {pala.brand} · {pala.year}
-              </span>
               {/* Como mucho dos líneas: el nombre completo queda en el title. */}
               <span
-                title={pala.model}
-                className="line-clamp-2 text-[13px] leading-[1.2] font-extrabold lg:text-sm"
+                title={`${pala.brand} ${pala.model}`}
+                className="line-clamp-2 text-sm leading-[1.2] font-extrabold"
               >
-                {pala.model}
+                {pala.brand} {pala.model}
+              </span>
+              <span className="block text-xs text-muted">
+                {pala.year} · {SHAPE_LABELS[pala.shape]}
               </span>
             </span>
+            {pala.price !== null && (
+              <span className="text-sm font-extrabold whitespace-nowrap tabular-nums">
+                {formatEuro(pala.price)}
+              </span>
+            )}
           </Link>
         </li>
       ))}

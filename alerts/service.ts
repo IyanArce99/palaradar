@@ -3,7 +3,15 @@
 // enlace con su token es lo único que identifica cada alerta.
 import { createHmac, randomBytes } from "node:crypto";
 import { pricingConfig } from "@/config/pricing";
-import { confirmationEmail, notificationEmail, type Mailer } from "./email";
+import { ACCESS_LINK_DAYS, createAccessToken } from "./access";
+import {
+  accessEmail,
+  confirmationEmail,
+  notificationEmail,
+  resultsEmail,
+  type Mailer,
+  type SavedResult,
+} from "./email";
 import type { Alert, AlertRacket, AlertRepository } from "./repository";
 
 const HOUR_MS = 3_600_000;
@@ -137,6 +145,139 @@ export async function createAlert(request: AlertRequest, { repository, mailer, n
   }
   await repository.markConfirmationSent(alert.id, at.toISOString());
   return { status: "pending" };
+}
+
+/** Palas que se guardan como mucho con «Guarda tus resultados»: caben en el límite por correo */
+export const MAX_SAVED_RESULTS = 4;
+
+/** Objetivo de «avísame si baja»: cualquier precio por debajo del de hoy. */
+export function anyDropTarget(currentPrice: number): number {
+  return Math.round((currentPrice - 0.01) * 100) / 100;
+}
+
+export interface SaveResultsRequest {
+  /** Palas recomendadas, la mejor primero, con su precio vigente y su afinidad */
+  items: { racket: AlertRacket; currentPrice: number; affinity: number }[];
+  /** Ruta del resultado (con las respuestas), para volver a verlo desde el correo */
+  resultsPath: string;
+  email: string;
+  consent: boolean;
+  honeypot: string;
+  ip: string | null;
+}
+
+export type SaveResultsResult =
+  | { status: "pending" }
+  /** Ese correo ya vigila todas estas palas */
+  | { status: "exists" }
+  | { status: "invalid"; field: "email" | "consent"; message: string }
+  | { status: "rate-limited" }
+  | { status: "unavailable" };
+
+/**
+ * «Guarda tus resultados»: envía las palas recomendadas por correo y deja, sin
+ * confirmar, un aviso de bajada para cada una. Un solo enlace del correo los
+ * activa todos; sin pulsarlo no se envía nada más y se borran a los pocos días.
+ */
+export async function saveResults(
+  request: SaveResultsRequest,
+  { repository, mailer, now = () => new Date() }: Deps,
+): Promise<SaveResultsResult> {
+  if (request.honeypot.trim() !== "") return { status: "pending" };
+
+  const email = normalizeEmail(request.email);
+  if (!email) return { status: "invalid", field: "email", message: "Escribe un correo válido." };
+  if (!request.consent) {
+    return { status: "invalid", field: "consent", message: "Necesitamos tu permiso para enviarte el correo." };
+  }
+  const items = request.items.slice(0, MAX_SAVED_RESULTS);
+  if (!mailer || items.length === 0) return { status: "unavailable" };
+
+  const at = now();
+  const since = new Date(at.getTime() - HOUR_MS).toISOString();
+  const ipHash = hashIp(request.ip);
+  const [byEmail, byIp] = await Promise.all([
+    repository.countRecent({ email }, since),
+    ipHash ? repository.countRecent({ ipHash }, since) : 0,
+  ]);
+  if (byEmail >= MAX_PER_EMAIL || byIp >= MAX_PER_IP) return { status: "rate-limited" };
+
+  // Una alerta por pala; las que ese correo ya tiene activas no se tocan.
+  const created: Alert[] = [];
+  const saved: SavedResult[] = [];
+  for (const item of items) {
+    const target = anyDropTarget(item.currentPrice);
+    const existing = await repository.findOpen(item.racket.id, email);
+    if (existing?.status === "active") continue;
+
+    let alert = existing;
+    if (alert) {
+      await repository.updateTarget(alert.id, target);
+      alert = { ...alert, targetPrice: target };
+    } else {
+      alert = await repository.create({
+        racketId: item.racket.id,
+        email,
+        targetPrice: target,
+        token: randomBytes(24).toString("base64url"),
+        consentAt: at.toISOString(),
+        ipHash,
+      });
+      created.push(alert);
+    }
+    saved.push({ alert, price: item.currentPrice, affinity: item.affinity });
+  }
+  if (saved.length === 0) return { status: "exists" };
+
+  try {
+    await mailer.send(resultsEmail(email, request.resultsPath, saved));
+  } catch (error) {
+    console.error("Alertas: no se pudo enviar el correo de resultados:", error instanceof Error ? error.message : error);
+    // Sin correo no hay forma de confirmarlas: no se dejan alertas huérfanas.
+    await Promise.all(created.map((alert) => repository.remove(alert.id)));
+    return { status: "unavailable" };
+  }
+  await Promise.all(saved.map(({ alert }) => repository.markConfirmationSent(alert.id, at.toISOString())));
+  return { status: "pending" };
+}
+
+/** Tiempo mínimo entre dos enlaces de acceso al mismo correo */
+const ACCESS_LINK_EVERY_MS = 5 * 60_000;
+const lastAccessLink = new Map<string, number>();
+
+export type AccessLinkResult =
+  /** Si ese correo tiene alertas, se le ha enviado el enlace. No se dice si las tiene. */
+  | { status: "sent" }
+  | { status: "invalid"; message: string }
+  | { status: "unavailable" };
+
+/**
+ * «Mis alertas»: envía al correo un enlace firmado para ver y gestionar sus
+ * alertas. La respuesta es la misma tenga o no alertas, para no revelar a nadie
+ * qué correos están apuntados; solo se envía si las tiene, y no más de una vez
+ * cada pocos minutos.
+ */
+export async function requestAccessLink(
+  rawEmail: string,
+  { repository, mailer, secret, now = () => new Date() }: Deps & { secret: string | null },
+): Promise<AccessLinkResult> {
+  const email = normalizeEmail(rawEmail);
+  if (!email) return { status: "invalid", message: "Escribe un correo válido." };
+  if (!mailer || !secret) return { status: "unavailable" };
+
+  const at = now();
+  const last = lastAccessLink.get(email) ?? 0;
+  if (at.getTime() - last < ACCESS_LINK_EVERY_MS) return { status: "sent" };
+  if ((await repository.listByEmail(email)).length === 0) return { status: "sent" };
+
+  try {
+    await mailer.send(accessEmail(email, createAccessToken(email, at, secret), ACCESS_LINK_DAYS));
+    lastAccessLink.set(email, at.getTime());
+  } catch (error) {
+    console.error("Alertas: no se pudo enviar el enlace de acceso:", error instanceof Error ? error.message : error);
+    return { status: "unavailable" };
+  }
+  return { status: "sent" };
 }
 
 export type TokenResult =

@@ -1,7 +1,7 @@
-// Recomendador «Pala ideal»: seis preguntas y un recuento de coincidencias.
-// No hay IA ni porcentajes inventados: cada respuesta se compara con un dato
-// declarado de la pala (nivel, estilo, forma, balance, tacto) o con su precio de
-// hoy, y la relevancia es, literalmente, cuántas respuestas cumple.
+// Recomendador «Pala ideal»: seis preguntas y una afinidad calculada. No hay IA
+// ni cifras inventadas: cada respuesta se compara con un dato declarado de la
+// pala (nivel, estilo, forma, balance, tacto) o con su precio de hoy, y el
+// porcentaje de afinidad sale de una fórmula fija sobre esas coincidencias.
 import { formatEuro } from "@/lib/format";
 import { BALANCE_LABELS, formatLevels, SHAPE_LABELS, STYLE_LABELS } from "@/lib/labels";
 import { routes } from "@/lib/routes";
@@ -46,6 +46,8 @@ export interface Recommendation {
   pala: PalaSummary;
   /** Respuestas que esta pala cumple */
   matched: RecommenderCriterion[];
+  /** Afinidad con las respuestas, de 0 a 100 (ver `affinity`) */
+  affinity: number;
 }
 
 /**
@@ -279,6 +281,87 @@ export function matchCriteria(prefs: RecommenderPrefs, racket: RacketTraits): Re
     ["budget", prefs.maxPrice !== null],
   ];
   return matched.filter(([, ok]) => ok).map(([criterion]) => criterion);
+}
+
+// Afinidad: la fórmula del diseño del quiz, sobre datos declarados de la pala.
+// Parte de una base y suma por cada respuesta que la pala cumple; no llega a 100
+// porque ninguna ficha declarada garantiza que la pala te vaya a gustar.
+export const AFFINITY = {
+  base: 62,
+  max: 97,
+  level: 12,
+  /** La pala declara niveles y el tuyo no está entre ellos */
+  levelMiss: -8,
+  style: 12,
+  /** Estilo contiguo: polivalente frente a control o potencia */
+  styleNear: 4,
+  shape: 6,
+  /** Sin forma elegida, la forma habitual para tu estilo de juego */
+  shapeForStyle: 4,
+  touch: 4,
+  side: 3,
+} as const;
+
+const STYLE_ORDER: PlayStyle[] = ["control", "polivalente", "potencia"];
+
+/** Formas que suelen acompañar a cada estilo de juego; solo desempata cuando no se elige forma. */
+const STYLE_SHAPES: Record<PlayStyle, PalaShape[]> = {
+  control: ["redonda"],
+  polivalente: ["lagrima", "hibrida"],
+  potencia: ["diamante"],
+};
+
+/**
+ * Afinidad de una pala con las respuestas, de 0 a 100. Es una estimación
+ * determinista: la misma pala y las mismas respuestas dan siempre el mismo
+ * número, y cada punto sale de un dato declarado (nivel, estilo, forma, tacto,
+ * balance). No mide opiniones ni resultados de nadie.
+ */
+export function affinity(prefs: RecommenderPrefs, racket: RacketTraits): number {
+  let score: number = AFFINITY.base;
+
+  if (prefs.level !== null && racket.levels.length > 0) {
+    score += racket.levels.includes(prefs.level) ? AFFINITY.level : AFFINITY.levelMiss;
+  }
+  if (prefs.style !== null && racket.playStyle !== null) {
+    const gap = Math.abs(STYLE_ORDER.indexOf(prefs.style) - STYLE_ORDER.indexOf(racket.playStyle));
+    if (gap === 0) score += AFFINITY.style;
+    else if (gap === 1) score += AFFINITY.styleNear;
+  }
+  if (prefs.shape !== null) {
+    if (racket.shape === prefs.shape) score += AFFINITY.shape;
+  } else if (prefs.style !== null && STYLE_SHAPES[prefs.style].includes(racket.shape)) {
+    score += AFFINITY.shapeForStyle;
+  }
+  if (prefs.touch !== null && matchesTouch(prefs.touch, racket.touch, racket.hardness)) {
+    score += AFFINITY.touch;
+  }
+  if (prefs.side !== null && racket.balance !== null && SIDE_BALANCES[prefs.side].includes(racket.balance)) {
+    score += AFFINITY.side;
+  }
+
+  return Math.max(0, Math.min(AFFINITY.max, score));
+}
+
+/**
+ * Ordena las candidatas: primero las de más afinidad; a igualdad, las que cumplen
+ * más respuestas, después la más barata hoy y, por último, el orden en que venían
+ * (el del catálogo). El precio solo desempata: no cambia el porcentaje.
+ */
+export function rankRecommendations<
+  T extends { matched: RecommenderCriterion[]; affinity: number; price: number | null },
+>(candidates: T[]): T[] {
+  const priceOf = (candidate: T) => candidate.price ?? Number.POSITIVE_INFINITY;
+  return candidates
+    .map((candidate, order) => ({ candidate, order }))
+    .sort(
+      (a, b) =>
+        b.candidate.affinity - a.candidate.affinity ||
+        b.candidate.matched.length - a.candidate.matched.length ||
+        priceOf(a.candidate) - priceOf(b.candidate) ||
+        a.order - b.order,
+    )
+    .map(({ candidate }) => candidate);
 }
 
 /** Tacto declarado de una pala, tal y como figura en sus especificaciones. */

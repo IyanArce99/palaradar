@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Finder, type FinderShowcase } from "@/components/finder/Finder";
 import { FinderEmpty, FinderResults } from "@/components/finder/FinderResults";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { countPalas, getPalaBySlug, getTopPalas, recommendPalas } from "@/data";
+import { alertsAvailable, countPalas, getPalaBySlug, getTopPalas, recommendPalas } from "@/data";
 import { isProductPhoto } from "@/lib/media";
 import { isComplete, parseFinderAnswers, toPrefs } from "@/lib/recommender";
 import { routes } from "@/lib/routes";
@@ -71,7 +71,7 @@ export default async function IdealPalaPage({ searchParams }: IdealPalaPageProps
       >
         {complete &&
           (top ? (
-            <FinderResults answers={answers} top={top} results={results} />
+            <FinderResults answers={answers} top={top} results={results} alertsEnabled={alertsAvailable()} />
           ) : (
             <FinderEmpty answers={answers} />
           ))}

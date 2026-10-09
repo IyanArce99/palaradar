@@ -2,9 +2,12 @@
 // Reproduce lo que hace PostgreSQL: las "tablas" son las filas de la semilla,
 // `racket_price_stats` y la vista `racket_catalog` se construyen una vez, y cada
 // consulta equivale a un SELECT con WHERE, ORDER BY y LIMIT/OFFSET.
+import { createHash } from "node:crypto";
 import { CATALOG_PAGE_SIZE, DEFAULT_QUERY, type CatalogQuery, type SortId } from "@/lib/catalog/query";
+import { isIndexablePala } from "@/lib/indexability";
 import { buildPriceHistory, computePriceStats } from "@/lib/pricing";
-import { matchCriteria } from "@/lib/recommender";
+import { affinity, matchCriteria, rankRecommendations } from "@/lib/recommender";
+import { sharedTraits } from "@/lib/similar";
 import type { PricePoint, StoreOffer } from "@/types/catalog";
 import type { RacketCatalogRow } from "@/types/db";
 import {
@@ -143,8 +146,20 @@ export function createMemoryRepository(): CatalogRepository {
 
   /** Orden por defecto: más tiendas con precio actual y, a igualdad, las más recientes. */
   const storesOf = (row: RacketCatalogRow) => (priceOf(row) === null ? -1 : (row.store_count ?? -1));
+  const photoOf = (row: RacketCatalogRow) => (row.photo_path ? 1 : 0);
+  // Desempate fijo y sin significado, como el md5(slug) de PostgreSQL: mezcla las marcas.
+  const hashOf = (row: RacketCatalogRow) => createHash("md5").update(row.slug).digest("hex");
+  const byHash = (a: RacketCatalogRow, b: RacketCatalogRow) => {
+    const [x, y] = [hashOf(a), hashOf(b)];
+    if (x === y) return 0;
+    return x < y ? -1 : 1;
+  };
   const byAvailability = (a: RacketCatalogRow, b: RacketCatalogRow) =>
-    storesOf(b) - storesOf(a) || b.year - a.year || bySlug(a, b);
+    storesOf(b) - storesOf(a) ||
+    photoOf(b) - photoOf(a) ||
+    b.year - a.year ||
+    byHash(a, b) ||
+    bySlug(a, b);
 
   /** Equivalente al ORDER BY; las palas sin precio actual van al final (NULLS LAST). */
   const orderBy: Record<SortId, (a: RacketCatalogRow, b: RacketCatalogRow) => number> = {
@@ -222,6 +237,14 @@ export function createMemoryRepository(): CatalogRepository {
       );
     },
 
+    async getPalaSummaries(slugs) {
+      const wanted = new Set(slugs);
+      return catalogRows
+        .filter((row) => wanted.has(row.slug))
+        .sort(bySlug)
+        .map((row) => toPalaSummary(row, now()));
+    },
+
     async getPriceHistory(slug) {
       const racket = tables.rackets.find((row) => row.slug === slug);
       if (!racket) return null;
@@ -238,6 +261,13 @@ export function createMemoryRepository(): CatalogRepository {
 
     async getAllPalaSlugs() {
       return catalogRows.map((row) => row.slug).sort();
+    },
+
+    async getIndexablePalas() {
+      const palas = await Promise.all(catalogRows.map((row) => repository.getPalaBySlug(row.slug)));
+      return palas
+        .flatMap((pala) => (pala && isIndexablePala(pala) ? [{ slug: pala.slug, brandSlug: pala.brand.slug }] : []))
+        .sort((a, b) => a.slug.localeCompare(b.slug));
     },
 
     async getPricedPalaSlugs() {
@@ -262,15 +292,47 @@ export function createMemoryRepository(): CatalogRepository {
       });
     },
 
+    async getTopRatedPalas(filters, limit) {
+      // La semilla no tiene puntuaciones externas: se devuelve el orden del catálogo, sin nota.
+      const query = { ...DEFAULT_QUERY, ...filters };
+      return catalogRows
+        .filter((row) => matches(row, query) && priceOf(row) !== null)
+        .sort(byAvailability)
+        .slice(0, limit)
+        .map((row) => ({ pala: toPalaSummary(row, now()), score: null }));
+    },
+
+    async getSimilarPalas(target, limit) {
+      const hasPhoto = (row: RacketCatalogRow) => (row.photo_path ? 1 : 0);
+      const distance = (row: RacketCatalogRow) =>
+        target.price === null ? 0 : Math.abs((priceOf(row) ?? 0) - target.price);
+
+      return catalogRows
+        .filter((row) => row.id !== target.id && row.shape === target.shape && priceOf(row) !== null)
+        .map((row) => ({
+          row,
+          shared: sharedTraits(target, { balance: row.balance, levels: row.levels, playStyle: row.play_style }),
+        }))
+        .sort(
+          (a, b) =>
+            b.shared.length - a.shared.length ||
+            hasPhoto(b.row) - hasPhoto(a.row) ||
+            distance(a.row) - distance(b.row) ||
+            byAvailability(a.row, b.row),
+        )
+        .slice(0, limit)
+        .map(({ row, shared }) => ({ pala: toPalaSummary(row, now()), shared }));
+    },
+
     async recommendPalas(prefs, limit) {
       const racketsById = new Map(tables.rackets.map((racket) => [racket.id, racket]));
 
-      return catalogRows
+      const ordered = catalogRows
         .flatMap((row) => {
           const racket = racketsById.get(row.id);
           if (!racket) return [];
 
-          const matched = matchCriteria(prefs, {
+          const traits = {
             levels: row.levels,
             playStyle: row.play_style,
             shape: row.shape,
@@ -278,12 +340,15 @@ export function createMemoryRepository(): CatalogRepository {
             touch: racket.technical_specs.find((spec) => spec.label === "Tacto")?.value ?? null,
             hardness: racket.hardness ?? null,
             price: priceOf(row),
-          });
-          return matched ? [{ row, matched }] : [];
+          };
+          const matched = matchCriteria(prefs, traits);
+          return matched ? [{ row, matched, affinity: affinity(prefs, traits), price: traits.price }] : [];
         })
-        .sort((a, b) => b.matched.length - a.matched.length || byAvailability(a.row, b.row))
+        .sort((a, b) => b.matched.length - a.matched.length || byAvailability(a.row, b.row));
+
+      return rankRecommendations(ordered)
         .slice(0, limit)
-        .map(({ row, matched }) => ({ pala: toPalaSummary(row, now()), matched }));
+        .map(({ row, matched, affinity: score }) => ({ pala: toPalaSummary(row, now()), matched, affinity: score }));
     },
   };
 

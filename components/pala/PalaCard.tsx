@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CompareToggle } from "@/components/compare/CompareSelection";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
 import { PriceDropBadge } from "@/components/ui/PriceDropBadge";
 import { RatingInline } from "@/components/ui/Rating";
@@ -22,6 +23,8 @@ interface PalaCardProps {
   photoClassName?: string;
   /** Destino de la tarjeta; por defecto, la ficha de la pala */
   href?: string;
+  /** Enseña el botón «Comparar» sobre la foto (listados del catálogo) */
+  compare?: boolean;
   className?: string;
 }
 
@@ -91,6 +94,7 @@ export function PalaCard({
   badge,
   photoClassName = "h-[170px] lg:h-[260px]",
   href = routes.pala(pala.slug),
+  compare = false,
   className,
 }: PalaCardProps) {
   const fullName = `${pala.brand.name} ${pala.model}`;
@@ -108,6 +112,9 @@ export function PalaCard({
         alt={palaAlt(pala)}
         className={cn("rounded-2xl transition-[filter] group-hover:brightness-[0.97]", photoClassName)}
       />
+      {compare && (
+        <CompareToggle pala={{ slug: pala.slug, name: fullName }} className="absolute top-2 right-2" />
+      )}
       <div>
         {variant === "alternative" ? (
           <>

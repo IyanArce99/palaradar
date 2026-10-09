@@ -7,15 +7,16 @@ import { EmptyNote } from "@/components/ui/EmptyNote";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
 import { PriceDropBadge } from "@/components/ui/PriceDropBadge";
 import type { MonthlyDrop } from "@/data";
-import { catalogHref } from "@/lib/catalog/query";
+import type { GuideCover } from "@/data/guides";
+import { listingHref } from "@/lib/catalog/collections";
 import { cn } from "@/lib/cn";
 import { comparePath } from "@/lib/compare";
 import { formatEuro, pluralize } from "@/lib/format";
 import { BALANCE_LABELS, SHAPE_LABELS } from "@/lib/labels";
 import { palaAlt } from "@/lib/media";
-import { chartSeries } from "@/lib/pricing";
+import { chartSeries, DEFAULT_CHART_RANGE } from "@/lib/pricing";
 import { routes } from "@/lib/routes";
-import type { Guide, Pala, PalaSummary } from "@/types/catalog";
+import type { Pala, PalaSummary } from "@/types/catalog";
 import type { PriceSummary } from "@/types/pricing";
 import type { CatalogShortcut } from "@/config/navigation";
 
@@ -23,7 +24,12 @@ const titleClass =
   "text-2xl leading-[1.08] font-black tracking-[-0.025em] text-balance lg:text-[34px]";
 const leadClass = "mt-1.5 text-sm leading-[1.45] text-pretty text-muted lg:mt-2 lg:text-[15px]";
 
+/** Con menos ofertas que estas, el bloque comparte fila en escritorio para no dejar media fila vacía */
+export const FULL_ROW_DEALS = 3;
+
 export function DealsSection({ deals }: { deals: PalaSummary[] }) {
+  const fullRow = deals.length >= FULL_ROW_DEALS;
+
   return (
     <section aria-labelledby="ofertas-hoy">
       <div className="flex items-baseline justify-between">
@@ -40,7 +46,12 @@ export function DealsSection({ deals }: { deals: PalaSummary[] }) {
           aparecerá aquí.
         </EmptyNote>
       ) : (
-        <ul className="scrollbar-none -mx-5 mt-4 flex snap-x snap-mandatory scroll-px-5 gap-3.5 overflow-x-auto px-5 pb-1 lg:mx-0 lg:mt-6 lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:px-0">
+        <ul
+          className={cn(
+            "scrollbar-none -mx-5 mt-4 flex snap-x snap-mandatory scroll-px-5 gap-3.5 overflow-x-auto px-5 pb-1 lg:mx-0 lg:mt-6 lg:grid lg:gap-6 lg:overflow-visible lg:px-0",
+            fullRow ? "lg:grid-cols-4" : "lg:grid-cols-2",
+          )}
+        >
           {deals.map((pala) => (
             <li key={pala.id} className="w-[190px] flex-none snap-start lg:w-auto">
               <PalaCard pala={pala} variant="offer" photoClassName="h-[190px] lg:h-[260px]" />
@@ -60,12 +71,21 @@ export function MostStoresSection({ palas }: { palas: PalaSummary[] }) {
       </h2>
       {/* El criterio es el orden por defecto del catálogo: tiendas con precio vigente y año. */}
       <p className={leadClass}>
-        Las palas que más tiendas tienen a la venta ahora mismo; a igualdad, las más recientes.
+        Las palas que más tiendas tienen a la venta ahora mismo; a igualdad, las más recientes. No
+        es un ranking de ventas ni de popularidad.
       </p>
-      <ul className="mt-2 lg:mt-2.5">
+      {/* Filas en móvil; en escritorio, tarjetas con su foto a todo el ancho. */}
+      <ul className="mt-2 lg:hidden">
         {palas.map((pala) => (
           <li key={pala.id}>
             <PalaRow pala={pala} />
+          </li>
+        ))}
+      </ul>
+      <ul className="mt-6 hidden grid-cols-4 gap-6 lg:grid">
+        {palas.map((pala) => (
+          <li key={pala.id}>
+            <PalaCard pala={pala} photoClassName="h-[240px]" />
           </li>
         ))}
       </ul>
@@ -73,7 +93,13 @@ export function MostStoresSection({ palas }: { palas: PalaSummary[] }) {
   );
 }
 
-export function MonthlyDropsSection({ drops }: { drops: MonthlyDrop[] }) {
+interface MonthlyDropsSectionProps {
+  drops: MonthlyDrop[];
+  /** A todo el ancho en escritorio: las bajadas van en columnas en vez de en una lista */
+  wide?: boolean;
+}
+
+export function MonthlyDropsSection({ drops, wide = false }: MonthlyDropsSectionProps) {
   return (
     <section aria-labelledby="bajadas">
       <h2 id="bajadas" className={titleClass}>
@@ -85,7 +111,7 @@ export function MonthlyDropsSection({ drops }: { drops: MonthlyDrop[] }) {
           que más han bajado.
         </EmptyNote>
       )}
-      <ul className="mt-3 lg:mt-5">
+      <ul className={cn("mt-3 lg:mt-5", wide && "lg:grid lg:grid-cols-3 lg:gap-x-10")}>
         {drops.map(({ pala, from, to, percent }) => (
           <li
             key={pala.id}
@@ -125,7 +151,7 @@ export function DiscoverSection({ shortcuts }: { shortcuts: ShortcutWithCount[] 
           {shortcuts.map((shortcut) => (
             <li key={shortcut.label}>
               <Link
-                href={catalogHref(shortcut.query)}
+                href={listingHref(shortcut.query)}
                 className="flex h-full min-h-[84px] flex-col justify-between rounded-2xl border border-line p-3.5 hover:bg-mist lg:min-h-[110px] lg:rounded-[18px] lg:p-5"
               >
                 <span className="text-[15px] leading-[1.2] font-extrabold lg:text-lg">
@@ -238,7 +264,8 @@ interface PriceWatchSectionProps {
 
 export function PriceWatchSection({ featured }: PriceWatchSectionProps) {
   const hasChart =
-    featured !== null && chartSeries(featured.pala.priceHistory, featured.price, 12).length >= 2;
+    featured !== null &&
+    chartSeries(featured.pala.priceHistory, featured.price, DEFAULT_CHART_RANGE).length >= 2;
 
   return (
     <section aria-labelledby="barata-ahora" className="lg:rounded-3xl lg:bg-mist lg:p-7">
@@ -264,7 +291,7 @@ export function PriceWatchSection({ featured }: PriceWatchSectionProps) {
             <PriceChart
               history={featured.pala.priceHistory}
               price={featured.price}
-              months={12}
+              months={DEFAULT_CHART_RANGE}
               width={340}
               height={120}
               className="mt-2"
@@ -290,7 +317,7 @@ export function PriceWatchSection({ featured }: PriceWatchSectionProps) {
   );
 }
 
-export function GuidesSection({ guides }: { guides: Guide[] }) {
+export function GuidesSection({ guides }: { guides: GuideCover[] }) {
   if (guides.length === 0) return null;
 
   return (
@@ -304,21 +331,22 @@ export function GuidesSection({ guides }: { guides: Guide[] }) {
         </Link>
       </div>
       <ul className="mt-4 grid gap-3.5 lg:mt-6 lg:grid-cols-3 lg:gap-6">
-        {guides.map((guide) => (
+        {guides.map(({ guide, image }) => (
           <li
             key={guide.slug}
-            className="grid grid-cols-[110px_1fr] items-center gap-3.5 lg:block"
+            className="group relative grid grid-cols-[110px_1fr] items-center gap-3.5 lg:block"
           >
             <PalaPhoto
-              src={guide.image}
+              src={image}
               alt=""
-              fit="cover"
               sizes="(min-width: 1024px) 33vw, 110px"
               className="h-[84px] rounded-[14px] lg:h-[220px] lg:rounded-[20px]"
             />
             <div>
               <h3 className="text-base leading-[1.2] font-extrabold lg:mt-3.5 lg:text-xl lg:font-black">
-                {guide.title}
+                <Link href={routes.guide(guide.slug)} className="after:absolute after:inset-0 group-hover:underline">
+                  {guide.title}
+                </Link>
               </h3>
               <p className="mt-[3px] text-[13px] text-muted lg:mt-1 lg:text-[15px]">
                 {guide.subtitle}

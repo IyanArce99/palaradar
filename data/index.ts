@@ -1,16 +1,18 @@
 // Punto de entrada de la capa de datos: lo único que importan páginas y
 // componentes. Aquí se decide de dónde salen los datos; el resto de la
 // aplicación no lo sabe.
+import { resolveAlertsAvailable } from "@/alerts/availability";
 import { pricingConfig } from "@/config/pricing";
 import { featuredPalaSlug, guides } from "@/content/guides";
 import { DEFAULT_QUERY } from "@/lib/catalog/query";
+import type { RecentActivity } from "@/lib/compare-insights";
 import type { Guide, Pala, PalaSummary } from "@/types/catalog";
 import { getDatabaseUrl } from "./db/client";
 import { createMemoryRepository } from "./memory-repository";
 import { createPostgresRepository } from "./postgres-repository";
 import type { CatalogRepository } from "./repository";
 
-export type { CatalogFacets, CatalogResult, MonthlyDrop } from "./repository";
+export type { CatalogFacets, CatalogResult, MonthlyDrop, RatedPala } from "./repository";
 
 export type DataSource = "database" | "mock";
 
@@ -58,6 +60,13 @@ function getRepository(): CatalogRepository {
  */
 export const hasTestPrices = dataSource === "mock" || pricingConfig.includeDemoStores;
 
+/**
+ * true si las alertas de precio funcionan de principio a fin y, por tanto, se
+ * pueden ofrecer: ver alerts/availability.ts. Se evalúa en cada petición del
+ * servidor, así que activarlas solo requiere configurar el envío de correo.
+ */
+export const alertsAvailable = () => resolveAlertsAvailable(dataSource);
+
 export const searchCatalog: CatalogRepository["searchCatalog"] = (query, options) =>
   getRepository().searchCatalog(query, options);
 export const countPalas: CatalogRepository["countPalas"] = (filters) =>
@@ -66,15 +75,25 @@ export const getCatalogFacets = () => getRepository().getCatalogFacets();
 export const getBrands = () => getRepository().getBrands();
 export const getBrandBySlug = (slug: string) => getRepository().getBrandBySlug(slug);
 export const getPalaBySlug = (slug: string) => getRepository().getPalaBySlug(slug);
+/** Proyección de tarjeta de varias palas, en una sola consulta. */
+export const getPalaSummaries = (slugs: string[]) => getRepository().getPalaSummaries(slugs);
 /** Histórico global («mejor precio del mercado por día») y por tienda de una pala. */
 export const getPriceHistory = (slug: string) => getRepository().getPriceHistory(slug);
 export const getAllPalaSlugs = () => getRepository().getAllPalaSlugs();
+/** Fichas aptas para indexarse, con su marca: de ellas sale el sitemap (lib/indexability.ts). */
+export const getIndexablePalas = () => getRepository().getIndexablePalas();
 export const getPricedPalaSlugs = () => getRepository().getPricedPalaSlugs();
 export const getBiggestMonthlyDrops = (limit: number) =>
   getRepository().getBiggestMonthlyDrops(limit);
 export const getAlternativePairs = () => getRepository().getAlternativePairs();
 export const recommendPalas: CatalogRepository["recommendPalas"] = (prefs, limit) =>
   getRepository().recommendPalas(prefs, limit);
+/** Palas a la venta mejor puntuadas por la fuente externa, con unos filtros: las selecciones de las guías. */
+export const getTopRatedPalas: CatalogRepository["getTopRatedPalas"] = (filters, limit) =>
+  getRepository().getTopRatedPalas(filters, limit);
+/** Palas parecidas a una dada, entre las que están a la venta (lib/similar.ts). */
+export const getSimilarPalas: CatalogRepository["getSimilarPalas"] = (target, limit) =>
+  getRepository().getSimilarPalas(target, limit);
 
 /** Palas rebajadas respecto a su precio anterior, de mayor a menor descuento. */
 export async function getDeals(limit: number): Promise<PalaSummary[]> {
@@ -106,6 +125,16 @@ export async function getFeaturedPala(): Promise<Pala | null> {
 
   const [first] = await getTopPalas(1);
   return first ? getRepository().getPalaBySlug(first.slug) : null;
+}
+
+/**
+ * Actividad reciente del comparador. Hoy no se registra qué comparaciones se
+ * abren, así que no hay nada que enseñar: devuelve la actividad vacía y el
+ * bloque «Comparaciones recientes» no aparece. Cuando exista ese registro, este
+ * es el único sitio que hay que cambiar; nunca se rellena con datos de ejemplo.
+ */
+export async function getRecentComparisons(): Promise<RecentActivity> {
+  return { weekCount: 0, items: [] };
 }
 
 export async function getGuides(): Promise<Guide[]> {
