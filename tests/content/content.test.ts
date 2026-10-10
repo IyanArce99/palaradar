@@ -45,12 +45,12 @@ describe("colecciones del catálogo", () => {
   it("los filtros exactos de una colección llevan a su página; con algo más, no", () => {
     const redondas = { ...DEFAULT_QUERY, shapes: ["redonda" as const] };
     assert.equal(collectionForQuery(redondas)?.slug, "redondas");
-    assert.equal(collectionForQuery({ ...redondas, balances: ["bajo"] }), null);
+    assert.equal(collectionForQuery({ ...redondas, balances: ["alto"] }), null);
     assert.equal(collectionForQuery({ ...redondas, sort: "precio" }), null);
     assert.equal(collectionForQuery({ ...redondas, q: "nox" }), null);
 
     assert.equal(listingHref({ styles: ["control"] }), "/palas-padel/control/");
-    assert.equal(listingHref({ shapes: ["redonda"], balances: ["bajo"] }), "/palas-padel/?forma=redonda&balance=bajo");
+    assert.equal(listingHref({ shapes: ["redonda"], balances: ["alto"] }), "/palas-padel/?forma=redonda&balance=alto");
   });
 
   it("el catálogo filtrado declara como canónica la página de la colección", () => {
@@ -69,13 +69,22 @@ describe("colecciones del catálogo", () => {
     const pala = { shape: "redonda", playStyle: "control", levels: ["iniciacion"], year: 2026, price: 89 };
     assert.deepEqual(
       collectionsForPala(pala).map((c) => c.slug),
-      ["redondas", "control", "principiantes", "menos-de-100-euros", "menos-de-150-euros", "2026"],
+      ["redondas", "control", "principiantes", "menos-de-100-euros", "menos-de-150-euros", "menos-de-200-euros", "2026"],
     );
     // Sin precio vigente no entra en las de precio; sin estilo declarado, en ninguna de juego.
     assert.deepEqual(
       collectionsForPala({ ...pala, playStyle: null, price: null }).map((c) => c.slug),
       ["redondas", "principiantes", "2026"],
     );
+  });
+
+  it("una colección con dos filtros exige los dos: sin balance declarado no es «manejable»", () => {
+    const pala = { shape: "redonda", playStyle: null, levels: [], year: 2024, price: null };
+    const slugs = (balance: string | null) => collectionsForPala({ ...pala, balance }).map((c) => c.slug);
+    assert.deepEqual(slugs("bajo"), ["redondas", "manejables"]);
+    assert.deepEqual(slugs("alto"), ["redondas"]);
+    assert.deepEqual(slugs(null), ["redondas"]);
+    assert.equal(listingHref({ shapes: ["redonda"], balances: ["bajo"] }), "/palas-padel/manejables/");
   });
 });
 
@@ -106,7 +115,7 @@ describe("guías", () => {
   it("los enlaces internos del texto apuntan a rutas del sitio", () => {
     for (const guide of guides) {
       for (const link of guide.blocks.flatMap((block) => block.links ?? [])) {
-        assert.match(link.href, /^\/(palas-padel|guias|ofertas)\//, `${guide.slug}: ${link.href}`);
+        assert.match(link.href, /^\/(palas-padel|guias|ofertas|comparar|pala-ideal)\//, `${guide.slug}: ${link.href}`);
         const collection = /^\/palas-padel\/([a-z0-9-]+)\/$/.exec(link.href)?.[1];
         if (collection) assert.ok(getCollection(collection), `${guide.slug} → ${link.href}`);
         const other = /^\/guias\/([a-z0-9-]+)\/$/.exec(link.href)?.[1];

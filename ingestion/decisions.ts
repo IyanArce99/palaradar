@@ -3,6 +3,10 @@
 // repetible: una decisión ya aplicada no cambia nada, y una cuyo punto de partida
 // ya no es el que se revisó detiene la carga sin escribir nada.
 //
+// Un `match` sin `from` sobre un producto ya emparejado con esa misma pala es una
+// confirmación: solo actualiza la confianza y el motivo. Cambiar de pala sigue
+// exigiendo `from`, que es lo que retira el precio y decide qué pasa con el histórico.
+//
 // Todo queda con `matching_method = 'manual'`, que la ingestión respeta y no
 // recalcula (ver resolveMatch en run.ts).
 import { refreshPriceStats } from "@/data/db/admin";
@@ -55,6 +59,8 @@ export interface DecisionReport {
   matched: number;
   rejected: number;
   inReview: number;
+  /** Enlaces que ya existían con esa misma pala y solo cambian de confianza o de motivo */
+  confirmed: number;
   /** Decisiones que ya estaban aplicadas */
   unchanged: number;
   gtinsAdded: number;
@@ -293,6 +299,22 @@ async function applyProduct(context: Context, decision: ProductDecision, storeId
     return;
   }
 
+  // Confirmación: el producto ya está emparejado con esa misma pala y la decisión
+  // no corrige ningún enlace. Solo cambian la confianza y el motivo (y queda como
+  // decisión manual): ni la pala, ni el precio publicado, ni el histórico, ni los
+  // identificadores se tocan.
+  if (decision.decision === "match" && !decision.from && product.matching_status === "matched" && product.racket_id === toId) {
+    await tx`
+      update store_products set matching_method = 'manual', matching_confidence = ${confidence}, matching_note = ${decision.reason}
+      where id = ${product.id}`;
+    report.confirmed++;
+    report.log.push(
+      `${key} «${decision.title}»: sigue en ${decision.racket}; confianza ${product.matching_confidence ?? "sin indicar"} → ${confidence}` +
+        (product.matching_method === "manual" ? "" : `, método ${product.matching_method ?? "sin indicar"} → manual`),
+    );
+    return;
+  }
+
   // El punto de partida tiene que ser el que se revisó.
   const fromId = decision.from ? racketId(decision.from) : null;
   if (fromId && product.racket_id !== fromId) {
@@ -371,7 +393,7 @@ export async function applyDecisions(sql: Sql, file: DecisionFile, now: Date = n
     }
 
     const report: DecisionReport = {
-      racketsFixed: 0, matched: 0, rejected: 0, inReview: 0, unchanged: 0, gtinsAdded: 0,
+      racketsFixed: 0, matched: 0, rejected: 0, inReview: 0, confirmed: 0, unchanged: 0, gtinsAdded: 0,
       identifiersMoved: 0, identifiersRemoved: 0, pricesMoved: 0, pricesRemoved: 0,
       historyMoved: 0, historyDeleted: 0, duplicates: [], log: [],
     };
@@ -406,8 +428,13 @@ export async function applyDecisions(sql: Sql, file: DecisionFile, now: Date = n
     await fixIdentifiers(context, file.identifiers ?? []);
 
     report.duplicates = await findDuplicates(tx, context.touched);
-    // Los agregados de precio se recalculan con los enlaces ya corregidos.
-    await refreshPriceStats(tx, now);
+    // Los agregados de precio se recalculan con los enlaces ya corregidos. Si
+    // ningún enlace ni identificador ha cambiado (solo confirmaciones o decisiones
+    // ya aplicadas), no hay nada que recalcular y no se toca ningún dato de precio.
+    const linksChanged =
+      report.racketsFixed + report.matched + report.rejected + report.inReview +
+      report.gtinsAdded + report.identifiersMoved + report.identifiersRemoved > 0;
+    if (linksChanged) await refreshPriceStats(tx, now);
     return report;
   });
 }

@@ -15,6 +15,7 @@
     "prices:dry-run": "tsx --env-file-if-exists=.env.local scripts/prices/dry-run.ts",
     "prices:ingest": "tsx --env-file-if-exists=.env.local scripts/prices/ingest.ts",
     "prices:pending": "tsx --env-file-if-exists=.env.local scripts/prices/pending.ts",
+    "quality:report": "tsx --env-file-if-exists=.env.local scripts/quality/report.ts",
     "prices:decisions": "tsx --env-file-if-exists=.env.local scripts/prices/decisions.ts",
     "catalog:import": "tsx --env-file-if-exists=.env.local scripts/catalog/import.ts",
     "alerts:send": "tsx --env-file-if-exists=.env.local scripts/alerts/send.ts",

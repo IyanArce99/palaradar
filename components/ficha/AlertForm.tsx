@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { createAlertAction, type AlertFormState } from "@/app/alertas/actions";
+import { TrackView } from "@/components/analytics/TrackView";
+import { ANALYTICS_EVENTS } from "@/lib/analytics";
 import { formatEuroCompact } from "@/lib/format";
 import { routes } from "@/lib/routes";
 
@@ -28,6 +30,8 @@ export function AlertForm({ slug, target }: AlertFormProps) {
   if (state.status === "pending") {
     return (
       <p role="status" className="mt-3.5 rounded-[14px] bg-white/10 p-4 text-[15px] leading-normal">
+        {/* Solo la pala: el correo nunca sale hacia la analítica. */}
+        <TrackView event={ANALYTICS_EVENTS.alertCreate} props={{ pala: slug, origen: "ficha" }} />
         <strong className="block">Revisa tu correo.</strong>
         Te hemos enviado un enlace para confirmar la alerta. Hasta que lo pulses no estará activa.
       </p>

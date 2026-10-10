@@ -27,6 +27,7 @@ function print(report: DecisionReport): void {
   console.log(`Productos emparejados:       ${report.matched}`);
   console.log(`Productos rechazados:        ${report.rejected}`);
   console.log(`Productos que siguen en revisión, con motivo: ${report.inReview}`);
+  console.log(`Enlaces confirmados (solo confianza y motivo): ${report.confirmed}`);
   console.log(`Decisiones ya aplicadas:     ${report.unchanged}`);
   console.log(`EAN añadidos a palas:        ${report.gtinsAdded}`);
   console.log(`Identificadores movidos:     ${report.identifiersMoved} · quitados: ${report.identifiersRemoved}`);

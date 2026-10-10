@@ -5,6 +5,7 @@ import { chartSeries, MAX_CHART_RANGE } from "@/lib/pricing";
 import type { PricePoint } from "@/types/catalog";
 import type { PriceSummary } from "@/types/pricing";
 import { PriceHistory } from "./PriceHistory";
+import { PriceStatsPanel } from "./PriceStatsPanel";
 import { SectionTitle } from "./SectionTitle";
 
 const TITLE_ID = "precio-historico";
@@ -58,6 +59,7 @@ export function PriceInsight({ price, history, className }: PriceInsightProps) {
       <PriceHistory title={title} history={history} price={price}>
         {answer}
       </PriceHistory>
+      <PriceStatsPanel price={price} history={history} className="mt-5 lg:mt-6" />
     </section>
   );
 }

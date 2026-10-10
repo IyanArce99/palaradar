@@ -9,6 +9,11 @@ export const routes = {
   deals: "/ofertas/",
   compare: "/comparar/",
   guides: "/guias/",
+  /** Informes calculados con los datos del catálogo */
+  reports: "/informes/",
+  report: (slug: string) => `/informes/${slug}/`,
+  /** Recomendador a partir de la pala que ya se tiene */
+  upgrade: "/pala-ideal/mi-pala/",
   scan: "/escanear/",
   idealPala: "/pala-ideal/",
   privacy: "/privacidad/",
@@ -18,6 +23,8 @@ export const routes = {
   alertCancelApi: "/api/alertas/baja/",
   /** Alertas de un correo, con el acceso que se le envía */
   myAlerts: "/mis-alertas/",
+  /** Palas guardadas en el navegador */
+  favorites: "/favoritos/",
   /** Sugerencias del buscador de palas (JSON) */
   searchApi: "/api/palas/",
 } as const;

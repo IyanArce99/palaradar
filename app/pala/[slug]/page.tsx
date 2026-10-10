@@ -21,15 +21,22 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
 import { ModelSeasons } from "@/components/ficha/ModelSeasons";
+import { TrackView } from "@/components/analytics/TrackView";
+import { DataReliability } from "@/components/ficha/DataReliability";
 import {
   alertsAvailable,
+  getAlternativeCandidates,
+  getModelSeasons,
   getPalaBySlug,
   getPricedPalaSlugs,
   getSimilarPalas,
   hasTestPrices,
   searchCatalog,
 } from "@/data";
-import { sameModelSeasons, similarityReason, similarityTarget } from "@/lib/similar";
+import { alternativeTarget, buildAlternativeGroups, type AlternativeGroup } from "@/lib/alternatives";
+import { ANALYTICS_EVENTS } from "@/lib/analytics";
+import { compareSeasons, type SeasonComparison } from "@/lib/seasons";
+import { similarityReason, similarityTarget } from "@/lib/similar";
 import { catalogHref, DEFAULT_QUERY, type CatalogQuery } from "@/lib/catalog/query";
 import { cn } from "@/lib/cn";
 import { isIndexablePala } from "@/lib/indexability";
@@ -48,8 +55,10 @@ const HIGHLIGHTS_ID = "opiniones-destacadas";
 const STORES_ID = "tiendas";
 const ALERT_ID = "alerta";
 const RELATED_COUNT = 4;
-/** Resultados de la búsqueda por modelo entre los que se buscan sus otras temporadas */
-const SEASONS_POOL = 24;
+/** Temporadas del mismo modelo que se comparan en la ficha */
+const MAX_SEASONS = 4;
+/** Alternativas que se enseñan por objetivo: las mismas que caben en una fila */
+const ALTERNATIVES_PER_MODE = 4;
 
 // La ficha se recorre como quien decide una compra: qué es → precio y tiendas →
 // características → cómo se siente → evolución del precio → otras temporadas y
@@ -129,13 +138,27 @@ async function relatedPalas(pala: Pala): Promise<Related> {
   };
 }
 
-/** Otras temporadas del mismo modelo que están en el catálogo. */
-async function modelSeasons(pala: Pala): Promise<PalaSummary[]> {
-  const { items } = await searchCatalog(
-    { ...DEFAULT_QUERY, q: pala.model, brands: [pala.brand.slug] },
-    { pageSize: SEASONS_POOL },
+/**
+ * Otras temporadas del mismo modelo que están en el catálogo, ya comparadas con
+ * la de la ficha (lib/seasons.ts). Hace falta la pala completa de cada una para
+ * enfrentar sus características; son pocas por modelo y se acotan.
+ */
+async function modelSeasons(pala: Pala): Promise<SeasonComparison[]> {
+  const seasons = await getModelSeasons(
+    { slug: pala.slug, brandSlug: pala.brand.slug, model: pala.model, year: pala.year },
+    MAX_SEASONS,
   );
-  return sameModelSeasons(pala, items);
+  const full = await Promise.all(seasons.map((season) => getPalaBySlug(season.slug)));
+  return full.flatMap((other) => (other ? [compareSeasons(pala, other)] : []));
+}
+
+/** Alternativas por objetivo (más barata, más control…) entre las palas a la venta. */
+async function alternativeGroups(pala: Pala, currentPrice: number | null): Promise<AlternativeGroup[]> {
+  return buildAlternativeGroups(
+    { ...alternativeTarget(pala), price: currentPrice },
+    await getAlternativeCandidates(),
+    ALTERNATIVES_PER_MODE,
+  );
 }
 
 export default async function PalaPage({ params }: PalaPageProps) {
@@ -149,7 +172,11 @@ export default async function PalaPage({ params }: PalaPageProps) {
   const currentPrice = price && price.freshness !== "stale" ? price.current : null;
   const faq = [...pala.faq, ...buildFaq(pala)];
   const hasReviews = pala.reviews.length > 0;
-  const [related, seasons] = await Promise.all([relatedPalas(pala), modelSeasons(pala)]);
+  const [related, seasons, groups] = await Promise.all([
+    relatedPalas(pala),
+    modelSeasons(pala),
+    alternativeGroups(pala, currentPrice),
+  ]);
 
   // Las alertas solo se ofrecen si funcionan de principio a fin (alerts/availability.ts).
   const alertHref = alertsAvailable() ? `#${ALERT_ID}` : null;
@@ -162,6 +189,10 @@ export default async function PalaPage({ params }: PalaPageProps) {
 
   return (
     <article>
+      <TrackView
+        event={ANALYTICS_EVENTS.viewPala}
+        props={{ pala: pala.slug, marca: pala.brand.slug, con_precio: currentPrice !== null }}
+      />
       <JsonLd data={productJsonLd({ pala, path, includeOffers: !hasTestPrices })} />
       {faq.length > 0 && <JsonLd data={faqJsonLd(faq)} />}
 
@@ -257,8 +288,12 @@ export default async function PalaPage({ params }: PalaPageProps) {
                 className={cn(BLOCK, "max-lg:order-5")}
               />
               {/* En móvil las tiendas van justo debajo del precio: es lo que busca quien quiere comprar. */}
-              <StoreList price={price} id={STORES_ID} className={cn(BLOCK_WIDE, "max-lg:order-2")} />
-            </>
+              <StoreList
+                price={price}
+                palaSlug={pala.slug}
+                id={STORES_ID}
+                className={cn(BLOCK_WIDE, "max-lg:order-2")}
+              />            </>
           )}
 
           {hasReviews && (
@@ -269,8 +304,9 @@ export default async function PalaPage({ params }: PalaPageProps) {
           )}
 
           <ModelSeasons pala={pala} seasons={seasons} className={cn(BLOCK, "max-lg:order-9")} />
-          <Alternatives pala={pala} {...related} className={cn(BLOCK, "max-lg:order-9")} />
+          <Alternatives pala={pala} {...related} groups={groups} className={cn(BLOCK, "max-lg:order-9")} />
           <SpecsTable pala={pala} className={cn(BLOCK, "max-lg:order-10")} />
+          <DataReliability pala={pala} className={cn(BLOCK, "max-lg:order-10")} />
           {faq.length > 0 && (
             <div className={cn(BLOCK, "max-lg:order-11")}>
               <Faq items={faq} />
@@ -282,6 +318,7 @@ export default async function PalaPage({ params }: PalaPageProps) {
             title="Más palas como esta"
             items={collectionsForPala({
               shape: pala.shape,
+              balance: pala.balance,
               playStyle: pala.playStyle,
               levels: pala.levels,
               year: pala.year,

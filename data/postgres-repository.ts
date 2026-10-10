@@ -2,7 +2,13 @@
 // búsqueda, orden y paginación se resuelven en SQL sobre la vista
 // `racket_catalog`, nunca trayendo el catálogo para filtrarlo en memoria.
 import { pricingConfig } from "@/config/pricing";
-import { CATALOG_PAGE_SIZE, DEFAULT_QUERY, type CatalogQuery, type SortId } from "@/lib/catalog/query";
+import {
+  CATALOG_PAGE_SIZE,
+  COMPARABLE_STORES,
+  DEFAULT_QUERY,
+  type CatalogQuery,
+  type SortId,
+} from "@/lib/catalog/query";
 import { assessIndexability } from "@/lib/indexability";
 import { buildPriceHistory } from "@/lib/pricing";
 import {
@@ -13,6 +19,7 @@ import {
   TOUCH_MATCHES,
 } from "@/lib/recommender";
 import { sharedTraits } from "@/lib/similar";
+import type { PalaSummary } from "@/types/catalog";
 import type {
   BrandRow,
   RacketCatalogRow,
@@ -104,6 +111,11 @@ function whereClause(sql: Sql, query: CatalogQuery): Fragment {
   if (query.maxPrice !== null) {
     conditions.push(sql`best_price <= ${query.maxPrice} and ${current}`);
   }
+  // Cobertura de precio: la misma regla de vigencia que el resto de filtros de precio.
+  if (query.coverage.includes("con-precio")) conditions.push(sql`best_price is not null and ${current}`);
+  if (query.coverage.includes("varias-tiendas")) {
+    conditions.push(sql`store_count >= ${COMPARABLE_STORES} and ${current}`);
+  }
 
   return conditions.reduce((all, condition) => sql`${all} and ${condition}`, sql`true`);
 }
@@ -116,8 +128,12 @@ function whereClause(sql: Sql, query: CatalogQuery): Fragment {
  * hash del slug) para que las empatadas no salgan agrupadas por marca.
  */
 function availabilityOrder(sql: Sql): Fragment {
+  // Entre palas igual de disponibles, antes la mejor documentada (balance, estilo y
+  // nivel declarados): una ficha con menos datos no adelanta a otra por ser más nueva.
   return sql`case when ${hasCurrentPrice(sql)} then store_count end desc nulls last,
-    (photo_path is not null) desc, year desc, md5(slug) collate "C", slug`;
+    (photo_path is not null) desc,
+    ((balance is not null)::int + (play_style is not null)::int + (cardinality(levels) > 0)::int) desc,
+    year desc, md5(slug) collate "C", slug`;
 }
 
 /** ORDER BY de cada criterio; las palas sin precio actual van al final. */
@@ -396,6 +412,11 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
       const sameLevel =
         target.levels.length > 0 ? sql`(c.levels && string_to_array(${target.levels.join(",")}, ','))` : no;
 
+      // Cercanía de precio: solo si la pala de la ficha tiene precio. Sin él, el
+      // criterio se omite entero; una constante en su lugar no vale, porque
+      // PostgreSQL lee un entero suelto en ORDER BY como posición de columna.
+      const byPriceDistance = target.price === null ? sql`` : sql`abs(c.best_price - ${target.price}) asc,`;
+
       // Solo palas a la venta: una parecida sin precio no ayuda a decidir.
       const rows = await sql<RacketCatalogRow[]>`
         select c.* from racket_catalog c join rackets r on r.id = c.id
@@ -403,7 +424,7 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
           and c.best_price is not null and c.price_checked_at > ${staleBefore()}
         order by (${sameBalance})::int + (${sameStyle})::int + (${sameLevel})::int desc,
           (c.photo_path is not null) desc,
-          ${target.price === null ? sql`0` : sql`abs(c.best_price - ${target.price})`} asc,
+          ${byPriceDistance}
           c.store_count desc nulls last, c.year desc, c.slug
         limit ${limit}`;
 
@@ -411,6 +432,145 @@ export function createPostgresRepository(sql: Sql = getSql()): CatalogRepository
       return rows.map((row) => ({
         pala: toPalaSummary(row, at),
         shared: sharedTraits(target, { balance: row.balance, levels: row.levels, playStyle: row.play_style }),
+      }));
+    },
+
+    async getMultiStoreOffers() {
+      interface OfferJson {
+        store_id: string;
+        slug: string;
+        name: string;
+        url: string;
+        price: number;
+        shipping: number | null;
+        previous: number | null;
+        availability: string;
+        product_url: string | null;
+        checked_at: string;
+      }
+      // Una consulta: las palas con dos o más precios vigentes y, con cada una, sus ofertas.
+      const rows = await sql<(RacketCatalogRow & { offers: OfferJson[] })[]>`
+        select c.*, o.offers
+        from racket_catalog c
+        join lateral (
+          select count(*) as n, json_agg(json_build_object(
+            'store_id', s.id, 'slug', s.slug, 'name', s.name, 'url', s.url,
+            'price', p.current_price, 'shipping', p.shipping_cost, 'previous', p.previous_price,
+            'availability', p.availability, 'product_url', p.product_url, 'checked_at', p.checked_at
+          ) order by s.slug) as offers
+          from store_prices p join stores s on s.id = p.store_id
+          where p.racket_id = c.id and ${activeStores(sql, "s")} and p.checked_at > ${staleBefore()}
+        ) o on o.n >= ${COMPARABLE_STORES}
+        order by c.slug`;
+
+      const at = now();
+      return rows.map((row) => ({
+        pala: toPalaSummary(row, at),
+        offers: row.offers.map((offer) => ({
+          store: { id: offer.store_id, slug: offer.slug, name: offer.name, url: offer.url },
+          price: Number(offer.price),
+          shipping: offer.shipping === null ? null : Number(offer.shipping),
+          previousPrice: offer.previous === null ? null : Number(offer.previous),
+          availability: offer.availability,
+          url: offer.product_url,
+          checkedAt: new Date(offer.checked_at).toISOString(),
+        })),
+      }));
+    },
+
+    async getSeasonGroups() {
+      // Modelos (marca + nombre) con precio vigente en dos temporadas o más.
+      const rows = await sql<RacketCatalogRow[]>`
+        select c.* from racket_catalog c
+        join (
+          select brand_slug, lower(trim(model)) as model_key
+          from racket_catalog
+          where best_price is not null and ${hasCurrentPrice(sql)}
+          group by 1, 2
+          having count(distinct year) >= 2
+        ) g on g.brand_slug = c.brand_slug and g.model_key = lower(trim(c.model))
+        where c.best_price is not null and c.price_checked_at > ${staleBefore()}
+        order by c.brand_slug, lower(trim(c.model)), c.year desc, c.slug`;
+
+      const at = now();
+      const groups = new Map<string, PalaSummary[]>();
+      for (const row of rows) {
+        const key = `${row.brand_slug}|${row.model.trim().toLowerCase()}`;
+        groups.set(key, [...(groups.get(key) ?? []), toPalaSummary(row, at)]);
+      }
+      return [...groups.values()];
+    },
+
+    async getPriceSources() {
+      const rows = await sql<{ name: string; prices: number; since: string | null; last_checked: string | null }[]>`
+        select s.name,
+          (select count(*)::int from store_prices p
+            where p.store_id = s.id and p.checked_at > ${staleBefore()}) as prices,
+          (select min(h.price_date)::text from price_history h where h.store_id = s.id) as since,
+          (select max(p.checked_at) from store_prices p where p.store_id = s.id) as last_checked
+        from stores s
+        where ${activeStores(sql, "s")}
+        order by s.name`;
+      return rows.map((row) => ({
+        name: row.name,
+        prices: row.prices,
+        since: row.since,
+        lastCheckedAt: row.last_checked ? new Date(row.last_checked).toISOString() : null,
+      }));
+    },
+
+    async getBrandCoverage() {
+      const current = hasCurrentPrice(sql);
+      const rows = await sql<{ brand_slug: string; brand_name: string; total: number; priced: number; multi: number; photo: number }[]>`
+        select brand_slug, brand_name, count(*)::int as total,
+          count(*) filter (where best_price is not null and ${current})::int as priced,
+          count(*) filter (where store_count >= ${COMPARABLE_STORES} and ${current})::int as multi,
+          count(photo_path)::int as photo
+        from racket_catalog
+        group by 1, 2
+        order by brand_name`;
+      return rows.map((row) => ({
+        brand: { slug: row.brand_slug, name: row.brand_name },
+        total: row.total,
+        priced: row.priced,
+        multiStore: row.multi,
+        withPhoto: row.photo,
+      }));
+    },
+
+    async getModelSeasons(pala, limit) {
+      // `racket_catalog` solo contiene palas disponibles.
+      const rows = await sql<RacketCatalogRow[]>`
+        select * from racket_catalog
+        where brand_slug = ${pala.brandSlug} and lower(trim(model)) = ${pala.model.trim().toLowerCase()}
+          and year <> ${pala.year} and slug <> ${pala.slug}
+        order by year desc, slug
+        limit ${limit}`;
+
+      const at = now();
+      return rows.map((row) => toPalaSummary(row, at));
+    },
+
+    async getAlternativeCandidates() {
+      // Una sola consulta con todas las palas a la venta: son unos cientos de filas.
+      const rows = await sql<(TraitsRow & { weight_min: number | null; weight_max: number | null })[]>`
+        select c.*, r.hardness, r.weight_min, r.weight_max,
+          (select s->>'value' from jsonb_array_elements(r.technical_specs) s
+           where s->>'label' = 'Tacto' limit 1) as touch
+        from racket_catalog c join rackets r on r.id = c.id
+        where r.is_available and c.best_price is not null and c.price_checked_at > ${staleBefore()}
+        order by c.slug`;
+
+      const at = now();
+      return rows.map((row) => ({
+        pala: toPalaSummary(row, at),
+        shape: row.shape,
+        balance: row.balance,
+        playStyle: row.play_style,
+        levels: row.levels,
+        weight:
+          row.weight_min !== null && row.weight_max !== null ? { min: row.weight_min, max: row.weight_max } : null,
+        touch: row.touch?.trim() || row.hardness?.trim() || null,
       }));
     },
 

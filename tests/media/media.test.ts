@@ -160,7 +160,7 @@ describe("la foto en el catálogo y en la ficha", () => {
 
   it("el catálogo en memoria (sin fotos) no se rompe", async () => {
     const { items } = await createMemoryRepository().searchCatalog(
-      { q: "", collection: "todas", levels: [], styles: [], brands: [], shapes: [], balances: [], years: [], maxPrice: null, sort: "disponibilidad", page: 1 },
+      { q: "", collection: "todas", levels: [], styles: [], brands: [], shapes: [], balances: [], years: [], maxPrice: null, coverage: [], sort: "disponibilidad", page: 1 },
       { pageSize: 3 },
     );
     assert.ok(items.every((pala) => pala.image?.startsWith("/img/palas/")));

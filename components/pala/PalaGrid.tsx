@@ -29,11 +29,11 @@ export function PalaGrid({ palas, variant = "catalog", columns = 3, dense = fals
     >
       {palas.map((pala) => (
         <li key={pala.id}>
-          {/* En el catálogo cada tarjeta se puede añadir a la comparación. */}
+          {/* En los listados cada tarjeta se puede guardar y añadir a la comparación. */}
           <PalaCard
             pala={pala}
             variant={variant}
-            compare={variant === "catalog"}
+            compare
             photoClassName={dense ? "h-[170px] lg:h-[210px]" : undefined}
           />
         </li>

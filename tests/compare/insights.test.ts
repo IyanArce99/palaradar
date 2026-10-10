@@ -210,6 +210,47 @@ describe("precio en la comparación", () => {
     assert.match(conclusion?.after ?? "", new RegExp(`más descuento sobre su PVPR \\(50${NBSP}% frente a 20${NBSP}%\\)`));
   });
 
+  it("con algún envío sin verificar no afirma cuál es más barata: compara el precio de la pala y lo dice", async () => {
+    const { a, b, c } = await fixtures();
+    const unverified = (pala: Pala, current: number): Pala => {
+      const item = priced(pala, current);
+      assert.ok(item.price);
+      return { ...item, price: { ...item.price, bestOffer: { ...item.price.bestOffer, shipping: null } } };
+    };
+    const verified = (pala: Pala, current: number): Pala => {
+      const item = priced(pala, current);
+      assert.ok(item.price);
+      return { ...item, price: { ...item.price, bestOffer: { ...item.price.bestOffer, shipping: 0 } } };
+    };
+    const NOTE = "Son precios de pala: hay gastos de envío sin verificar y pueden cambiar la diferencia.";
+
+    // Basta con que falte el envío de una de las dos.
+    const pair = [verified({ ...a, model: "Uno", msrp: null }, 240), unverified({ ...b, model: "Dos", msrp: null }, 200)];
+    const conclusion = priceConclusion(pair);
+    assert.equal(conclusion?.strong, `la Dos cuesta 40,00${NBSP}€ menos`);
+    assert.ok(conclusion?.after.includes(NOTE));
+    const text = `${conclusion?.before}${conclusion?.strong}${conclusion?.after}`;
+    assert.doesNotMatch(text, /más barat/);
+
+    const verdict = buildVerdict(pair);
+    assert.ok(verdict.advantages[1].includes(`40,00${NBSP}€ menos hoy, sin contar el envío`));
+    assert.ok(!verdict.advantages.flat().some((line) => /más barat/.test(line)));
+
+    const faq = comparisonFaq(pair).find((item) => item.question === "¿Cuál está más barata ahora?");
+    assert.ok(faq?.answer.includes(NOTE));
+
+    // Con tres palas, igual.
+    const three = [unverified({ ...a, model: "Uno" }, 240), unverified({ ...b, model: "Dos" }, 200), unverified({ ...c, model: "Tres" }, 120)];
+    assert.equal(priceConclusion(three)?.strong, "la Tres tiene el precio más bajo");
+    assert.ok(buildVerdict(three).advantages[2].includes(`El precio de pala más bajo hoy: 120,00${NBSP}€, sin contar el envío`));
+
+    // Con todos los envíos verificados la frase no cambia ni lleva la nota.
+    const allVerified = [verified({ ...a, model: "Uno", msrp: null }, 240), verified({ ...b, model: "Dos", msrp: null }, 200)];
+    assert.equal(priceConclusion(allVerified)?.strong, `la Dos es 40,00${NBSP}€ más barata`);
+    assert.ok(!priceConclusion(allVerified)?.after.includes(NOTE));
+    assert.ok(!comparisonFaq(allVerified).some((item) => item.answer.includes(NOTE)));
+  });
+
   it("si solo una tiene precio, no hay más barata", async () => {
     const { a, b } = await fixtures();
     const conclusion = priceConclusion([priced({ ...a, model: "Uno" }, 240), { ...b, price: null }]);

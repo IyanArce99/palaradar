@@ -11,9 +11,12 @@ import { CompareVerdict, resultTitleClass } from "@/components/compare/CompareVe
 import { ComparisonCards } from "@/components/compare/ComparisonCards";
 import { PriceChart } from "@/components/ficha/PriceChart";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { TrackView } from "@/components/analytics/TrackView";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { CopyLinkButton } from "@/components/ui/CopyLinkButton";
 import { DisclosureMarker } from "@/components/ui/DisclosureMarker";
 import { getPalaBySlug } from "@/data";
+import { ANALYTICS_EVENTS } from "@/lib/analytics";
 import {
   buildSpecRows,
   compareSelectPath,
@@ -108,7 +111,8 @@ export default async function ComparePage({ params }: ComparePageProps) {
   const palas = await loadPalas(segment);
   if (!palas) notFound();
 
-  const path = compareSetPath(palas.map((pala) => pala.slug));
+  const slugs = palas.map((pala) => pala.slug);
+  const path = compareSetPath(slugs);
   const three = palas.length === MAX_COMPARED;
   const selection: CompareSelection = {};
   palas.forEach((pala, i) => {
@@ -130,6 +134,7 @@ export default async function ComparePage({ params }: ComparePageProps) {
 
   return (
     <article>
+      <TrackView event={ANALYTICS_EVENTS.compareView} props={{ palas: slugs.join(","), numero: slugs.length }} />
       <Breadcrumbs
         mobileBack={{ label: "Comparar", href: routes.compare }}
         items={[
@@ -166,6 +171,14 @@ export default async function ComparePage({ params }: ComparePageProps) {
             Las comparamos en {topics} para ayudarte a elegir.
             {checkedOn && ` Precios comprobados el ${formatDate(checkedOn)}.`}
           </p>
+          {/* La dirección de la página ya es la comparación: basta con compartirla. */}
+          <CopyLinkButton
+            path={path}
+            title={`${palas.map(fullName).join(" vs ")} · PalaRadar`}
+            label="Compartir comparación"
+            event={{ name: ANALYTICS_EVENTS.shareComparison, props: { palas: slugs.join(","), numero: slugs.length } }}
+            className="mt-3.5"
+          />
         </header>
 
         <div className="px-4 pt-5 lg:px-12 lg:pt-9">

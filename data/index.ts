@@ -12,7 +12,14 @@ import { createMemoryRepository } from "./memory-repository";
 import { createPostgresRepository } from "./postgres-repository";
 import type { CatalogRepository } from "./repository";
 
-export type { CatalogFacets, CatalogResult, MonthlyDrop, RatedPala } from "./repository";
+export type {
+  BrandCoverage,
+  CatalogFacets,
+  CatalogResult,
+  MonthlyDrop,
+  MultiStoreOffers,
+  RatedPala,
+} from "./repository";
 
 export type DataSource = "database" | "mock";
 
@@ -94,6 +101,20 @@ export const getTopRatedPalas: CatalogRepository["getTopRatedPalas"] = (filters,
 /** Palas parecidas a una dada, entre las que están a la venta (lib/similar.ts). */
 export const getSimilarPalas: CatalogRepository["getSimilarPalas"] = (target, limit) =>
   getRepository().getSimilarPalas(target, limit);
+
+/** Palas con precio vigente en dos tiendas o más, con sus ofertas: para la diferencia entre tiendas. */
+export const getMultiStoreOffers = () => getRepository().getMultiStoreOffers();
+/** Modelos con precio vigente en dos temporadas o más, cada uno con sus ediciones. */
+export const getSeasonGroups = () => getRepository().getSeasonGroups();
+/** Tiendas de las que salen los precios, con sus cifras: el «de dónde salen los datos» de cada informe. */
+export const getPriceSources = () => getRepository().getPriceSources();
+/** Cobertura de precio y de foto por marca. */
+export const getBrandCoverage = () => getRepository().getBrandCoverage();
+/** Otras temporadas del mismo modelo (misma marca y mismo nombre), de la más reciente a la más antigua. */
+export const getModelSeasons: CatalogRepository["getModelSeasons"] = (pala, limit) =>
+  getRepository().getModelSeasons(pala, limit);
+/** Palas a la venta con los atributos que compara el buscador de alternativas (lib/alternatives.ts). */
+export const getAlternativeCandidates = () => getRepository().getAlternativeCandidates();
 
 /** Palas rebajadas respecto a su precio anterior, de mayor a menor descuento. */
 export async function getDeals(limit: number): Promise<PalaSummary[]> {

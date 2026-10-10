@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FavoritesLink } from "@/components/favorites/FavoritesLink";
 import { ButtonLink } from "@/components/ui/Button";
 import { Logo, SearchIcon } from "@/components/ui/icons";
 import { mainNav } from "@/config/navigation";
@@ -35,19 +36,23 @@ export function Header() {
         <SearchForm variant="header" className="hidden max-w-[360px] flex-1 lg:flex" />
 
         {/* La acción principal es encontrar una pala: el buscador y, para quien no sabe cuál, el recomendador. */}
-        <div className="ml-auto hidden lg:block">
+        <div className="ml-auto hidden items-center gap-2.5 lg:flex">
+          <FavoritesLink />
           <ButtonLink href={routes.idealPala} size="nav" pill>
             Encontrar mi pala
           </ButtonLink>
         </div>
 
-        <Link
-          href={`${routes.catalog}#buscar`}
-          aria-label="Buscar palas"
-          className="grid size-11 place-items-center rounded-full bg-mist lg:hidden"
-        >
-          <SearchIcon />
-        </Link>
+        <div className="flex items-center gap-2 lg:hidden">
+          <FavoritesLink />
+          <Link
+            href={`${routes.catalog}#buscar`}
+            aria-label="Buscar palas"
+            className="grid size-11 place-items-center rounded-full bg-mist"
+          >
+            <SearchIcon />
+          </Link>
+        </div>
       </div>
     </header>
   );

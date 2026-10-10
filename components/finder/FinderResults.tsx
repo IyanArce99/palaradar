@@ -9,9 +9,11 @@ import { SHAPE_LABELS } from "@/lib/labels";
 import { palaAlt } from "@/lib/media";
 import {
   buildReasons,
+  buildTradeoffs,
   CRITERION_LABELS,
   expressedCriteria,
   finderPath,
+  profileCatalogQuery,
   profileChips,
   toPrefs,
   type FinderAnswers,
@@ -19,7 +21,11 @@ import {
 } from "@/lib/recommender";
 import { routes } from "@/lib/routes";
 import type { Pala } from "@/types/catalog";
+import { TrackView } from "@/components/analytics/TrackView";
+import { ANALYTICS_EVENTS } from "@/lib/analytics";
+import { listingHref } from "@/lib/catalog/collections";
 import { FinderAction } from "./Finder";
+import { RememberProfile } from "./ProfileMemory";
 import { SaveResults } from "./SaveResults";
 
 const STORES_ANCHOR = "#tiendas";
@@ -41,10 +47,22 @@ export function FinderResults({ answers, top, results, alertsEnabled }: FinderRe
   const total = expressedCriteria(prefs).length;
   const [best, ...alternatives] = results;
   const reasons = buildReasons(top, prefs, best.matched);
+  const tradeoffs = buildTradeoffs(top, prefs, best.matched);
+  const catalogQuery = profileCatalogQuery(prefs);
   const { price } = top;
 
   return (
     <div className="mx-auto w-full max-w-[1080px] px-5 py-2 lg:px-12 lg:py-6">
+      <RememberProfile path={finderPath(answers)} />
+      <TrackView
+        event={ANALYTICS_EVENTS.quizComplete}
+        props={{
+          nivel: prefs.level ?? "sin-indicar",
+          estilo: prefs.style ?? "sin-indicar",
+          presupuesto: prefs.maxPrice ?? 0,
+          resultados: results.length,
+        }}
+      />
       <div className="flex h-12 items-center justify-between">
         <Link href={routes.home} className="flex items-center gap-2 lg:invisible">
           <Logo size={30} />
@@ -133,6 +151,21 @@ export function FinderResults({ answers, top, results, alertsEnabled }: FinderRe
             </>
           )}
 
+          {/* Lo que no cumple o no se ha podido comprobar: una recomendación también dice sus pegas. */}
+          {tradeoffs.length > 0 && (
+            <>
+              <p className="mt-4 text-[13px] font-extrabold">A tener en cuenta</p>
+              <ul className="mt-1.5 flex flex-col gap-1.5 text-[13px] leading-[1.45] text-ink">
+                {tradeoffs.map((note) => (
+                  <li key={note} className="grid grid-cols-[14px_1fr] gap-2">
+                    <span aria-hidden="true" className="mt-[7px] size-1.5 rounded-full bg-carbon" />
+                    {note}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
           {price && (
             <div className="mt-5 flex flex-col gap-2.5 border-t border-line pt-4">
               <div>
@@ -193,6 +226,22 @@ export function FinderResults({ answers, top, results, alertsEnabled }: FinderRe
           Cambiar
         </FinderAction>
       </div>
+      {/* El mismo perfil, llevado al catálogo: todas las palas que cumplen lo que el catálogo sabe filtrar. */}
+      {Object.keys(catalogQuery).length > 0 && (
+        <p className="mt-2.5 text-[13px] leading-[1.45] text-muted">
+          ¿Quieres ver más opciones?{" "}
+          <Link href={listingHref(catalogQuery)} className="font-bold text-carbon underline">
+            Ver en el catálogo todas las palas de tu perfil
+          </Link>
+          . El lado de la pista y el tacto no son filtros del catálogo.
+        </p>
+      )}
+      <p className="mt-1.5 text-[13px] leading-[1.45] text-muted">
+        ¿Ya tienes una pala y quieres cambiar algo de ella?{" "}
+        <Link href={routes.upgrade} className="font-bold text-carbon underline">
+          Busca alternativas a partir de la tuya
+        </Link>
+      </p>
 
       {alternatives.length > 0 && (
         <section aria-labelledby="alternativas">

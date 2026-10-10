@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { buttonClass } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
+import { priceHeading } from "@/lib/compare";
 import { formatEuro, formatEuroCompact, formatPercent, formatTimeAgo, pluralize } from "@/lib/format";
 import { msrpSaving } from "@/lib/pricing";
 import type { PriceSummary, PriceVerdict } from "@/types/pricing";
@@ -67,14 +68,18 @@ export function PriceCard({ price, msrp, storesHref, alertHref, onSale, classNam
   return (
     <section aria-label="Mejor precio" className={frame}>
       <p className="text-[13px] font-bold text-muted">
-        {price.freshness === "current" ? "Mejor precio hoy" : "Último precio conocido"}
+        {priceHeading(price)}
       </p>
       <p className="mt-0.5 text-[44px] leading-[1.05] font-black tracking-[-0.035em] whitespace-nowrap tabular-nums">
         {formatEuro(price.current)}
       </p>
       <p className="text-sm text-ink">
-        en {price.bestOffer.store.name} · comparado en{" "}
-        {pluralize(price.storeCount, "tienda", "tiendas")}
+        en {price.bestOffer.store.name} ·{" "}
+        {price.storeCount >= 2
+          ? `comparado en ${pluralize(price.storeCount, "tienda", "tiendas")}`
+          : "única tienda con precio hoy"}
+        {/* Sin el envío verificado, el importe es solo el de la pala: se dice junto al precio. */}
+        {price.bestOffer.shipping === null && " · envío no incluido"}
         {price.freshness !== "current" &&
           ` · comprobado ${formatTimeAgo(price.checkedAt, price.asOf)}`}
       </p>

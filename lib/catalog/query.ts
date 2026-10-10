@@ -20,6 +20,20 @@ export const COLLECTIONS = [
   { id: "grandes-descuentos", label: "Grandes descuentos" },
 ] as const;
 
+/**
+ * Cobertura de precio: cuánto se sabe hoy del precio de una pala. Usa la misma
+ * regla de vigencia que el resto del catálogo: un precio sin confirmar no cuenta.
+ *  · con-precio: tiene precio vigente en alguna tienda
+ *  · varias-tiendas: tiene precio vigente en dos tiendas o más (se puede comparar)
+ */
+export const COVERAGE_LABELS = {
+  "con-precio": "Con precio hoy",
+  "varias-tiendas": "En 2 tiendas o más",
+} as const;
+export type CoverageId = keyof typeof COVERAGE_LABELS;
+/** Tiendas con precio vigente a partir de las cuales una pala se puede comparar entre tiendas */
+export const COMPARABLE_STORES = 2;
+
 /** Palas por página en catálogo y páginas de marca */
 export const CATALOG_PAGE_SIZE = 24;
 
@@ -37,6 +51,8 @@ export interface CatalogQuery {
   balances: PalaBalance[];
   years: number[];
   maxPrice: number | null;
+  /** Cobertura de precio exigida */
+  coverage: CoverageId[];
   sort: SortId;
   page: number;
 }
@@ -51,6 +67,7 @@ export const DEFAULT_QUERY: CatalogQuery = {
   balances: [],
   years: [],
   maxPrice: null,
+  coverage: [],
   sort: "disponibilidad",
   page: 1,
 };
@@ -66,6 +83,7 @@ export const PARAMS = {
   balance: "balance",
   year: "anio",
   maxPrice: "precio",
+  coverage: "cobertura",
   sort: "orden",
   page: "pagina",
 } as const;
@@ -97,6 +115,7 @@ export function parseCatalogQuery(params: RawSearchParams): CatalogQuery {
     balances: pickKnown(toList(params[PARAMS.balance]), BALANCE_LABELS),
     years: toList(params[PARAMS.year]).map(Number).filter(Number.isInteger),
     maxPrice: Number.isFinite(maxPrice) && maxPrice > 0 ? maxPrice : null,
+    coverage: [...new Set(pickKnown(toList(params[PARAMS.coverage]), COVERAGE_LABELS))],
     sort: SORT_OPTIONS.find((s) => s.id === first(PARAMS.sort))?.id ?? DEFAULT_QUERY.sort,
     page: Number.isInteger(page) && page > 0 ? page : 1,
   };
@@ -115,6 +134,7 @@ export function catalogHref(query: Partial<CatalogQuery> = {}): string {
   for (const balance of q.balances) params.append(PARAMS.balance, balance);
   for (const year of q.years) params.append(PARAMS.year, String(year));
   if (q.maxPrice !== null) params.set(PARAMS.maxPrice, String(q.maxPrice));
+  for (const coverage of q.coverage) params.append(PARAMS.coverage, coverage);
   if (q.sort !== DEFAULT_QUERY.sort) params.set(PARAMS.sort, q.sort);
   if (q.page > 1) params.set(PARAMS.page, String(q.page));
 
@@ -201,6 +221,13 @@ export function getActiveFilters(
       key: "precio",
       label: `Hasta ${formatEuroCompact(query.maxPrice)}`,
       href: catalogHref({ ...base, maxPrice: null }),
+    });
+  }
+  for (const coverage of query.coverage) {
+    filters.push({
+      key: `cobertura-${coverage}`,
+      label: COVERAGE_LABELS[coverage],
+      href: catalogHref({ ...base, coverage: without(query.coverage, coverage) }),
     });
   }
 

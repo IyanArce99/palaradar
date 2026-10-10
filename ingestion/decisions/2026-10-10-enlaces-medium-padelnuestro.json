@@ -1,0 +1,51 @@
+{
+  "title": "Confirmación del año de cinco enlaces de Padel Nuestro que tenían confianza media: siguen en la misma pala; solo cambian la confianza y el motivo",
+  "decidedAt": "2026-10-10",
+  "products": [
+    {
+      "store": "padelnuestro",
+      "externalId": "121752-P",
+      "title": "SIUX GEA 2",
+      "decision": "match",
+      "racket": "siux-gea-2-2026",
+      "confidence": "high",
+      "reason": "La ficha de Padel Nuestro clasifica el producto en «Palas Colección 2026» (publicada el 22/09/2025); PadelProShop vende «Pala Siux Gea 2 2026» con «Colección 2026» y EAN 8436625200358, el registrado en el catálogo para esta pala. Mismo modelo y misma colección; la diferencia de precio (114,95 frente a 188,95) es comercial."
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "121683-P",
+      "title": "VIBOR-A BLACK MAMBA RADICAL 12K 3.0",
+      "decision": "match",
+      "racket": "vibora-black-mamba-radical-12k-3-0-2026",
+      "confidence": "high",
+      "reason": "Padel Nuestro lo clasifica en «Palas Colección 2026» (publicada el 19/09/2025) y la versión 3.0 es la de 2026 (la 2.0 es la de 2025 y es otro producto en ambas tiendas); PadelProShop vende «… Radical 12K 3.0 2026» con «Colección 2026» y EAN 8445090157067, el registrado en el catálogo. La diferencia de precio (191,95 frente a 279) es comercial."
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "121720-P",
+      "title": "LOK BE HYPE GEN 2",
+      "decision": "match",
+      "racket": "lok-be-hype-gen-2-2026",
+      "confidence": "high",
+      "reason": "Padel Nuestro lo clasifica en «Palas Colección 2026 / Novedades» (publicada el 19/09/2025); «Gen 2» solo existe en 2026 (la Be Hype 2024 y 2025 son productos distintos en ambas tiendas); PadelProShop vende «Pala LOK Be Hype Gen 2 2026» con «Colección 2026» y EAN 8435739406175, el registrado en el catálogo."
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "121724-P",
+      "title": "LOK EASY FLOW GEN 2",
+      "decision": "match",
+      "racket": "lok-easy-flow-gen-2-2026",
+      "confidence": "high",
+      "reason": "Padel Nuestro lo clasifica en «Palas Colección 2026 / Novedades» (publicada el 19/09/2025); «Gen 2» solo existe en 2026 (la Easy Flow 2024 y 2025 son productos distintos); PadelProShop vende «Pala LOK Easy Flow Gen 2 2026» con «Colección 2026» y EAN 8435739406168, el registrado en el catálogo."
+    },
+    {
+      "store": "padelnuestro",
+      "externalId": "120909-P",
+      "title": "BULLPADEL NEURON 02 EDGE",
+      "decision": "match",
+      "racket": "bullpadel-neuron-02-edge-2026",
+      "confidence": "high",
+      "reason": "Padel Nuestro lo clasifica en «Palas Colección 2026 / Novedades» (publicada el 29/08/2025) y lo describe como la pala de Federico Chingotto; la edición 2027 («NEURON 02 EDGE 27», 160638-P) es otro producto en la misma tienda; PadelProShop vende «Pala Bullpadel Neuron 02 EDGE 2026» con «Colección 2026» y EAN 8445402974108, el registrado en el catálogo."
+    }
+  ]
+}

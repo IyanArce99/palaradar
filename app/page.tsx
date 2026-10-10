@@ -8,6 +8,7 @@ import {
   GuidesSection,
   MonthlyDropsSection,
   MostStoresSection,
+  PriceSourcesSection,
   PriceWatchSection,
 } from "@/components/home/HomeSections";
 import { BrandLinks } from "@/components/catalog/BrandLinks";
@@ -101,6 +102,7 @@ export default async function HomePage() {
           <PriceWatchSection featured={featured} />
         </div>
         <GuidesSection guides={guideCovers.slice(0, HOME_GUIDES)} />
+        <PriceSourcesSection />
         <CollectionLinks id="palas-por-tipo" title="Palas por tipo" />
       </div>
     </>

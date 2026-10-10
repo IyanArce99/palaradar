@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, JetBrains_Mono } from "next/font/google";
+import { AnalyticsScript } from "@/components/analytics/AnalyticsScript";
 import { CompareBar } from "@/components/compare/CompareSelection";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
@@ -54,6 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Footer />
         <CompareBar />
         <TabBar />
+        <AnalyticsScript />
       </body>
     </html>
   );

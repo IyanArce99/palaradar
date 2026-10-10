@@ -34,8 +34,12 @@ const VARIANTS: Record<string, string> = {
   plus: "plus",
 };
 
-/** Listados que nunca se emparejan solos: no son la pala suelta y nueva. */
-const NEVER_AUTOMATIC = /\b(pack|paletero|mochila|test|segunda mano|reacondicionad[ao])\b/;
+/**
+ * Listados que nunca se emparejan solos: no son la pala suelta y nueva (packs y
+ * accesorios, palas de prueba, outlet, usadas o reacondicionadas).
+ */
+const NEVER_AUTOMATIC =
+  /\b(packs?|multipack|paletero|mochila|funda|protector|overgrip|bolas|pelotas|test|testing|demo|outlet|usad[ao]s?|seminuev[ao]s?|segunda mano|2[ªa] mano|reacondicionad[ao]s?|b-grade|tara|x2)\b/;
 
 export interface ParsedTitle {
   /** Palabras del modelo, sin marca, año, variantes ni ruido */
@@ -69,19 +73,46 @@ export function isBundleOrUsed(title: string): boolean {
   return NEVER_AUTOMATIC.test(normalizeText(title));
 }
 
-function yearOf(token: string): number | null {
-  if (/^20[2-3]\d$/.test(token)) return Number(token);
-  // Colección escrita con dos cifras: «Neuron 25», «Hack 04 26». Los números
-  // bajos («04», «10») son parte del modelo, no un año.
-  if (/^(2[2-9]|3\d)$/.test(token)) return 2000 + Number(token);
+/**
+ * Listados que son un pack sin ninguna duda: la palabra «pack», o una pala
+ * vendida junto con un paletero o una mochila, o dos palas («x2»). Solo
+ * palabras que ninguna pala suelta lleva en su nombre; un accesorio incluido
+ * («protector», «funda», «overgrip») o el estado (outlet, usada) no bastan y
+ * siguen la regla general de revisión.
+ */
+const PACK = /\b(packs?|multipack|paletero|paleteros|mochila|x2)\b/;
+
+export function isPack(title: string): boolean {
+  return PACK.test(normalizeText(title));
+}
+
+const FULL_YEAR = /^20[2-3]\d$/;
+/** Colección escrita con dos cifras: «Neuron 25», «Hack 04 26». Los números bajos («04», «10») son parte del modelo. */
+const SHORT_YEAR = /^(2[2-9]|3\d)$/;
+
+/**
+ * Año de un token. Un número de dos cifras solo cuenta como año si el texto no
+ * trae ya un año de cuatro: en «ML10 Pro Cup 22 2026» el 22 es parte del modelo.
+ */
+function yearOf(token: string, hasFullYear: boolean): number | null {
+  if (FULL_YEAR.test(token)) return Number(token);
+  if (!hasFullYear && SHORT_YEAR.test(token)) return 2000 + Number(token);
   return null;
+}
+
+export interface ParseOptions {
+  /**
+   * false para el nombre de un modelo del catálogo: su año va en otra columna y
+   * un número del nombre («Vertex 23») no es un año sino parte del modelo.
+   */
+  years?: boolean;
 }
 
 /**
  * Descompone un título o un nombre de modelo. Las marcas indicadas se eliminan
  * del texto, vengan escritas juntas o separadas («StarVie», «Star Vie»).
  */
-export function parseTitle(text: string, brands: (string | null)[]): ParsedTitle {
+export function parseTitle(text: string, brands: (string | null)[], options: ParseOptions = {}): ParsedTitle {
   const ignored = new Set(
     brands.flatMap((brand) => (brand ? [...brandWords(brand), normalizeBrand(brand)] : [])),
   );
@@ -92,11 +123,13 @@ export function parseTitle(text: string, brands: (string | null)[]): ParsedTitle
     .filter(Boolean);
 
   const parsed: ParsedTitle = { tokens: new Set(), variants: new Set(), year: null };
+  const withYears = options.years ?? true;
+  const hasFullYear = words.some((word) => FULL_YEAR.test(word));
 
   for (const word of words) {
     if (NOISE.has(word) || ignored.has(word)) continue;
 
-    const year = yearOf(word);
+    const year = withYears ? yearOf(word, hasFullYear) : null;
     if (year !== null && parsed.year === null) {
       parsed.year = year;
     } else if (VARIANTS[word]) {

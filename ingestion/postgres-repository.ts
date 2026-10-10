@@ -132,7 +132,8 @@ export function createPostgresIngestionRepository(sql: Sql): IngestionRepository
                  select i.value from racket_identifiers i
                  where i.racket_id = r.id and i.type = 'gtin'
                ) as gtins
-        from rackets r join brands b on b.id = r.brand_id`;
+        from rackets r join brands b on b.id = r.brand_id
+        order by r.slug`;
     },
 
     async startRun(storeId, startedAt) {

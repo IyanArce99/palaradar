@@ -334,7 +334,93 @@ export const collections: Collection[] = [
       },
     ],
     guide: "palas-menos-de-150-euros",
-    related: ["menos-de-100-euros", "nivel-intermedio", "polivalentes"],
+    related: ["menos-de-100-euros", "menos-de-200-euros", "nivel-intermedio"],
+  },
+  {
+    slug: "menos-de-200-euros",
+    title: "Palas de pádel por menos de 200 €",
+    label: "Menos de 200 €",
+    group: "precio",
+    query: { maxPrice: 200 },
+    description:
+      "Palas de pádel por menos de 200 euros con su mejor precio de hoy: gama media-alta y modelos de gama alta rebajados. Compara antes de comprar.",
+    intro: [
+      "Hasta 200 euros entran casi todas las gamas medias, bastantes modelos de gama alta de la temporada en curso cuando bajan de precio y la mayoría de los de temporadas anteriores.",
+      "La lista se recalcula con cada comprobación de precios: solo aparecen las palas cuyo mejor precio de hoy, en alguna de las tiendas que seguimos, no pasa de 200 euros.",
+    ],
+    faq: [
+      {
+        question: "¿Qué cambia entre una pala de 150 y una de 200 euros?",
+        answer:
+          "Sobre todo los materiales de las caras (más carbono y tejidos de más filamentos) y que aparecen modelos de jugador. No implica que la pala sea más fácil de jugar: muchas de este tramo se dirigen a nivel avanzado.",
+      },
+      {
+        question: "¿Cómo sé si una pala de este precio está rebajada de verdad?",
+        answer:
+          "En su ficha comparamos el precio de hoy con su precio de venta recomendado y, cuando lleva 30 días en seguimiento, con lo que ha costado ese mes. Un descuento sobre el precio recomendado no siempre es una bajada reciente.",
+      },
+    ],
+    guide: "cuanto-gastar-en-una-pala-de-padel",
+    related: ["menos-de-150-euros", "nivel-avanzado", "potencia"],
+  },
+  {
+    slug: "manejables",
+    title: "Palas de pádel manejables",
+    label: "Manejables",
+    group: "juego",
+    query: { shapes: ["redonda"], balances: ["bajo"] },
+    description:
+      "Palas de pádel manejables: forma redonda y balance bajo declarados, las más fáciles de mover. Compara sus características y su precio.",
+    intro: [
+      "Una pala se siente manejable cuando su peso queda cerca de la mano. Eso lo dan, sobre todo, dos datos: la forma redonda y el balance bajo. Esta página reúne las palas del catálogo que declaran los dos.",
+      "Son palas que se mueven rápido en la red y cansan menos en partidos largos. A cambio, el remate sale con menos inercia que con una pala de balance alto. El peso también cuenta: está en la ficha de cada una.",
+    ],
+    faq: [
+      {
+        question: "¿Qué hace que una pala sea manejable?",
+        answer:
+          "Que su peso se concentre cerca del puño (balance bajo) y que no sea de las más pesadas. La forma redonda suele ir unida a ese balance. Aquí filtramos por forma y balance declarados; el peso aparece en cada ficha.",
+      },
+      {
+        question: "¿Una pala manejable sirve para jugadores avanzados?",
+        answer:
+          "Sí. Hay palas redondas y de balance bajo con materiales de gama alta, dirigidas a jugadores avanzados que priorizan el control y la velocidad de mano en la red.",
+      },
+      {
+        question: "¿Por qué hay pocas palas en esta lista?",
+        answer:
+          "Porque solo entran las que declaran las dos cosas. Muchas palas no publican su balance, y no lo damos por supuesto.",
+      },
+    ],
+    guide: "balance-pala-de-padel",
+    related: ["redondas", "control", "principiantes"],
+  },
+  {
+    slug: "hibridas",
+    title: "Palas de pádel híbridas",
+    label: "Híbridas",
+    group: "forma",
+    query: { shapes: ["hibrida"] },
+    description:
+      "Palas de pádel de forma híbrida, entre la lágrima y la diamante: para quien busca potencia sin llegar a una diamante. Compara modelos y precios.",
+    intro: [
+      "Algunas marcas y tiendas llaman híbrida a una forma intermedia, normalmente entre la lágrima y la diamante: la cabeza es más ancha arriba que en una lágrima, sin llegar al hombro marcado de una diamante.",
+      "En el catálogo tratamos la híbrida como forma propia solo cuando la fuente la declara así. Suelen ser palas con el punto dulce algo alto, pensadas para atacar con un poco más de margen que una diamante.",
+    ],
+    faq: [
+      {
+        question: "¿Qué es una pala híbrida?",
+        answer:
+          "Una pala cuya forma está entre dos de las clásicas, casi siempre entre la lágrima y la diamante. No es una categoría con una definición única: cada fabricante la aplica a su manera.",
+      },
+      {
+        question: "¿Híbrida o diamante?",
+        answer:
+          "La diamante lleva el punto dulce más arriba y suele tener más balance. La híbrida se queda un paso antes. Compara el balance y el peso declarados de los modelos que te interesen, que es donde se nota la diferencia.",
+      },
+    ],
+    guide: "forma-redonda-lagrima-diamante",
+    related: ["lagrima", "diamante", "potencia"],
   },
   {
     slug: "2026",

@@ -76,8 +76,19 @@ export interface MatchResult {
   status: MatchingStatus;
   racketId: string | null;
   method: MatchingMethod | null;
-  /** Motivo, cuando no se empareja automáticamente */
+  /** Motivo cuando no se empareja automáticamente; en un emparejado, un aviso (EAN no válido, enlace conservado) */
   note: string | null;
+  /** Palas que podrían ser, cuando queda en revisión: sirve para conservar un enlace que ya funcionaba */
+  candidates?: string[];
+}
+
+/** Varios productos activos de una tienda enlazados a la misma pala con nombres que no cuadran. */
+export interface OfferConflict {
+  racketId: string;
+  /** Producto que se mantiene enlazado (el ya publicado o uno fijado a mano); null si ninguno */
+  kept: string | null;
+  /** Productos que pasan a revisión */
+  review: string[];
 }
 
 /** Precio de un listado ya validado y con el envío de la tienda aplicado */
@@ -142,6 +153,17 @@ export interface RunSummary extends RunResult {
   storeSlug: string;
   /** Listados descartados por datos no válidos (precio, moneda, fecha) */
   productsInvalid: number;
-  /** Bajadas anómalas retenidas a la espera de confirmación */
+  /** Bajadas anómalas retenidas a la espera de confirmación (del mismo producto o de uno recién enlazado) */
   pricesHeld: number;
+  /** Productos mandados a revisión por chocar con otro de la misma tienda en la misma pala */
+  productsConflicting: number;
+  /** Productos de más que repiten una pala en la tienda con el mismo nombre (dos colores, dos fichas): se publica el más barato */
+  duplicateOffers: number;
+  /** Enlaces automáticos conservados aunque el catálogo haya dejado el emparejamiento en duda */
+  linksKept: number;
+  /** Listados con un EAN que no supera el dígito de control */
+  invalidEans: number;
+  /** Palas cuyo precio publicado pasa a salir de otro producto de la tienda */
+  offerSwitches: number;
+  conflicts: OfferConflict[];
 }

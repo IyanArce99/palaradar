@@ -1,4 +1,4 @@
-import { fullSpecs } from "@/lib/pala-content";
+import { fullSpecs, missingData } from "@/lib/pala-content";
 import type { Pala } from "@/types/catalog";
 import { SectionTitle } from "./SectionTitle";
 
@@ -20,6 +20,8 @@ interface SpecsTableProps {
  * declara, como referencia tras los bloques que ayudan a decidir.
  */
 export function SpecsTable({ pala, className }: SpecsTableProps) {
+  const missing = missingData(pala);
+
   return (
     <section aria-labelledby="especificaciones" className={className}>
       <SectionTitle id="especificaciones">Especificaciones completas</SectionTitle>
@@ -34,8 +36,16 @@ export function SpecsTable({ pala, className }: SpecsTableProps) {
           </div>
         ))}
       </dl>
+      {missing.length > 0 && (
+        <p className="mt-3 text-[13px] leading-[1.45] text-muted">
+          <span className="font-bold text-ink">Dato no disponible:</span> {missing.join(", ")}. La fuente no lo declara
+          y no lo damos por supuesto.
+        </p>
+      )}
       {pala.specsSourceUrl && (
-        <p className="mt-3 text-xs text-muted">Fuente de los datos: {hostname(pala.specsSourceUrl)}</p>
+        <p className="mt-3 text-xs text-muted">
+          Fuente de los datos: {hostname(pala.specsSourceUrl)}. Son características declaradas, no mediciones propias.
+        </p>
       )}
     </section>
   );

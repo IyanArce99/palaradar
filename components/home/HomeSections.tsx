@@ -19,6 +19,7 @@ import { routes } from "@/lib/routes";
 import type { Pala, PalaSummary } from "@/types/catalog";
 import type { PriceSummary } from "@/types/pricing";
 import type { CatalogShortcut } from "@/config/navigation";
+import { pricingConfig } from "@/config/pricing";
 
 const titleClass =
   "text-2xl leading-[1.08] font-black tracking-[-0.025em] text-balance lg:text-[34px]";
@@ -313,6 +314,51 @@ export function PriceWatchSection({ featured }: PriceWatchSectionProps) {
           </span>
         </Link>
       )}
+    </section>
+  );
+}
+
+/**
+ * Cómo se obtienen y se mantienen los precios, en tres hechos comprobables. Los
+ * plazos salen de la misma configuración que usa el cálculo (config/pricing.ts).
+ */
+export function PriceSourcesSection() {
+  const steps = [
+    {
+      title: "Los leemos en la tienda",
+      text: "Tomamos el precio público de cada pala en las tiendas que seguimos, varias veces al día, y guardamos el mejor de cada jornada para construir su histórico.",
+    },
+    {
+      title: "Decimos cuándo se comprobó",
+      text: `Cada precio lleva su hora de comprobación. Si pasan ${pricingConfig.currentHours} horas sin confirmarlo, lo presentamos como último precio conocido; a las ${pricingConfig.staleAfterHours}, deja de contar como precio actual.`,
+    },
+    {
+      title: "Ordenamos por precio",
+      text: "Las tiendas van de más barata a más cara. Donde no hemos verificado los gastos de envío, lo indicamos en lugar de darlos por incluidos.",
+    },
+  ];
+
+  return (
+    <section aria-labelledby="como-precios">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h2 id="como-precios" className={titleClass}>
+          Cómo obtenemos los precios
+        </h2>
+        <Link href={routes.guide("como-saber-si-una-oferta-es-buena")} className="text-sm font-bold underline lg:text-base">
+          Cómo valorar una oferta
+        </Link>
+      </div>
+      <ol className="mt-4 grid gap-3 lg:mt-6 lg:grid-cols-3 lg:gap-6">
+        {steps.map((step, index) => (
+          <li key={step.title} className="rounded-[20px] border border-line p-4 lg:p-5">
+            <span aria-hidden="true" className="font-mono text-[13px] font-medium text-muted">
+              0{index + 1}
+            </span>
+            <h3 className="mt-1 text-[17px] leading-[1.2] font-extrabold">{step.title}</h3>
+            <p className="mt-1.5 text-sm leading-[1.5] text-pretty text-ink">{step.text}</p>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }

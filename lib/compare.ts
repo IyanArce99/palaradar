@@ -225,7 +225,9 @@ export function buildSpecRows(palas: Pala[]): SpecRow[] {
 /** Rótulo del precio, con la misma lectura de frescura que la ficha. */
 export function priceHeading(price: PriceSummary | null): string {
   if (!price) return "Sin precio ahora mismo";
-  return price.freshness === "current" ? "Mejor precio hoy" : "Último precio conocido";
+  if (price.freshness !== "current") return "Último precio conocido";
+  // Con una sola tienda no hay comparación: es su precio, no «el mejor».
+  return price.storeCount >= 2 ? "Mejor precio hoy" : "Precio hoy";
 }
 
 export interface PriceDifference {

@@ -5,7 +5,7 @@
 //     esta pala («balance alto: concentra más peso hacia la cabeza…»);
 //   · nada de adjetivos que los datos no respalden.
 import { displayValue } from "@/lib/compare";
-import { formatEuro, formatEuroCompact, formatWeight, pluralize } from "@/lib/format";
+import { formatEuro, formatEuroCompact, formatRating, formatWeight, pluralize } from "@/lib/format";
 import { BALANCE_LABELS, formatLevels, LEVEL_LABELS, SHAPE_LABELS, STYLE_LABELS } from "@/lib/labels";
 import type { FaqItem, Pala, PalaBalance, PalaShape, PlayStyle, Spec } from "@/types/catalog";
 
@@ -138,6 +138,56 @@ export function fullSpecs(pala: Pala): Spec[] {
     ["EAN", pala.gtin?.length === 14 && pala.gtin.startsWith("0") ? pala.gtin.slice(1) : pala.gtin],
   ];
   return entries.flatMap(([label, value]) => (value ? [{ label, value }] : []));
+}
+
+/**
+ * Características habituales de una ficha que esta pala no declara. Se nombran
+ * para que una ausencia no se lea como «no tiene» ni se dé por supuesta.
+ */
+export function missingData(pala: Pala): string[] {
+  const checks: [string, boolean][] = [
+    ["peso", pala.weight !== null],
+    ["balance", pala.balance !== null],
+    ["nivel", pala.levels.length > 0],
+    ["estilo de juego", pala.playStyle !== null],
+    ["tacto o dureza", touchOf(pala) !== null],
+    ["núcleo", spec(pala, "Núcleo") !== null],
+    ["caras", spec(pala, "Caras") !== null],
+  ];
+  return checks.filter(([, declared]) => !declared).map(([label]) => label);
+}
+
+export interface ScoreHighlights {
+  /** Nombre de la fuente de las puntuaciones */
+  source: string;
+  /** Aspectos mejor puntuados, con su nota: «control (9,0)» */
+  best: string[];
+  /** Aspecto peor puntuado, con su nota */
+  weakest: string;
+}
+
+/** Diferencia mínima entre la nota más alta y la más baja para destacarlas */
+const MIN_SCORE_GAP = 0.5;
+
+/**
+ * Dónde puntúa más alto y más bajo la pala en la fuente externa. null si no hay
+ * puntuaciones o todas se parecen: destacar una sobre otra sería inventar una
+ * diferencia. Son notas de la fuente, y así se presentan.
+ */
+export function scoreHighlights(pala: Pick<Pala, "sourceRatings">): ScoreHighlights | null {
+  const ratings = pala.sourceRatings;
+  if (!ratings) return null;
+  const scores = [...ratings.scores].sort((a, b) => b.score - a.score);
+  const top = scores[0];
+  const bottom = scores.at(-1);
+  if (!top || !bottom || top.score - bottom.score < MIN_SCORE_GAP) return null;
+
+  const label = (aspect: { label: string; score: number }) => `${lower(aspect.label)} (${formatRating(aspect.score)})`;
+  return {
+    source: ratings.source,
+    best: scores.filter((aspect) => aspect.score === top.score).slice(0, 2).map(label),
+    weakest: label(bottom),
+  };
 }
 
 /**

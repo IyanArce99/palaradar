@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { TrackView } from "@/components/analytics/TrackView";
 import { BrandLinks } from "@/components/catalog/BrandLinks";
+import { SavedProfileLink } from "@/components/finder/ProfileMemory";
+import { ANALYTICS_EVENTS } from "@/lib/analytics";
 import { CatalogFilters } from "@/components/catalog/CatalogFilters";
 import { CollectionLinks } from "@/components/catalog/CollectionLinks";
 import {
@@ -11,6 +14,7 @@ import {
   SortPills,
 } from "@/components/catalog/CatalogToolbar";
 import { NoResults } from "@/components/catalog/NoResults";
+import { SearchInterpretation } from "@/components/catalog/SearchInterpretation";
 import { SortSelect } from "@/components/catalog/SortSelect";
 import { SearchForm } from "@/components/layout/SearchForm";
 import { PalaGrid } from "@/components/pala/PalaGrid";
@@ -26,6 +30,7 @@ import {
   parseCatalogQuery,
   type RawSearchParams,
 } from "@/lib/catalog/query";
+import { applyIntent, interpretSearch, relaxations } from "@/lib/catalog/search-intent";
 import { catalogSeo, pageSuffix } from "@/lib/catalog/seo";
 import { pluralize } from "@/lib/format";
 import { routes } from "@/lib/routes";
@@ -53,11 +58,19 @@ export async function generateMetadata({ searchParams }: CatalogPageProps): Prom
 export default async function CatalogPage({ searchParams }: CatalogPageProps) {
   const facets = await getCatalogFacets();
   const parsed = parseCatalogQuery(await searchParams);
+  // Lo escrito en el buscador se interpreta («redonda por menos de 120 €») y se suma a los
+  // filtros elegidos a mano. Cada criterio deducido se enseña y se puede quitar.
+  const intent = interpretSearch(parsed.q, {
+    brands: facets.brands,
+    years: facets.years,
+    currentYear: new Date().getFullYear(),
+  });
+  const interpreted = applyIntent(parsed, intent);
   // El deslizador en su tope equivale a no filtrar por precio.
   const query = {
-    ...parsed,
+    ...interpreted,
     maxPrice:
-      parsed.maxPrice !== null && parsed.maxPrice >= facets.priceCeiling ? null : parsed.maxPrice,
+      interpreted.maxPrice !== null && interpreted.maxPrice >= facets.priceCeiling ? null : interpreted.maxPrice,
   };
 
   const [result, catalogSize, suggestions] = await Promise.all([
@@ -65,6 +78,18 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
     countPalas(),
     getSearchSuggestions(5),
   ]);
+
+  // Sin resultados: cuántas palas habría quitando un solo criterio, para decir cuál limita.
+  const relaxed =
+    result.total === 0
+      ? (
+          await Promise.all(
+            relaxations(query).map(async (option) => ({ ...option, total: await countPalas(option.query) })),
+          )
+        ).filter((option) => option.total > 0)
+      : [];
+  // «Alternativas a …»: la pala a la que se refiere, si el texto apunta a una sola.
+  const referencePala = intent.reference !== null && result.total > 0 ? result.items[0] : null;
 
   // Una página que no existe es un 404, no una copia de la última.
   if (query.page > result.pageCount) notFound();
@@ -88,8 +113,24 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
           lead={`${pluralize(catalogSize, "pala", "palas")} de ${pluralize(facets.brands.length, "marca", "marcas")}. Compara características y precios en las tiendas que seguimos para encontrar la tuya.`}
         />
 
+        {/* Una búsqueda se registra con su número de resultados: las que no dan ninguno dicen qué falta en el catálogo. */}
+        {parsed.q !== "" && (
+          <TrackView event={ANALYTICS_EVENTS.search} props={{ termino: parsed.q, resultados: result.total }} />
+        )}
+        <SearchInterpretation
+          original={parsed.q}
+          intent={intent}
+          query={query}
+          explicit={parsed}
+          reference={referencePala}
+          referenceMatches={intent.reference !== null ? result.total : 0}
+          className="mx-5 mt-4 lg:mx-12"
+        />
+        <SavedProfileLink className="px-5 pt-3 lg:px-12" />
+
         <div className="px-5 pt-4 lg:hidden">
-          <SearchForm variant="page" id="buscar" defaultValue={query.q} key={query.q} />
+          {/* La caja conserva lo que se escribió, no el texto que queda tras interpretarlo. */}
+          <SearchForm variant="page" id="buscar" defaultValue={parsed.q} key={parsed.q} />
         </div>
 
         <CollectionPills query={query} className="pt-4 lg:pt-6" />
@@ -148,6 +189,22 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
               </>
             ) : (
               <div className="mt-7">
+                {/* Qué criterio limita: cuántas palas hay quitando solo ese. Nunca se quita sin avisar. */}
+                {relaxed.length > 0 && (
+                  <div className="mb-7 rounded-[18px] border border-line p-4 lg:p-5">
+                    <h3 className="text-[15px] font-extrabold">Ninguna pala cumple todo a la vez. Prueba a quitar una cosa:</h3>
+                    <ul className="mt-2.5 flex flex-col gap-1.5">
+                      {relaxed.map((option) => (
+                        <li key={option.label}>
+                          <Link href={catalogHref(option.query)} className="inline-flex min-h-11 items-center text-[15px] font-bold underline lg:min-h-9">
+                            {option.label}
+                          </Link>
+                          <span className="text-sm text-muted"> · {pluralize(option.total, "pala", "palas")}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 <NoResults
                   searchTerm={query.q}
                   suggestions={suggestions}

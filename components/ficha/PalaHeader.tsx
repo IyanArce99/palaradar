@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FavoriteToggle } from "@/components/favorites/FavoriteToggle";
 import { buttonClass } from "@/components/ui/Button";
 import { Stars } from "@/components/ui/Rating";
 import { formatCount, formatEuro, formatRating, pluralize } from "@/lib/format";
@@ -71,6 +72,11 @@ export function PalaHeader({ pala, reviewsHref, storesHref, alertHref, onSale }:
             {onSale.label}
           </Link>
         )}
+        <FavoriteToggle
+          variant="button"
+          origin="ficha"
+          pala={{ slug: pala.slug, name: palaName(pala), price: hasPrice ? price.current : null }}
+        />
       </div>
     </header>
   );

@@ -284,7 +284,7 @@ describe("tiendas reales y de demostración", { skip: !url && "DATABASE_URL no c
 
       const catalog = await createPostgresRepository(tx).searchCatalog({
         q: "metalbone 3.4 2025", collection: "todas", levels: [], styles: [], brands: [], shapes: [],
-        balances: [], years: [], maxPrice: null, sort: "precio", page: 1,
+        balances: [], years: [], maxPrice: null, coverage: [], sort: "precio", page: 1,
       });
       assert.ok(catalog.items.every((item) => item.price !== CHEAPEST));
     });

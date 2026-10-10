@@ -189,7 +189,9 @@ describe("filas enfrentadas", () => {
 describe("precio en la comparación", () => {
   it("usa los mismos rótulos de frescura que la ficha", async () => {
     const { a } = await fixtures();
-    assert.equal(priceHeading(withPrice(a, { freshness: "current" }).price), "Mejor precio hoy");
+    assert.equal(priceHeading(withPrice(a, { freshness: "current", storeCount: 2 }).price), "Mejor precio hoy");
+    // Con una sola tienda no hay nada con lo que comparar: no es «el mejor» precio.
+    assert.equal(priceHeading(withPrice(a, { freshness: "current", storeCount: 1 }).price), "Precio hoy");
     assert.equal(priceHeading(withPrice(a, { freshness: "stale" }).price), "Último precio conocido");
     assert.equal(priceHeading(null), "Sin precio ahora mismo");
   });

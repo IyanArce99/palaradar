@@ -16,6 +16,7 @@ function filterKey(query: Partial<CatalogQuery>): string {
     list(q.balances),
     list(q.years),
     q.maxPrice ?? "",
+    list(q.coverage),
   ].join("|");
 }
 
@@ -40,17 +41,22 @@ export function listingHref(filters: Partial<CatalogQuery>): string {
 /** Colecciones a las que pertenece una pala, por sus datos declarados y su precio de hoy. */
 export function collectionsForPala(pala: {
   shape: string;
+  /** Sin balance declarado, la pala no entra en las colecciones que lo exigen */
+  balance?: string | null;
   playStyle: string | null;
   levels: readonly string[];
   year: number;
   price: number | null;
 }): Collection[] {
+  // Una colección puede combinar filtros (forma y balance): la pala debe cumplirlos todos.
   return collections.filter(({ query }) => {
-    if (query.shapes) return query.shapes.includes(pala.shape as never);
-    if (query.styles) return pala.playStyle !== null && query.styles.includes(pala.playStyle as never);
-    if (query.levels) return query.levels.some((level) => pala.levels.includes(level));
-    if (query.years) return query.years.includes(pala.year);
-    if (query.maxPrice != null) return pala.price !== null && pala.price <= query.maxPrice;
-    return false;
+    const checks: boolean[] = [];
+    if (query.shapes) checks.push(query.shapes.includes(pala.shape as never));
+    if (query.balances) checks.push(pala.balance != null && query.balances.includes(pala.balance as never));
+    if (query.styles) checks.push(pala.playStyle !== null && query.styles.includes(pala.playStyle as never));
+    if (query.levels) checks.push(query.levels.some((level) => pala.levels.includes(level)));
+    if (query.years) checks.push(query.years.includes(pala.year));
+    if (query.maxPrice != null) checks.push(pala.price !== null && pala.price <= query.maxPrice);
+    return checks.length > 0 && checks.every(Boolean);
   });
 }

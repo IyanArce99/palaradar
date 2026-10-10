@@ -1,8 +1,10 @@
+import type { AlternativeCandidate } from "@/lib/alternatives";
 import type { CatalogQuery } from "@/lib/catalog/query";
 import type { IndexablePala } from "@/lib/indexability";
 import type { Recommendation, RecommenderPrefs } from "@/lib/recommender";
+import type { PriceSource } from "@/lib/reports";
 import type { SimilarityTarget, SimilarPala } from "@/lib/similar";
-import type { Brand, Pala, PalaSummary } from "@/types/catalog";
+import type { Brand, Pala, PalaSummary, StoreOffer } from "@/types/catalog";
 import type { PriceHistory } from "@/types/pricing";
 
 export interface CatalogSearchOptions {
@@ -31,6 +33,24 @@ export interface RatedPala {
   pala: PalaSummary;
   /** Puntuación técnica total de la fuente externa, de 0 a 10; null si el origen de datos no tiene puntuaciones */
   score: number | null;
+}
+
+export interface MultiStoreOffers {
+  pala: PalaSummary;
+  /** Ofertas vigentes de la pala, una por tienda */
+  offers: StoreOffer[];
+}
+
+export interface BrandCoverage {
+  brand: Pick<Brand, "slug" | "name">;
+  /** Palas disponibles de la marca */
+  total: number;
+  /** Con precio vigente en alguna tienda */
+  priced: number;
+  /** Con precio vigente en dos tiendas o más */
+  multiStore: number;
+  /** Con foto real publicada */
+  withPhoto: number;
 }
 
 export interface MonthlyDrop {
@@ -99,6 +119,40 @@ export interface CatalogRepository {
    * las que tienen foto y un precio más cercano (lib/similar.ts).
    */
   getSimilarPalas(target: SimilarityTarget, limit: number): Promise<SimilarPala[]>;
+  /**
+   * Palas con precio vigente en dos tiendas o más, con sus ofertas vigentes:
+   * la materia prima de la diferencia entre tiendas (lib/store-spread.ts).
+   * Solo tiendas activas como fuente de precios.
+   */
+  getMultiStoreOffers(): Promise<MultiStoreOffers[]>;
+  /**
+   * Modelos con más de una temporada en el catálogo y precio vigente en al menos
+   * dos de ellas: cada grupo lleva sus ediciones de la más reciente a la más
+   * antigua. La relación es la misma que `getModelSeasons`: marca y nombre de
+   * modelo iguales.
+   */
+  getSeasonGroups(): Promise<PalaSummary[][]>;
+  /**
+   * Las tiendas de las que salen los precios que se muestran: cuántos precios
+   * vigentes tiene cada una, desde cuándo hay histórico y cuándo se comprobó por
+   * última vez. Para decir, en cada informe, de dónde salen los datos.
+   */
+  getPriceSources(): Promise<PriceSource[]>;
+  /** Cuántas palas hay por marca y cuántas tienen precio vigente, en una tienda y en varias. */
+  getBrandCoverage(): Promise<BrandCoverage[]>;
+  /**
+   * Otras temporadas del mismo modelo: misma marca y mismo nombre de modelo
+   * (sin distinguir mayúsculas), otro año; de la más reciente a la más antigua.
+   * Es una consulta propia, no la búsqueda del catálogo: una búsqueda por texto
+   * devuelve también las variantes del modelo y puede dejar fuera una temporada.
+   */
+  getModelSeasons(pala: { slug: string; brandSlug: string; model: string; year: number }, limit: number): Promise<PalaSummary[]>;
+  /**
+   * Todas las palas con precio vigente, con los atributos declarados que compara
+   * el buscador de alternativas (lib/alternatives.ts). La puntuación y el orden
+   * no se hacen aquí: son la misma función pura en la ficha y en los tests.
+   */
+  getAlternativeCandidates(): Promise<AlternativeCandidate[]>;
   /**
    * Pares de palas «parecidas» (slugs), ambas disponibles: las comparaciones
    * curadas, que son las únicas indexables. Puede repetir un par en los dos sentidos.

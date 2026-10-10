@@ -10,6 +10,12 @@
       "pricesUpdated": 3,
       "productsInvalid": 0,
       "pricesHeld": 0,
+      "productsConflicting": 0,
+      "duplicateOffers": 0,
+      "linksKept": 0,
+      "invalidEans": 0,
+      "offerSwitches": 0,
+      "conflicts": [],
       "errorMessage": null
     },
     {
@@ -22,6 +28,12 @@
       "pricesUpdated": 2,
       "productsInvalid": 0,
       "pricesHeld": 0,
+      "productsConflicting": 0,
+      "duplicateOffers": 0,
+      "linksKept": 0,
+      "invalidEans": 0,
+      "offerSwitches": 0,
+      "conflicts": [],
       "errorMessage": null
     },
     {
@@ -29,11 +41,17 @@
       "storeSlug": "tienda-demo-1",
       "status": "success",
       "productsSeen": 11,
-      "productsMatched": 6,
+      "productsMatched": 5,
       "productsPending": 1,
       "pricesUpdated": 3,
       "productsInvalid": 2,
       "pricesHeld": 1,
+      "productsConflicting": 0,
+      "duplicateOffers": 1,
+      "linksKept": 0,
+      "invalidEans": 0,
+      "offerSwitches": 0,
+      "conflicts": [],
       "errorMessage": null
     },
     {
@@ -46,6 +64,12 @@
       "pricesUpdated": 2,
       "productsInvalid": 0,
       "pricesHeld": 0,
+      "productsConflicting": 0,
+      "duplicateOffers": 1,
+      "linksKept": 0,
+      "invalidEans": 0,
+      "offerSwitches": 0,
+      "conflicts": [],
       "errorMessage": null
     }
   ],
@@ -200,7 +224,7 @@
       "url": "https://example.com/producto/PACK",
       "matchingStatus": "rejected",
       "matchingMethod": null,
-      "matchingNote": "Variante distinta.",
+      "matchingNote": "Pack: agrupa una pala con otros productos (o varias palas) y no es comparable con una pala suelta.",
       "listingStatus": "active",
       "price": 310,
       "listPrice": null,

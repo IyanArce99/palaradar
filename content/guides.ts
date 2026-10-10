@@ -530,7 +530,379 @@ export const guides: GuideDoc[] = [
           "Se puede, pero el cambio es grande: el punto dulce sube y el peso se va a la cabeza. Pasar antes por una lágrima suele hacer la adaptación más fácil.",
       },
     ],
-    collections: ["redondas", "lagrima", "diamante"],
+    collections: ["redondas", "lagrima", "diamante", "hibridas"],
+  },
+  {
+    slug: "balance-pala-de-padel",
+    title: "El balance de una pala de pádel",
+    subtitle: "Bajo, medio o alto: qué cambia y cuál te conviene",
+    image: null,
+    description:
+      "Qué es el balance de una pala de pádel y cómo influye: balance bajo, medio y alto, su relación con la forma y el peso, y cuál elegir según tu juego.",
+    updatedAt: UPDATED,
+    intro: [
+      "Dos palas pueden pesar lo mismo y sentirse muy distintas en la mano. La diferencia suele estar en el balance: dónde se concentra ese peso, cerca del puño o hacia la cabeza.",
+      "Es uno de los datos que más cambian cómo se mueve una pala y uno de los que menos se miran. Aquí explicamos los tres tipos y, de cada uno, enseñamos la pala mejor puntuada que hoy está a la venta.",
+    ],
+    picks: [
+      {
+        id: "bajo",
+        eyebrow: "Balance bajo",
+        title: "La pala se mueve rápido",
+        query: { balances: ["bajo"] },
+        why: "El peso queda cerca de la mano. La pala cambia de dirección con facilidad, llega antes a las voleas y cansa menos en partidos largos. A cambio, hay menos inercia en el remate: la potencia la tienes que poner tú. Es el balance habitual de las palas redondas y de las de iniciación.",
+      },
+      {
+        id: "medio",
+        eyebrow: "Balance medio",
+        title: "El reparto equilibrado",
+        query: { balances: ["medio"] },
+        why: "El peso se reparte entre la cabeza y el puño. No destaca en un extremo ni en otro, que es justo lo que busca quien defiende, volea y remata en el mismo partido. Es el balance más frecuente en las palas de lágrima.",
+      },
+      {
+        id: "alto",
+        eyebrow: "Balance alto",
+        title: "Más inercia en el remate",
+        query: { balances: ["alto"] },
+        why: "El peso se va hacia la cabeza. Al golpear por arriba la pala lleva más inercia y la bola sale con más velocidad. Se paga en la defensa y en la red, donde la pala tarda más en moverse, y se nota más en el brazo cuando el partido se alarga. Es el balance típico de las palas de diamante.",
+      },
+    ],
+    blocks: [
+      {
+        id: "forma-y-peso",
+        title: "Balance, forma y peso van juntos",
+        paragraphs: [
+          "La forma orienta el balance, pero no lo decide: hay palas redondas con balance medio y lágrimas con balance alto. Por eso conviene mirar los dos datos por separado.",
+          "El peso multiplica el efecto. Una pala pesada con balance alto es la combinación más exigente; una ligera con balance bajo, la más manejable. Y el overgrip añade unos gramos en el puño, lo que baja un poco el balance.",
+          "No todas las palas publican su balance. Cuando una ficha no lo enseña es porque la fuente no lo declara, y no lo damos por supuesto a partir de la forma.",
+        ],
+        links: [
+          { label: "Palas manejables: redondas y de balance bajo", href: routes.collection("manejables") },
+          { label: "Diamante y balance alto", href: catalogHref({ shapes: ["diamante"], balances: ["alto"] }) },
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: "¿Cómo se mide el balance de una pala?",
+        answer:
+          "Es la distancia desde el extremo del puño hasta el punto en el que la pala queda en equilibrio. Los fabricantes suelen resumirlo en bajo, medio o alto, que es como lo enseñamos.",
+      },
+      {
+        question: "¿Qué balance es mejor para empezar?",
+        answer:
+          "Bajo o medio. Una pala que se mueve con facilidad ayuda a llegar bien colocado a la bola, que es lo que más cuesta al principio.",
+      },
+      {
+        question: "¿El balance alto da más potencia siempre?",
+        answer:
+          "Da más inercia en los golpes por arriba si llegas a tiempo y golpeas bien. Si la pala te resulta lenta, llegarás tarde y perderás más de lo que ganas.",
+      },
+      {
+        question: "¿Puedo cambiar el balance de mi pala?",
+        answer:
+          "Ligeramente. Un overgrip más lo baja; un protector en la cabeza lo sube. Son ajustes de pocos gramos, no convierten una pala en otra.",
+      },
+    ],
+    collections: ["manejables", "redondas", "lagrima", "diamante"],
+  },
+  {
+    slug: "pala-blanda-o-dura",
+    title: "Pala blanda o dura",
+    subtitle: "Cómo influye la dureza y cuál elegir",
+    image: null,
+    description:
+      "Diferencias entre una pala de pádel blanda y una dura: salida de bola, control, potencia y comodidad. De qué depende la dureza y cómo elegirla.",
+    updatedAt: UPDATED,
+    intro: [
+      "«Blanda» y «dura» son las dos palabras que más se oyen al hablar de palas, y también las que más confunden. La dureza no es un nivel de calidad: es una forma de responder al golpe.",
+      "Esta guía explica qué cambia entre un tacto y otro, de qué depende y cómo leer ese dato en una ficha.",
+    ],
+    picks: [],
+    blocks: [
+      {
+        id: "que-cambia",
+        title: "Qué cambia entre una pala blanda y una dura",
+        paragraphs: [
+          "Una pala blanda se deforma más al impactar y devuelve esa energía a la bola: la bola sale con facilidad aunque el golpe sea suave. Se nota en la defensa y en los globos, y el tacto resulta más cómodo.",
+          "Una pala dura se deforma menos. Con golpes suaves la bola sale poco, pero cuando se golpea fuerte responde con más precisión y no «se come» la bola. Por eso las prefieren quienes rematan mucho y golpean limpio.",
+          "Entre las dos hay tactos medios, que son los más repartidos en el catálogo y los que menos condicionan.",
+        ],
+      },
+      {
+        id: "de-que-depende",
+        title: "De qué depende la dureza",
+        paragraphs: [
+          "Sobre todo del núcleo: la goma interior, casi siempre EVA de distintas densidades o FOAM. Cuanto más densa, más duro el tacto.",
+          "Las caras también cuentan. La fibra de vidrio es más flexible que el carbono, y dentro del carbono cada tejido se comporta distinto. La misma goma con caras diferentes da tactos diferentes.",
+          "Y la temperatura: con frío las gomas se endurecen y con calor se ablandan. Una pala puede sentirse distinta en invierno y en verano.",
+        ],
+      },
+      {
+        id: "cual-elegir",
+        title: "Cuál elegir",
+        paragraphs: [
+          "Si estás empezando o juegas sobre todo desde el fondo, un tacto blando o medio te dará salida de bola sin esfuerzo. Si atacas mucho y ya golpeas con fuerza, un tacto medio o duro te dará más control en esos golpes.",
+          "Si dudas, el tacto medio rara vez es un error. Y si puedes probar la pala antes de comprarla, hazlo: es la característica más personal de todas.",
+        ],
+        links: [
+          { label: "Haz el test de Pala ideal y elige tu tacto", href: routes.idealPala },
+          { label: "Palas para principiantes", href: routes.collection("principiantes") },
+        ],
+      },
+      {
+        id: "en-la-ficha",
+        title: "Cómo leerlo en una ficha",
+        paragraphs: [
+          "En cada ficha enseñamos el tacto o la dureza que declara la fuente, con sus palabras. No hay una escala común: lo que una marca llama «medio» otra puede llamarlo «medio-duro», así que sirve mejor para comparar palas de una misma marca que de marcas distintas.",
+          "Si una ficha no enseña ese dato es porque no está declarado. En ese caso, el núcleo y las caras, que sí suelen estar, dan una pista.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: "¿Una pala dura tiene más potencia?",
+        answer:
+          "En golpes fuertes y bien dados, sí responde mejor. En golpes suaves ocurre lo contrario: la blanda da más salida. Depende de cómo golpees tú.",
+      },
+      {
+        question: "¿Las palas blandas duran menos?",
+        answer:
+          "Las gomas blandas tienden a perder respuesta antes con el uso intenso, aunque depende mucho del modelo y de cuánto se juegue. No hay una regla fija.",
+      },
+      {
+        question: "¿Qué significa EVA Soft, EVA Hard o MultiEVA?",
+        answer:
+          "Son nombres comerciales de gomas de distinta densidad. «Soft» y «Hard» indican blanda y dura; las gomas «multi» combinan capas de densidades diferentes. Cada marca usa sus propios nombres.",
+      },
+    ],
+    collections: ["principiantes", "control", "potencia", "polivalentes"],
+  },
+  {
+    slug: "pala-de-la-temporada-anterior",
+    title: "¿Pala nueva o de la temporada anterior?",
+    subtitle: "Qué revisar antes de comprar una edición pasada",
+    image: null,
+    description:
+      "Cuándo compensa comprar una pala de pádel de la temporada anterior, qué suele cambiar entre ediciones y qué revisar antes de comprarla.",
+    updatedAt: UPDATED,
+    intro: [
+      "Cada temporada las marcas renuevan sus gamas, y las ediciones anteriores siguen a la venta durante meses, a menudo más baratas. Para mucha gente son la mejor compra; para otra, no.",
+      "La diferencia entre dos ediciones de un mismo modelo se puede comprobar: está en sus datos. Esta guía explica qué mirar.",
+    ],
+    picks: [
+      {
+        id: "anterior",
+        eyebrow: "Temporada 2025",
+        title: "La mejor puntuada que sigue a la venta",
+        query: { years: [2025] },
+        why: "Entre las palas de la temporada 2025 que hoy tienen precio en las tiendas que seguimos, esta es la que tiene la puntuación técnica total más alta. Sirve como referencia de lo que se puede encontrar en una edición pasada.",
+      },
+    ],
+    blocks: [
+      {
+        id: "que-cambia",
+        title: "Qué suele cambiar de una edición a otra",
+        paragraphs: [
+          "Lo más frecuente es que cambien la estética y algún material de las caras o del núcleo, y que el molde, la forma y el balance se mantengan. Otras veces el fabricante rehace el modelo y solo conserva el nombre.",
+          "No hay forma de saberlo por el nombre. Hay que enfrentar las dos fichas: forma, balance, peso, núcleo, caras y marco.",
+        ],
+      },
+      {
+        id: "como-comparar",
+        title: "Cómo compararlas en PalaRadar",
+        paragraphs: [
+          "Cuando tenemos dos ediciones del mismo modelo, la ficha de cada una enseña la otra en «Otras temporadas», con lo que cambia, lo que se mantiene y la diferencia de precio de hoy.",
+          "Solo comparamos lo que las dos ediciones declaran. Si un dato lo publica una y la otra no, lo decimos: no damos por hecho que sea igual.",
+        ],
+        links: [
+          { label: "Comparador de palas", href: routes.compare },
+          { label: "Palas de la temporada 2026", href: routes.collection("2026") },
+        ],
+      },
+      {
+        id: "que-revisar",
+        title: "Qué revisar antes de comprar una edición pasada",
+        paragraphs: [
+          "Primero, que sea la misma pala: comprueba el año en el nombre del producto de la tienda. Los nombres se repiten entre temporadas y es fácil confundirlas.",
+          "Después, el precio. Una edición anterior no siempre es más barata: cuando quedan pocas unidades puede incluso subir. Compara el precio de hoy de las dos.",
+          "Y la disponibilidad: una edición pasada puede estar en una sola tienda. Mira en cuántas la encontramos y si su precio está comprobado hoy.",
+        ],
+        links: [{ label: "Ofertas de hoy", href: routes.deals }],
+      },
+    ],
+    faq: [
+      {
+        question: "¿Una pala de la temporada anterior es peor?",
+        answer:
+          "No por ser anterior. Es otra edición: puede ser casi idéntica o bastante distinta. Lo que cuenta es si sus características encajan con tu juego y cuánto cuesta hoy.",
+      },
+      {
+        question: "¿Cuándo salen las palas nuevas?",
+        answer:
+          "Depende de cada marca; no hay una fecha común. Lo que sí se repite es que, cuando llega la edición nueva, la anterior suele seguir a la venta un tiempo.",
+      },
+      {
+        question: "¿Cómo sé de qué año es una pala?",
+        answer:
+          "En PalaRadar cada ficha lleva su temporada en el título y en las especificaciones. En las tiendas no siempre aparece en el nombre: por eso hay productos que dejamos sin emparejar hasta confirmar el año.",
+      },
+    ],
+    collections: ["2026", "menos-de-150-euros", "menos-de-200-euros"],
+  },
+  {
+    slug: "como-saber-si-una-oferta-es-buena",
+    title: "Cómo saber si una oferta es buena",
+    subtitle: "Precio recomendado, histórico, envío y lo que conviene comprobar",
+    image: null,
+    description:
+      "Cómo valorar una oferta de una pala de pádel: descuento sobre el precio recomendado, histórico de precios, gastos de envío y vigencia del precio.",
+    updatedAt: UPDATED,
+    intro: [
+      "Un cartel de «−40 %» dice poco si no sabes sobre qué precio se calcula ni cuánto costaba esa pala la semana pasada. Una oferta es buena cuando el precio de hoy es bajo respecto a lo que la pala cuesta de verdad.",
+      "Estas son las cuatro comprobaciones que hacemos en cada ficha, y que puedes hacer tú con cualquier pala.",
+    ],
+    picks: [],
+    blocks: [
+      {
+        id: "pvpr",
+        title: "1. El descuento sobre el precio recomendado",
+        paragraphs: [
+          "El precio de venta recomendado (PVPR) lo fija el fabricante al lanzar la pala. Casi ninguna tienda lo cobra: lo normal es que una pala esté por debajo desde el primer mes.",
+          "Por eso un descuento sobre el PVPR indica cuánto has bajado del precio de catálogo, no que hoy sea un buen día para comprar. En la ficha lo enseñamos como un dato aparte del histórico.",
+        ],
+      },
+      {
+        id: "historico",
+        title: "2. Lo que ha costado antes",
+        paragraphs: [
+          "Lo que de verdad importa es comparar el precio de hoy con el de las últimas semanas. Guardamos el mejor precio de cada día y, cuando una pala lleva 30 días en seguimiento, calculamos su media y su mínimo de ese periodo.",
+          "Con eso damos un veredicto («buen momento para comprar», «precio normal», «puedes esperar») y un índice de oportunidad de 0 a 100, que suma tres cosas: cuánto está por debajo de su media, si está cerca de su mínimo y si ha bajado en la última semana.",
+          "Con menos de 30 días no damos ni veredicto ni índice. Con tan pocos datos, cualquier precio parecería el mejor que se ha visto.",
+        ],
+      },
+      {
+        id: "envio",
+        title: "3. El precio final, con envío",
+        paragraphs: [
+          "Dos tiendas con el mismo precio pueden no costar lo mismo si una cobra el envío. Donde conocemos los gastos de envío, el precio que enseñamos ya los incluye.",
+          "Donde no los hemos verificado, lo indicamos junto al precio, que entonces es solo el de la pala, y no señalamos ninguna tienda como la más barata. En ese caso, compruébalo antes de pagar.",
+        ],
+      },
+      {
+        id: "vigencia",
+        title: "4. Que el precio siga vigente",
+        paragraphs: [
+          "Comprobamos los precios varias veces al día. Junto a cada precio decimos cuándo se comprobó: si llevamos un tiempo sin poder confirmarlo, lo presentamos como último precio conocido y, si pasa más, como precio sin confirmar.",
+          "Un precio sin confirmar nunca aparece como oferta. El precio que cuenta es siempre el que veas en la tienda al comprar.",
+        ],
+        links: [
+          { label: "Ofertas de hoy", href: routes.deals },
+          { label: "Palas por menos de 150 €", href: routes.collection("menos-de-150-euros") },
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: "¿Qué es el índice de oportunidad?",
+        answer:
+          "Una puntuación de 0 a 100 que resume cómo de bueno es el precio de hoy frente a lo que la pala ha costado en los últimos 30 días. 50 es su precio habitual. Es una orientación a partir de nuestros datos, no una predicción de lo que hará el precio.",
+      },
+      {
+        question: "¿Por qué una pala rebajada dice «precio reciente»?",
+        answer:
+          "Porque llevamos menos de 30 días siguiendo su precio y todavía no podemos compararlo con su histórico. El descuento que ves es respecto a su precio anterior en la tienda.",
+      },
+      {
+        question: "¿Los precios incluyen cupones o códigos de descuento?",
+        answer:
+          "No. Enseñamos el precio público que la tienda muestra en la página del producto. Si la tienda tiene un cupón, el precio final puede ser menor.",
+      },
+      {
+        question: "¿Cobráis por enseñar una tienda antes que otra?",
+        answer:
+          "No. Las tiendas se ordenan por precio, de más barata a más cara. Si en el futuro hay enlaces de afiliación o contenido patrocinado, se indicará de forma visible y no cambiará ese orden.",
+      },
+    ],
+    collections: ["menos-de-100-euros", "menos-de-150-euros", "menos-de-200-euros"],
+  },
+  {
+    slug: "cuanto-gastar-en-una-pala-de-padel",
+    title: "Cuánto gastar en una pala de pádel",
+    subtitle: "Qué se paga en cada tramo de precio y cuándo compensa subir",
+    image: null,
+    description:
+      "Cuánto cuesta una pala de pádel según la gama, qué se paga al subir de precio y cuándo merece la pena gastar más. Con la mejor puntuada de cada presupuesto.",
+    updatedAt: UPDATED,
+    intro: [
+      "Hay palas a la venta desde menos de 50 euros hasta más de 300. La más cara no es la que mejor te va a ir: es la que usa los materiales más caros y, casi siempre, la más exigente.",
+      "Esta guía recorre los tramos de precio y enseña, en cada uno, la pala mejor puntuada que hoy está por debajo de ese tope.",
+    ],
+    picks: [
+      {
+        id: "hasta-100",
+        eyebrow: "Hasta 100 €",
+        title: "Para empezar o jugar de vez en cuando",
+        query: { maxPrice: 100 },
+        why: "En este tramo están las palas de iniciación y algunos modelos de temporadas pasadas. Predominan las caras de fibra de vidrio y los núcleos blandos: palas cómodas y tolerantes. Es suficiente para aprender y para jugar de forma ocasional.",
+      },
+      {
+        id: "hasta-150",
+        eyebrow: "Hasta 150 €",
+        title: "El tramo con más donde elegir",
+        query: { maxPrice: 150 },
+        why: "Aparece el carbono en las caras y hay modelos para todos los niveles y formas de jugar. También entran palas de gamas superiores de la temporada anterior. Para quien juega con regularidad, suele ser el punto de equilibrio entre precio y prestaciones.",
+      },
+      {
+        id: "hasta-200",
+        eyebrow: "Hasta 200 €",
+        title: "Gama media-alta",
+        query: { maxPrice: 200 },
+        why: "Más carbono, tejidos de más filamentos y modelos de jugador. Muchas de estas palas se dirigen a nivel avanzado: dan más cuando se golpea bien y perdonan menos cuando no.",
+      },
+    ],
+    blocks: [
+      {
+        id: "que-se-paga",
+        title: "Qué se paga al subir de precio",
+        paragraphs: [
+          "Materiales y fabricación: carbono en lugar de fibra de vidrio, tejidos más elaborados, superficies con relieve, sistemas para repartir el peso o reducir vibraciones. También el nombre del jugador que la lleva.",
+          "Lo que no se paga es la facilidad. Las palas más caras de cada marca están pensadas para jugadores con mucha técnica. Por encima de tu nivel, una pala cara no te hace jugar mejor.",
+        ],
+      },
+      {
+        id: "cuando-compensa",
+        title: "Cuándo compensa gastar más",
+        paragraphs: [
+          "Cuando juegas a menudo y ya sabes qué te falta: más control en la red, más pegada, un tacto concreto. Entonces tiene sentido buscar la pala que lo da y pagar lo que cueste.",
+          "Si todavía no lo sabes, compensa más una pala equilibrada de gama media y dejar la diferencia para clases o para cambiarla cuando tu juego lo pida.",
+          "Y antes de pagar el precio de salida de una novedad, mira la edición anterior del mismo modelo y el histórico de precios: las palas bajan durante el año.",
+        ],
+        links: [
+          { label: "¿Pala nueva o de la temporada anterior?", href: routes.guide("pala-de-la-temporada-anterior") },
+          { label: "Cómo saber si una oferta es buena", href: routes.guide("como-saber-si-una-oferta-es-buena") },
+          { label: "Test de Pala ideal con tu presupuesto", href: routes.idealPala },
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: "¿Cuánto cuesta una buena pala de pádel?",
+        answer:
+          "Depende de para quién. Para empezar, por menos de 100 euros hay palas adecuadas. Para jugar con regularidad, entre 100 y 200 euros está la mayor parte de la oferta. Los precios de cada tramo se actualizan a diario en las colecciones por precio.",
+      },
+      {
+        question: "¿Por qué la misma pala cuesta distinto en cada tienda?",
+        answer:
+          "Cada tienda fija su precio y lo cambia cuando quiere. Por eso comparamos el precio de cada pala en las tiendas que seguimos y lo comprobamos varias veces al día.",
+      },
+      {
+        question: "¿Las palas de más de 250 euros merecen la pena?",
+        answer:
+          "Para un jugador avanzado que busca algo concreto, pueden. Para la mayoría, la diferencia en la pista respecto a una pala de 150 a 200 euros es menor que la diferencia de precio.",
+      },
+    ],
+    collections: ["menos-de-100-euros", "menos-de-150-euros", "menos-de-200-euros", "principiantes"],
   },
 ];
 

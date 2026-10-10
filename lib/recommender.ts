@@ -2,6 +2,7 @@
 // ni cifras inventadas: cada respuesta se compara con un dato declarado de la
 // pala (nivel, estilo, forma, balance, tacto) o con su precio de hoy, y el
 // porcentaje de afinidad sale de una fórmula fija sobre esas coincidencias.
+import type { CatalogQuery } from "@/lib/catalog/query";
 import { formatEuro } from "@/lib/format";
 import { BALANCE_LABELS, formatLevels, SHAPE_LABELS, STYLE_LABELS } from "@/lib/labels";
 import { routes } from "@/lib/routes";
@@ -401,6 +402,69 @@ export function buildReasons(pala: Pala, prefs: RecommenderPrefs, matched: Recom
     .filter(([criterion, text]) => text !== null && matched.includes(criterion))
     .map(([, text]) => text as string)
     .slice(0, max);
+}
+
+/**
+ * Lo que conviene saber antes de decidirse por una pala recomendada: las
+ * respuestas que no cumple, con el dato declarado que lo explica, y las que no se
+ * han podido comprobar porque la pala no declara ese dato. Una recomendación sin
+ * sus pegas no sería una explicación.
+ */
+export function buildTradeoffs(pala: Pala, prefs: RecommenderPrefs, matched: RecommenderCriterion[]): string[] {
+  const missed = (criterion: RecommenderCriterion) => !matched.includes(criterion);
+  // El tacto es masculino y la dureza femenina: cada dato con su frase, como en `buildReasons`.
+  const touch = declaredTouch(pala)?.trim() || null;
+  const hardness = pala.hardness?.trim() || null;
+  let touchNote = "No declara su tacto ni su dureza: no hemos podido comprobarlo";
+  if (touch) touchNote = `Declara un tacto ${touch.toLowerCase()}, distinto del que prefieres`;
+  else if (hardness) touchNote = `Declara una dureza ${hardness.toLowerCase()}, distinta de la del tacto que prefieres`;
+
+  const notes: (string | null | false)[] = [
+    prefs.level !== null &&
+      missed("level") &&
+      (pala.levels.length > 0
+        ? `Su nivel declarado es ${formatLevels(pala.levels).toLowerCase()}, no el que has indicado`
+        : "No declara para qué nivel es: no hemos podido comprobar si encaja con el tuyo"),
+    prefs.style !== null &&
+      missed("style") &&
+      (pala.playStyle
+        ? `Su estilo de juego declarado es ${STYLE_LABELS[pala.playStyle].toLowerCase()}, no ${STYLE_LABELS[prefs.style].toLowerCase()}`
+        : "No declara su estilo de juego: no hemos podido comprobar si encaja con el tuyo"),
+    prefs.touch !== null && missed("touch") && touchNote,
+    prefs.side !== null &&
+      missed("side") &&
+      (pala.balance
+        ? `Su balance es ${BALANCE_LABELS[pala.balance].toLowerCase()}; para el ${SIDE_NAMES[prefs.side]} suele preferirse ${SIDE_BALANCES[prefs.side].map((balance) => BALANCE_LABELS[balance].toLowerCase()).join(" o ")}`
+        : "No declara su balance: no hemos podido comprobar si es el habitual para tu lado"),
+  ];
+  return notes.filter((note): note is string => Boolean(note));
+}
+
+/**
+ * El catálogo filtrado con lo que el perfil pide y el catálogo sabe filtrar:
+ * nivel, estilo, forma y presupuesto. El lado y el tacto no son filtros del catálogo.
+ */
+export function profileCatalogQuery(prefs: RecommenderPrefs): Partial<CatalogQuery> {
+  return {
+    ...(prefs.level ? { levels: [prefs.level] } : {}),
+    ...(prefs.style ? { styles: [prefs.style] } : {}),
+    ...(prefs.shape ? { shapes: [prefs.shape] } : {}),
+    ...(prefs.maxPrice === null ? {} : { maxPrice: prefs.maxPrice }),
+  };
+}
+
+/** Clave del perfil guardado en el navegador: la URL del resultado del quiz, nada más. */
+export const PROFILE_STORAGE_KEY = "palaradar:perfil";
+
+/**
+ * Lee un perfil guardado: solo se acepta la ruta del recomendador con respuestas
+ * conocidas y completas. Cualquier otra cosa se descarta.
+ */
+export function parseSavedProfile(raw: string | null): string | null {
+  if (!raw || !raw.startsWith(`${routes.idealPala}?`) || raw.length > 300) return null;
+  const params = Object.fromEntries(new URLSearchParams(raw.slice(routes.idealPala.length + 1)));
+  const answers = parseFinderAnswers(params);
+  return isComplete(answers) ? finderPath(answers) : null;
 }
 
 /** Las respuestas en etiquetas cortas, para el resumen «Tu perfil». */

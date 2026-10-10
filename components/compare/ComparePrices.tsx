@@ -4,7 +4,9 @@ import { cn } from "@/lib/cn";
 import { MAX_COMPARED, priceHeading, SLOT_IDS } from "@/lib/compare";
 import { priceFacts, type PriceConclusion, type PriceFacts } from "@/lib/compare-insights";
 import { formatEuro, formatPercent, pluralize } from "@/lib/format";
-import { HISTORY_WINDOW_DAYS } from "@/lib/pricing";
+import { canClaimCheapest, HISTORY_WINDOW_DAYS } from "@/lib/pricing";
+import { storeSpread } from "@/lib/store-spread";
+import { StoreSpreadNote } from "@/components/pala/StoreSpreadNote";
 import type { Pala } from "@/types/catalog";
 import { SlotBadge } from "./Badges";
 import { OFFERS_BUTTON, offersHref } from "./CompareHeader";
@@ -36,6 +38,9 @@ function PriceCard({ pala, index, show }: { pala: Pala; index: number; show: Col
   const facts = priceFacts(pala);
   const { price } = pala;
   const offers = price ? price.offers.slice(0, STORE_COUNT) : [];
+  // Igual que en la ficha: con algún envío sin verificar no se señala ninguna tienda como la más barata.
+  const claimCheapest = price ? canClaimCheapest(price.offers) : false;
+  const unverified = price ? price.offers.filter((offer) => offer.shipping === null).map((offer) => offer.store.name) : [];
 
   const rows: [string, string, boolean][] = [];
   if (show.msrp) {
@@ -99,12 +104,18 @@ function PriceCard({ pala, index, show }: { pala: Pala; index: number; show: Col
             >
               <span className={i === 0 ? "font-extrabold" : "font-medium"}>
                 {offer.store.name}
-                {i === 0 && offers.length > 1 && " · la más barata"}
+                {i === 0 && claimCheapest && " · la más barata"}
               </span>
               <span className="font-extrabold whitespace-nowrap tabular-nums">{formatEuro(offer.total)}</span>
             </li>
           ))}
         </ul>
+      )}
+      {offers.length > 1 && unverified.length > 0 && (
+        <p className="mt-2 text-xs leading-[1.45] text-pretty text-muted">
+          El importe de {unverified.join(" y ")} no incluye el envío, que no hemos verificado: el orden puede cambiar al
+          sumarlo y no señalamos ninguna tienda como la más barata.
+        </p>
       )}
 
       <Link href={offersHref(pala)} className={cn(OFFERS_BUTTON, "mt-auto h-[52px]")}>
@@ -154,6 +165,7 @@ export function ComparePrices({ palas, conclusion }: ComparePricesProps) {
   const three = palas.length === MAX_COMPARED;
   const cols = three ? "grid-cols-3" : "grid-cols-2";
   const priced = palas.some((pala) => pala.price);
+  const spreads = palas.map((pala) => (pala.price ? storeSpread(pala.price.offers, new Date(pala.price.asOf)) : null));
 
   return (
     <section aria-labelledby="precio">
@@ -241,6 +253,25 @@ export function ComparePrices({ palas, conclusion }: ComparePricesProps) {
           ))}
         </div>
       </div>
+
+      {/* Cada pala, entre sus propias tiendas: es otra pregunta que cuál de las palas es más barata. */}
+      {spreads.some((spread) => spread !== null) && (
+        <div className="mt-3.5 rounded-[18px] bg-mist px-4 py-3.5">
+          <h3 className="text-[15px] font-extrabold">Diferencia entre tiendas de cada pala</h3>
+          <ul className="mt-1.5 flex flex-col gap-1.5">
+            {palas.map(
+              (pala, i) =>
+                spreads[i] &&
+                pala.price && (
+                  <li key={pala.id}>
+                    <p className="text-[13px] font-bold">{pala.model}</p>
+                    <StoreSpreadNote spread={spreads[i]} asOf={pala.price.asOf} variant="line" />
+                  </li>
+                ),
+            )}
+          </ul>
+        </div>
+      )}
 
       <p className="mt-2.5 text-xs leading-[1.45] text-muted">
         PVPR: precio de venta recomendado por el fabricante. El envío solo está incluido donde la tienda lo indica.

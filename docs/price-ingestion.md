@@ -40,6 +40,19 @@ Diferencias con el diseño de más abajo, decididas al implementar:
 - `tests/ingestion/golden/ingestion.json` guarda el resultado de un escenario de cuatro lecturas generado con la ingestión anterior a los lotes; los tests exigen que siga saliendo exactamente lo mismo.
 - El histórico (`price_history`) no se borra nunca desde la ingestión: una pala agotada o desaparecida deja de publicarse en `store_prices`, pero conserva sus registros.
 
+### Varios productos de una tienda en la misma pala (octubre de 2026)
+
+Una tienda puede tener dos productos enlazados a la misma pala (dos fichas, dos colores, o un enlace equivocado). La ingestión los trata así (`resolveConflicts` en `ingestion/run.ts`):
+
+- **Duplicados**: si nombran lo mismo (mismo modelo y mismas variantes tras normalizar, o dos EAN distintos que el catálogo ya tiene registrados como la misma pala), se publica el más barato y se cuentan en `duplicateOffers`.
+- **Conflictos**: si sus nombres no cuadran, se mantiene el producto fijado a mano o el que ya venía enlazado a esa pala de antes, y los demás pasan a revisión (`pending_review`, con la nota «Conflicto en la tienda: …»). Si ninguno estaba enlazado antes, **todos** van a revisión y la pala se queda sin precio en esa tienda: no se elige el más barato a ciegas. Compartir un EAN con nombres distintos no los hace duplicados: puede ser un error de la tienda o un outlet con el código del fabricante. El resumen de la ejecución lleva `productsConflicting` y la lista `conflicts` (pala, producto mantenido, productos a revisión).
+- **Un conflicto solo lo resuelve una persona**: la revisión por conflicto (nota «Conflicto en la tienda: …») y la de bajada extrema sin identidad (nota «Bajada extrema sin identidad demostrada: …») no se recalculan en cada ejecución (`isHumanOnlyReview`): que el otro producto se agote, falte dos ejecuciones o vuelva no dice nada sobre cuál es la pala. Salen con una decisión manual (`npm run prices:decisions`). Las demás revisiones (ambiguo, sin año, pack, EAN desconocido) sí se recalculan y se resuelven solas cuando el catálogo o el título cambian. Limitación: el marcador es el prefijo de la nota, texto que solo escribe la ingestión; un estado tipado necesitaría ampliar el enum `matching_status` (esquema).
+- **Retención por pala, con identidad**: la bajada anómala (más del 40 %) se compara con el último precio del mismo producto y, para un producto que llega nuevo a una pala (o cambia de pala), con el precio que la tienda ya tiene publicado para esa pala. Repetir el precio demuestra que la bajada persiste, no que el producto sea la pala; por eso, con una bajada extrema, retener y aceptar exige identidad: el producto nuevo debe nombrar lo mismo (mismas palabras del modelo, mismas variantes —«Pro» y «Pro+» son distintos—, mismo año si lo dicen) que el producto que daba el precio publicado, y el mismo producto no debe haber cambiado de nombre al bajar. Ni la URL (compartida entre variantes) ni un EAN declarado cuentan como prueba. Si la identidad no se demuestra, o no se sabe qué producto daba el precio, el producto va a revisión y no se publica. Con identidad, un producto nuevo mucho más barato se retiene sin precio una ejecución correcta y se acepta si la siguiente lo repite (un fallo de descarga no cuenta). Lo que no queda registrado: al aceptar una retención, la anomalía no deja rastro más allá de `pricesHeld` en el resumen de esa ejecución (pendiente de la Etapa 2).
+- **Cambio de producto ≠ cambio de precio**: cuando el producto que da el precio publicado cambia (el anterior se agota o desaparece), no se guarda «precio anterior» y se cuenta en `offerSwitches`. Qué producto estaba publicado se recalcula con los productos de antes de la ejecución; la URL no identifica (dos variantes de una tienda pueden compartirla). El histórico sigue guardando el mejor total de la pala por día sin saber de qué producto es: esa limitación la resuelve `store_product_id` (pendiente de diseño).
+- **Enlaces conservados**: un emparejamiento automático que funcionaba no se deshace solo porque el catálogo haya crecido. Si hoy el producto quedaría en revisión pero su pala sigue entre las candidatas, el enlace se conserva con la nota «Enlace conservado, pendiente de revisar: …» y se cuenta en `linksKept`; si la pala ya no es candidata (otro año, otra variante, otro EAN), se sigue la regla. Un producto nuevo con la misma duda sí va a revisión.
+- **EAN no válido**: un EAN que no supera el dígito de control no cuenta como EAN; el producto se empareja por nombre con la nota «El EAN que publica la tienda no es válido…» y se cuenta en `invalidEans`.
+- **Orden determinista**: el catálogo se carga ordenado por `slug`; la marca sacada del título es la más larga que encaja; el motivo de un rechazo es el veto de la pala más parecida.
+
 ### Padel Nuestro
 
 Segunda tienda real, con su autorización. No se usa CJ ni su API: la fuente es el listado público de su categoría de palas, que incluye los datos estructurados de cada producto.
@@ -116,6 +129,7 @@ Cada producto lleva una de tres decisiones, siempre con su motivo:
 | `review` | en revisión, con el motivo fijado | Es una pala real, pero el catálogo no tiene su ficha (otra edición, otra colección, otro color) |
 
 - **Repetible.** Una decisión ya aplicada no cambia nada. Si el producto ya no está como cuando se revisó (otro estado, otra pala), la carga se detiene sin escribir nada.
+- **Confirmar un enlace que ya existe.** Un `match` sin `from` sobre un producto ya emparejado con esa misma pala solo actualiza la confianza y el motivo (y lo deja como decisión manual). No cambia la pala, el precio publicado, el histórico, los identificadores ni los agregados; el ensayo lo cuenta en «Enlaces confirmados». Para cambiar de pala sigue haciendo falta `from`.
 - **Corregir un enlace equivocado.** La decisión indica en `from` la pala a la que estaba enlazado. Con ella se retira o se mueve el precio que ese producto tenía publicado allí, y `history` dice qué hacer con el histórico que dejó (`move` a la pala correcta o `delete`). Del histórico solo se tocan las filas con el precio de ese producto.
 - **Catálogo.** El mismo fichero puede corregir una pala (`rackets`: modelo, año o dirección) y un identificador que estaba en la pala equivocada (`identifiers`).
 - **Tras una carga del catálogo.** `npm run catalog:import` fija los enlaces que trae su fichero. Si ese fichero se regenera desde las fuentes, conviene repetir después `npm run prices:decisions`: si la carga hubiera reintroducido algo ya corregido, lo vuelve a corregir o avisa.
@@ -227,17 +241,17 @@ Se aplica por niveles, del más fiable al menos:
 
 | Nivel | Regla | Resultado |
 |---|---|---|
-| 1 | Mismo EAN y misma marca | Automático |
-| 2 | Marca, modelo, variante y año iguales tras normalizar | Automático solo si hay un único candidato y el precio es coherente |
-| 3 | Parecido de título sin igualdad de atributos | Siempre revisión manual |
+| 1 | Mismo EAN y misma marca | Automático (el título no se mira, salvo para detectar packs, outlet o segunda mano) |
+| 2 | Marca, modelo, variante y año iguales tras normalizar | Automático solo si hay un único candidato. No se comprueba la coherencia del precio: la retención de bajadas (más abajo) es el único control de precio |
+| 3 | Parecido de título sin igualdad de atributos | Revisión manual si hay alguna pala parecida; rechazo con motivo si no hay ninguna |
 
-**Vetos**, que prevalecen sobre cualquier nivel: EAN válidos distintos, año distinto o variante distinta (Woman, Hybrid, Comfort, Junior, CTRL, Light…) significan que no es el mismo producto.
+**Vetos**, que prevalecen sobre cualquier nivel: EAN válidos distintos (solo cuando la pala del catálogo tiene EAN), año distinto o variante distinta (Woman, Hybrid, Comfort, Junior, CTRL, Light, Hard, Soft, Carbon, Attack, Team, Plus) significan que no es el mismo producto.
 
-**Nunca se casa automáticamente:** packs con paletero, palas de test o segunda mano, títulos sin año, y un EAN que aparezca con dos marcas.
+**Packs inequívocos** («pack», «+ paletero», «mochila», «x2») se rechazan con el motivo «Pack: …» aunque el EAN coincida: nunca serán la pala suelta y no ocupan la cola de revisión. **Nunca se casa automáticamente:** accesorios («funda», «protector», «overgrip», «bolas»), palas de test, outlet, usadas o reacondicionadas (van a revisión si su modelo está en el catálogo); títulos sin año por el nivel 2 (el nivel 1, por EAN, sí empareja sin año); un EAN que llega con otra marca; y, con un EAN que el catálogo no conoce, la pala sin EAN que queda cuando las de su misma edición se han descartado por EAN (puede ser otro color).
 
 Un producto de tienda sin casar no se publica. Queda en una cola de revisión, y la decisión manual se guarda para no repetirla.
 
-Trampas conocidas del nombre: el número de versión no es el año (Metalbone «3.4» es 2025), el año se escribe «25», «2025» o no se escribe, y el nombre del jugador aparece o no según la tienda.
+Trampas conocidas del nombre: el número de versión no es el año (Metalbone «3.4» es 2025); el año se escribe «25», «2025» o no se escribe (un número de dos cifras solo cuenta como año si el título no trae uno de cuatro, y en el nombre de una pala del catálogo nunca es un año: «Vertex 23» es un modelo); el nombre del jugador y el color aparecen o no según la tienda, y hoy mandan el producto a revisión.
 
 ### Requisito previo
 
@@ -285,7 +299,8 @@ Y dos campos en `store_prices`: si hay stock (hoy solo hay un texto de disponibi
 | Cambia la URL | El producto se identifica por su identificador en la tienda, no por la URL: se actualiza el enlace |
 | Cambia el identificador | Se vuelve a casar por EAN; sin EAN, va a revisión |
 | El precio baja | Se actualiza, se guarda el anterior, se registra en el histórico del día y se recalculan los agregados |
-| Bajada de más del 40 % | No se publica hasta confirmarla en la pasada siguiente: suele ser un error del feed |
+| Bajada de más del 40 % | No se publica hasta confirmarla en la pasada siguiente: suele ser un error del feed. Vale también para un producto que llega nuevo a una pala con un precio muy por debajo del publicado |
+| Dos productos de la tienda en la misma pala | Con el mismo nombre, se publica el más barato; con nombres distintos, se mantiene el ya enlazado y el otro va a revisión (ver «Varios productos de una tienda en la misma pala») |
 | El precio vuelve a subir | Igual que una bajada. No se muestra como descuento |
 | El precio no cambia | Se actualiza solo `checked_at`. Es lo que mantiene el precio como comprobado |
 

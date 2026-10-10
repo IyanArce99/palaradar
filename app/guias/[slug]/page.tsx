@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { TrackView } from "@/components/analytics/TrackView";
 import { CollectionLinks } from "@/components/catalog/CollectionLinks";
 import { ListingFaq } from "@/components/catalog/ListingFaq";
+import { ANALYTICS_EVENTS } from "@/lib/analytics";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
@@ -153,6 +155,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
           ...(heroPhotos.length > 0 ? { image: heroPhotos.map((photo) => photo.image) } : {}),
         }}
       />
+      <TrackView event={ANALYTICS_EVENTS.viewGuide} props={{ guia: guide.slug }} />
       <Breadcrumbs
         items={[
           { label: "Inicio", href: routes.home },

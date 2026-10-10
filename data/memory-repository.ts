@@ -3,11 +3,17 @@
 // `racket_price_stats` y la vista `racket_catalog` se construyen una vez, y cada
 // consulta equivale a un SELECT con WHERE, ORDER BY y LIMIT/OFFSET.
 import { createHash } from "node:crypto";
-import { CATALOG_PAGE_SIZE, DEFAULT_QUERY, type CatalogQuery, type SortId } from "@/lib/catalog/query";
+import {
+  CATALOG_PAGE_SIZE,
+  COMPARABLE_STORES,
+  DEFAULT_QUERY,
+  type CatalogQuery,
+  type SortId,
+} from "@/lib/catalog/query";
 import { isIndexablePala } from "@/lib/indexability";
-import { buildPriceHistory, computePriceStats } from "@/lib/pricing";
+import { buildPriceHistory, computePriceStats, priceFreshness, usableOffers } from "@/lib/pricing";
 import { affinity, matchCriteria, rankRecommendations } from "@/lib/recommender";
-import { sharedTraits } from "@/lib/similar";
+import { sameModelSeasons, sharedTraits } from "@/lib/similar";
 import type { PricePoint, StoreOffer } from "@/types/catalog";
 import type { RacketCatalogRow } from "@/types/db";
 import {
@@ -132,7 +138,9 @@ export function createMemoryRepository(): CatalogRepository {
       anyOf(query.shapes, row.shape) &&
       anyOf(query.balances, row.balance) &&
       anyOf(query.years, row.year) &&
-      (query.maxPrice === null || (price !== null && price <= query.maxPrice))
+      (query.maxPrice === null || (price !== null && price <= query.maxPrice)) &&
+      (!query.coverage.includes("con-precio") || price !== null) &&
+      (!query.coverage.includes("varias-tiendas") || (price !== null && (row.store_count ?? 0) >= COMPARABLE_STORES))
     );
   }
 
@@ -154,9 +162,13 @@ export function createMemoryRepository(): CatalogRepository {
     if (x === y) return 0;
     return x < y ? -1 : 1;
   };
+  // Datos de perfil declarados (balance, estilo, nivel), como en la consulta de PostgreSQL.
+  const documented = (row: RacketCatalogRow) =>
+    Number(row.balance !== null) + Number(row.play_style !== null) + Number(row.levels.length > 0);
   const byAvailability = (a: RacketCatalogRow, b: RacketCatalogRow) =>
     storesOf(b) - storesOf(a) ||
     photoOf(b) - photoOf(a) ||
+    documented(b) - documented(a) ||
     b.year - a.year ||
     byHash(a, b) ||
     bySlug(a, b);
@@ -322,6 +334,98 @@ export function createMemoryRepository(): CatalogRepository {
         )
         .slice(0, limit)
         .map(({ row, shared }) => ({ pala: toPalaSummary(row, now()), shared }));
+    },
+
+    async getMultiStoreOffers() {
+      return catalogRows
+        .filter((row) => priceOf(row) !== null)
+        .sort(bySlug)
+        .flatMap((row) => {
+          const offers = usableOffers(offersFor(row.id), now()).filter(
+            (offer) => priceFreshness(offer.checkedAt, now()) !== "stale",
+          );
+          return offers.length >= COMPARABLE_STORES ? [{ pala: toPalaSummary(row, now()), offers }] : [];
+        });
+    },
+
+    async getSeasonGroups() {
+      const groups = new Map<string, RacketCatalogRow[]>();
+      for (const row of catalogRows.filter((item) => priceOf(item) !== null)) {
+        const key = `${row.brand_slug}|${row.model.trim().toLowerCase()}`;
+        groups.set(key, [...(groups.get(key) ?? []), row]);
+      }
+      return [...groups.values()]
+        .filter((rows) => new Set(rows.map((row) => row.year)).size >= 2)
+        .map((rows) => [...rows].sort((a, b) => b.year - a.year || bySlug(a, b)).map((row) => toPalaSummary(row, now())));
+    },
+
+    async getPriceSources() {
+      return tables.stores
+        .map((store) => {
+          const prices = tables.storePrices.filter((row) => row.store_id === store.id);
+          const fresh = prices.filter((row) => priceFreshness(row.checked_at, now()) !== "stale");
+          const days = tables.priceHistory.filter((row) => row.store_id === store.id).map((row) => row.price_date);
+          return {
+            name: store.name,
+            prices: fresh.length,
+            since: [...days].sort((a, b) => a.localeCompare(b))[0] ?? null,
+            lastCheckedAt: prices.map((row) => row.checked_at).sort((a, b) => b.localeCompare(a))[0] ?? null,
+          };
+        })
+        .sort((a, b) => a.name.localeCompare(b.name));
+    },
+
+    async getBrandCoverage() {
+      const byBrand = new Map<string, { brand: { slug: string; name: string }; total: number; priced: number; multiStore: number; withPhoto: number }>();
+      for (const row of catalogRows) {
+        const entry = byBrand.get(row.brand_slug) ?? {
+          brand: { slug: row.brand_slug, name: row.brand_name },
+          total: 0,
+          priced: 0,
+          multiStore: 0,
+          withPhoto: 0,
+        };
+        const price = priceOf(row);
+        entry.total += 1;
+        if (price !== null) entry.priced += 1;
+        if (price !== null && (row.store_count ?? 0) >= COMPARABLE_STORES) entry.multiStore += 1;
+        if (row.photo_path) entry.withPhoto += 1;
+        byBrand.set(row.brand_slug, entry);
+      }
+      return [...byBrand.values()].sort((a, b) => a.brand.name.localeCompare(b.brand.name));
+    },
+
+    async getModelSeasons(pala, limit) {
+      const candidates = catalogRows
+        .filter((row) => row.brand_slug === pala.brandSlug)
+        .map((row) => toPalaSummary(row, now()));
+      return sameModelSeasons({ ...pala, brand: { slug: pala.brandSlug } }, candidates).slice(0, limit);
+    },
+
+    async getAlternativeCandidates() {
+      const racketsById = new Map(tables.rackets.map((racket) => [racket.id, racket]));
+      return catalogRows
+        .filter((row) => priceOf(row) !== null)
+        .sort(bySlug)
+        .flatMap((row) => {
+          const racket = racketsById.get(row.id);
+          if (!racket) return [];
+          const touch = racket.technical_specs.find((spec) => spec.label === "Tacto")?.value;
+          return [
+            {
+              pala: toPalaSummary(row, now()),
+              shape: row.shape,
+              balance: row.balance,
+              playStyle: row.play_style,
+              levels: row.levels,
+              weight:
+                racket.weight_min !== null && racket.weight_max !== null
+                  ? { min: racket.weight_min, max: racket.weight_max }
+                  : null,
+              touch: touch?.trim() || racket.hardness?.trim() || null,
+            },
+          ];
+        });
     },
 
     async recommendPalas(prefs, limit) {

@@ -4,11 +4,10 @@
 import type { GuideDoc } from "@/content/guides";
 import { formatRating } from "@/lib/format";
 import { BALANCE_LABELS, formatLevels, SHAPE_LABELS } from "@/lib/labels";
+import { scoreHighlights } from "@/lib/pala-content";
 import type { Pala } from "@/types/catalog";
 
 const WORDS_PER_MINUTE = 200;
-/** Diferencia mínima entre el aspecto mejor y el peor puntuado para citarlos */
-const MIN_ASPECT_GAP = 0.5;
 
 function words(text: string): number {
   return text.split(/\s+/).filter(Boolean).length;
@@ -53,15 +52,7 @@ export interface PickHighlights {
 
 /** Lo mejor y lo menos alto de la pala según las puntuaciones por aspecto de la fuente. */
 export function pickHighlights(pala: Pick<Pala, "sourceRatings">): PickHighlights {
-  const scores = [...(pala.sourceRatings?.scores ?? [])].sort((x, y) => y.score - x.score);
-  const top = scores[0];
-  const bottom = scores.at(-1);
-  // Si todas las notas se parecen, destacar una sobre otra sería inventar una diferencia.
-  if (!top || !bottom || top.score - bottom.score < MIN_ASPECT_GAP) return { best: [], weakest: null };
-
-  const label = (aspect: { label: string; score: number }) => `${aspect.label.toLowerCase()} (${formatRating(aspect.score)})`;
-  return {
-    best: scores.filter((aspect) => aspect.score === top.score).slice(0, 2).map(label),
-    weakest: label(bottom),
-  };
+  // La misma regla que la ficha (lib/pala-content.ts): sin diferencia entre notas, no se destaca ninguna.
+  const highlights = scoreHighlights(pala);
+  return highlights ? { best: highlights.best, weakest: highlights.weakest } : { best: [], weakest: null };
 }

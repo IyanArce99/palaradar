@@ -3,9 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
+import { track } from "@/components/analytics/track";
+import { ANALYTICS_EVENTS } from "@/lib/analytics";
 import { cn } from "@/lib/cn";
-import { comparePath } from "@/lib/compare";
-import { MAX_SELECTED, parseSelection, toggleSelected, type SelectedPala } from "@/lib/compare-selection";
+import { compareSetPath } from "@/lib/compare";
+import {
+  MAX_SELECTED,
+  MIN_SELECTED,
+  parseSelection,
+  toggleSelected,
+  type SelectedPala,
+} from "@/lib/compare-selection";
 import { routes } from "@/lib/routes";
 
 // Selección compartida entre las tarjetas y la barra, sin contexto: un almacén
@@ -57,8 +65,11 @@ export function CompareToggle({ pala, className }: { pala: SelectedPala; classNa
       type="button"
       aria-pressed={selected}
       disabled={full}
-      title={full ? "Ya has elegido dos palas: quita una para cambiarla" : undefined}
-      onClick={() => write(toggleSelected(read(), pala))}
+      title={full ? `Ya has elegido ${MAX_SELECTED} palas: quita una para cambiarla` : undefined}
+      onClick={() => {
+        if (!selected) track(ANALYTICS_EVENTS.compareAdd, { pala: pala.slug, origen: "listado" });
+        write(toggleSelected(read(), pala));
+      }}
       className={cn(
         // La posición la pone quien lo usa: debe quedar por encima del enlace que cubre la tarjeta.
         "z-10 flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-bold whitespace-nowrap",
@@ -83,10 +94,11 @@ export function CompareBar() {
   const pathname = usePathname();
   const current = useSelection();
 
-  if (!pathname.startsWith(routes.catalog) || current.length === 0) return null;
+  // En el catálogo y en las ofertas: donde hay tarjetas con el botón de comparar.
+  const listing = pathname.startsWith(routes.catalog) || pathname.startsWith(routes.deals);
+  if (!listing || current.length === 0) return null;
 
-  const [first, second] = current;
-  const ready = current.length === MAX_SELECTED;
+  const ready = current.length >= MIN_SELECTED;
 
   return (
     <aside
@@ -95,23 +107,27 @@ export function CompareBar() {
     >
       <div className="mx-auto flex max-w-[1280px] items-center gap-3 px-5 py-2.5 lg:px-12 lg:py-3">
         <p className="min-w-0 flex-1 text-[13px] leading-[1.35] lg:text-sm">
-          <span className="font-extrabold">{first.name}</span>
-          {second ? (
-            <>
-              {" "}
-              <span className="text-muted">vs</span> <span className="font-extrabold">{second.name}</span>
-            </>
-          ) : (
-            <span className="text-muted"> · elige otra pala para compararla</span>
+          {current.map((item, index) => (
+            <span key={item.slug}>
+              {index > 0 && <span className="text-muted"> vs </span>}
+              <span className="font-extrabold">{item.name}</span>
+            </span>
+          ))}
+          {!ready && <span className="text-muted"> · elige otra pala para compararla</span>}
+          {ready && current.length < MAX_SELECTED && (
+            <span className="hidden text-muted lg:inline"> · puedes añadir una tercera</span>
           )}
         </p>
         <button type="button" onClick={() => write([])} className="min-h-11 flex-none text-[13px] font-bold underline">
           Quitar
         </button>
-        {ready && second && (
+        {ready && (
           <Link
-            href={comparePath(first.slug, second.slug)}
-            onClick={() => write([])}
+            href={compareSetPath(current.map((item) => item.slug))}
+            onClick={() => {
+              track(ANALYTICS_EVENTS.compareStart, { origen: "listado" });
+              write([]);
+            }}
             className="flex h-11 flex-none items-center rounded-[14px] bg-lime px-4 text-sm font-extrabold hover:bg-[#bde52f]"
           >
             Comparar

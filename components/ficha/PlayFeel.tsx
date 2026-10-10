@@ -1,5 +1,5 @@
 import { formatRating } from "@/lib/format";
-import { declaredFeel } from "@/lib/pala-content";
+import { declaredFeel, scoreHighlights } from "@/lib/pala-content";
 import type { Pala } from "@/types/catalog";
 import { SectionTitle } from "./SectionTitle";
 
@@ -17,6 +17,7 @@ interface PlayFeelProps {
 export function PlayFeel({ pala, className }: PlayFeelProps) {
   const declared = declaredFeel(pala);
   const ratings = pala.sourceRatings;
+  const highlights = scoreHighlights(pala);
   if (!declared && !ratings) return null;
 
   return (
@@ -48,6 +49,19 @@ export function PlayFeel({ pala, className }: PlayFeelProps) {
               Puntuación total de {ratings.source}:{" "}
               <strong className="tabular-nums">{formatRating(ratings.total)}</strong> sobre 10
             </p>
+          )}
+          {/* Puntos fuertes y a tener en cuenta: solo lo que dicen las notas, y solo si se diferencian. */}
+          {highlights && (
+            <dl className="mt-3 border-t border-line pt-3 text-sm leading-[1.5]">
+              <div>
+                <dt className="inline font-extrabold">Donde puntúa más alto: </dt>
+                <dd className="inline text-ink">{highlights.best.join(" y ")}.</dd>
+              </div>
+              <div className="mt-1">
+                <dt className="inline font-extrabold">A tener en cuenta: </dt>
+                <dd className="inline text-ink">su nota más baja es {highlights.weakest}.</dd>
+              </div>
+            </dl>
           )}
         </div>
       )}

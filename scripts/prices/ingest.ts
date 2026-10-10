@@ -60,6 +60,14 @@ runDbScript(async (sql) => {
     console.log(`Precios actualizados:   ${summary.pricesUpdated}`);
     console.log(`Bajadas retenidas:      ${summary.pricesHeld}`);
     console.log(`Descartados por datos:  ${summary.productsInvalid}`);
+    console.log(`EAN no válidos:         ${summary.invalidEans}`);
+    console.log(`Enlaces conservados:    ${summary.linksKept}`);
+    console.log(`Ofertas duplicadas:     ${summary.duplicateOffers}`);
+    console.log(`Cambios de producto:    ${summary.offerSwitches}`);
+    console.log(`Conflictos a revisión:  ${summary.productsConflicting}`);
+    for (const conflict of summary.conflicts) {
+      console.log(`  pala ${conflict.racketId}: se mantiene ${conflict.kept ?? "ninguno"} · a revisión ${conflict.review.join(", ")}`);
+    }
 
     if (summary.status === "failed") {
       // Una tienda que falla no impide actualizar las demás.

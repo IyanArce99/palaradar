@@ -57,10 +57,36 @@ function dayTime(isoDate: string): number {
   return Date.parse(`${isoDate.slice(0, 10)}T00:00:00Z`);
 }
 
+/**
+ * Ofertas de más barata a más cara. Si todas tienen el envío verificado se
+ * ordenan por el total con envío; si alguna no lo tiene, por el precio de la
+ * pala: un envío desconocido no es un envío de 0 € y no puede decidir el orden.
+ * `total` es el precio con envío donde se conoce y el precio de la pala donde no
+ * (así lo enseña la interfaz, con su aviso).
+ */
 export function rankOffers(offers: StoreOffer[]): RankedOffer[] {
+  const comparable = totalsComparable(offers);
   return offers
     .map((offer) => ({ ...offer, total: round2(offer.price + (offer.shipping ?? 0)) }))
-    .sort((a, b) => a.total - b.total);
+    .sort((a, b) => (comparable ? a.total - b.total : a.price - b.price) || a.store.slug.localeCompare(b.store.slug));
+}
+
+/**
+ * true si los totales de las ofertas se pueden comparar entre sí: todas tienen el
+ * envío verificado. Con algún envío sin verificar, el orden mezcla totales con
+ * precios sin envío y no se puede afirmar cuál es «la más barata».
+ */
+export function totalsComparable(offers: Pick<StoreOffer, "shipping">[]): boolean {
+  return offers.every((offer) => offer.shipping !== null);
+}
+
+/**
+ * true si se puede señalar a la primera oferta como «la más barata» frente a las
+ * demás: hay al menos dos y sus totales son comparables. Un envío sin verificar no
+ * es un envío de 0 €.
+ */
+export function canClaimCheapest(offers: Pick<StoreOffer, "shipping">[]): boolean {
+  return offers.length > 1 && totalsComparable(offers);
 }
 
 /** Registros del histórico entre hace `days` días y hoy, ambos incluidos. */

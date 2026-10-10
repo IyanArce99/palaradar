@@ -82,6 +82,8 @@ export async function Footer() {
           title={siteConfig.name}
           links={[
             ...mainNav,
+            { label: "Informes", href: routes.reports },
+            { label: "Favoritas", href: routes.favorites },
             // Solo si las alertas se pueden crear: sin ellas la página no tendría nada que enseñar.
             ...(alertsAvailable() ? [{ label: "Mis alertas", href: routes.myAlerts }] : []),
             { label: "Privacidad", href: routes.privacy },

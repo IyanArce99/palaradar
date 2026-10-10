@@ -123,6 +123,17 @@ function cheapest(palas: Pala[]): { index: number; price: number; gap: number } 
   return gap > 0 ? { ...ranked[0], gap } : null;
 }
 
+/**
+ * true si el mejor precio de todas lleva el envío verificado. Si no, lo que se
+ * compara es el precio de la pala y no se puede afirmar cuál sale «más barata».
+ */
+function shippingVerified(palas: Pala[]): boolean {
+  return palas.every((pala) => (pala.price?.bestOffer.shipping ?? null) !== null);
+}
+
+/** Lo que se añade a una frase de precio cuando falta algún envío por verificar. */
+const UNVERIFIED_SHIPPING = "Son precios de pala: hay gastos de envío sin verificar y pueden cambiar la diferencia.";
+
 /** La más ligera, si todas declaran peso y la diferencia de puntos medios se nota. */
 function lightest(palas: Pala[]): { index: number; grams: number; exact: boolean } | null {
   if (palas.some((pala) => pala.weight === null)) return null;
@@ -206,6 +217,7 @@ export function buildVerdict(palas: Pala[]): Verdict {
   const pair = palas.length === 2;
   const light = lightest(palas);
   const cheap = cheapest(palas);
+  const verified = shippingVerified(palas);
 
   const advantages = palas.map((pala, index) => {
     const lines = [...scoreAdvantages(rows, index, pair), ...declaredAdvantages(palas, index)];
@@ -218,7 +230,16 @@ export function buildVerdict(palas: Pala[]): Verdict {
       );
     }
     if (cheap?.index === index) {
-      lines.push(pair ? `${formatEuro(cheap.gap)} más barata hoy` : `La más barata hoy: ${formatEuro(cheap.price)}`);
+      if (verified) {
+        lines.push(pair ? `${formatEuro(cheap.gap)} más barata hoy` : `La más barata hoy: ${formatEuro(cheap.price)}`);
+      } else {
+        // Sin todos los envíos verificados solo se puede hablar del precio de la pala.
+        lines.push(
+          pair
+            ? `${formatEuro(cheap.gap)} menos hoy, sin contar el envío`
+            : `El precio de pala más bajo hoy: ${formatEuro(cheap.price)}, sin contar el envío`,
+        );
+      }
     }
     return lines;
   });
@@ -318,6 +339,15 @@ export function priceConclusion(palas: Pala[]): PriceConclusion | null {
   }
 
   const winner = palas[cheap.index];
+  if (!shippingVerified(palas)) {
+    // Con algún envío sin verificar no se afirma «más barata»: se compara el precio de la pala, y se dice.
+    const pair = palas.length === 2;
+    return {
+      before: "Hoy ",
+      strong: pair ? `la ${winner.model} cuesta ${formatEuro(cheap.gap)} menos` : `la ${winner.model} tiene el precio más bajo`,
+      after: `${pair ? discountClause(winner, palas[1 - cheap.index]) : `, ${formatEuro(cheap.price)}`}. ${UNVERIFIED_SHIPPING}${stockSentence(palas)}`,
+    };
+  }
   if (palas.length === 2) {
     const other = palas[1 - cheap.index];
     return {
@@ -382,7 +412,7 @@ export function comparisonFaq(palas: Pala[]): FaqItem[] {
     const gap = cheap && palas.length === 2 ? `: ${formatEuro(cheap.gap)} de diferencia` : "";
     items.push({
       question: "¿Cuál está más barata ahora?",
-      answer: `Hoy ${prices.slice(0, -1).join(", ")} y ${prices.at(-1)}${gap}. Los precios cambian: en cada ficha está el de cada tienda.`,
+      answer: `Hoy ${prices.slice(0, -1).join(", ")} y ${prices.at(-1)}${gap}. ${shippingVerified(priced) ? "" : `${UNVERIFIED_SHIPPING} `}Los precios cambian: en cada ficha está el de cada tienda.`,
     });
   }
 

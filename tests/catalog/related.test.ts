@@ -2,9 +2,11 @@
 // otras temporadas del modelo, ahorro sobre el PVPR; y la selección para comparar
 // desde el catálogo.
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, it } from "node:test";
 import { createMemoryRepository } from "@/data/memory-repository";
-import { MAX_SELECTED, parseSelection, toggleSelected } from "@/lib/compare-selection";
+import { MAX_SELECTED, MIN_SELECTED, parseSelection, toggleSelected } from "@/lib/compare-selection";
 import { CHART_RANGES, chartSeries, DEFAULT_CHART_RANGE, msrpSaving } from "@/lib/pricing";
 import { sameModelSeasons, sharedTraits, similarityReason, similarityTarget, type SimilarityTarget } from "@/lib/similar";
 import type { PalaSummary } from "@/types/catalog";
@@ -45,6 +47,32 @@ describe("palas parecidas", () => {
       const counts = similar.map((item) => item.shared.length);
       assert.deepEqual(counts, [...counts].sort((a, b) => b - a));
     }
+  });
+});
+
+describe("palas parecidas de una pala sin precio", () => {
+  it("también las obtiene: sin precio de referencia solo se pierde el criterio de cercanía", async () => {
+    const repository = createMemoryRepository();
+    const [slug] = await repository.getAllPalaSlugs();
+    const pala = await repository.getPalaBySlug(slug);
+    assert.ok(pala);
+    const target = similarityTarget({ ...pala, price: null });
+    assert.equal(target.price, null);
+
+    const similar = await repository.getSimilarPalas(target, 4);
+    assert.deepEqual(similar, await repository.getSimilarPalas(target, 4));
+    for (const { pala: other } of similar) {
+      assert.equal(other.shape, pala.shape);
+      assert.notEqual(other.price, null);
+    }
+  });
+
+  it("ninguna consulta ordena por una constante entera", () => {
+    // PostgreSQL lee un entero suelto en ORDER BY como posición de columna: `order by 0`
+    // es un error (42P10) que solo aparece al ejecutar la consulta. Así fallaron las
+    // fichas sin precio. El comportamiento real lo prueba tests/db/similar-postgres.test.ts.
+    const source = readFileSync(join(process.cwd(), "data", "postgres-repository.ts"), "utf8");
+    assert.doesNotMatch(source, /sql`\s*\d+\s*`/);
   });
 });
 
@@ -107,11 +135,15 @@ describe("selección para comparar desde el catálogo", () => {
   const b = { slug: "b", name: "Pala B" };
   const c = { slug: "c", name: "Pala C" };
 
-  it("añade, quita y no pasa de dos", () => {
-    assert.equal(MAX_SELECTED, 2);
+  const d = { slug: "d", name: "Pala D" };
+
+  it("añade, quita y no pasa de tres, las que admite el comparador", () => {
+    assert.equal(MAX_SELECTED, 3);
+    assert.equal(MIN_SELECTED, 2);
     assert.deepEqual(toggleSelected([], a), [a]);
     assert.deepEqual(toggleSelected([a], b), [a, b]);
-    assert.deepEqual(toggleSelected([a, b], c), [a, b]);
+    assert.deepEqual(toggleSelected([a, b], c), [a, b, c]);
+    assert.deepEqual(toggleSelected([a, b, c], d), [a, b, c]);
     assert.deepEqual(toggleSelected([a, b], a), [b]);
   });
 
@@ -119,6 +151,10 @@ describe("selección para comparar desde el catálogo", () => {
     assert.deepEqual(parseSelection(null), []);
     assert.deepEqual(parseSelection("no es json"), []);
     assert.deepEqual(parseSelection('{"slug":"a"}'), []);
-    assert.deepEqual(parseSelection(JSON.stringify([a, { slug: 1 }, b, c])), [a, b]);
+    assert.deepEqual(parseSelection(JSON.stringify([a, { slug: 1 }, b, c, d])), [a, b, c]);
+  });
+
+  it("no admite la misma pala dos veces", () => {
+    assert.deepEqual(parseSelection(JSON.stringify([a, a, b])), [a, b]);
   });
 });

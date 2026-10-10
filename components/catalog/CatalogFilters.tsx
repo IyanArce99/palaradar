@@ -2,7 +2,7 @@ import Form from "next/form";
 import { buttonClass } from "@/components/ui/Button";
 import { DisclosureMarker } from "@/components/ui/DisclosureMarker";
 import type { CatalogFacets } from "@/data";
-import { PARAMS, type CatalogQuery } from "@/lib/catalog/query";
+import { COVERAGE_LABELS, PARAMS, type CatalogQuery } from "@/lib/catalog/query";
 import { BALANCE_LABELS, LEVEL_LABELS, SHAPE_LABELS, STYLE_LABELS } from "@/lib/labels";
 import { routes } from "@/lib/routes";
 import { AutoSubmit } from "./AutoSubmit";
@@ -99,6 +99,13 @@ export function CatalogFilters({ formId, query, facets, total, toggleId }: Catal
           max={facets.priceCeiling}
           step={PRICE_SLIDER_STEP}
           defaultValue={query.maxPrice ?? facets.priceCeiling}
+        />
+        <FilterGroup
+          title="Precio disponible"
+          name={PARAMS.coverage}
+          options={toOptions(COVERAGE_LABELS)}
+          selected={query.coverage}
+          defaultOpen
         />
         <FilterGroup
           title="Marca"

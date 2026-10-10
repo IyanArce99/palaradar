@@ -114,6 +114,17 @@ async function main(): Promise<void> {
   console.log(`  descartados por un veto:  ${vetoed.length}`);
   console.log(`Productos agotados:         ${products.filter((p) => p.listingStatus === "out_of_stock").length}`);
   console.log(`Descartados por datos:      ${summary.productsInvalid}`);
+  console.log(`EAN no válidos:             ${summary.invalidEans}`);
+  console.log(`Enlaces conservados:        ${summary.linksKept}`);
+  console.log(`Ofertas duplicadas:         ${summary.duplicateOffers}`);
+  console.log(`Bajadas retenidas:          ${summary.pricesHeld}`);
+
+  section(`Conflictos: varios productos en la misma pala (${summary.conflicts.length})`);
+  for (const conflict of summary.conflicts) {
+    console.log(`${racketName.get(conflict.racketId) ?? conflict.racketId}`);
+    console.log(`  → se mantiene: ${conflict.kept ?? "ninguno"} · a revisión: ${conflict.review.join(", ")}`);
+  }
+  if (summary.conflicts.length === 0) console.log("(ninguno)");
 
   section("Coincidencias automáticas");
   for (const product of matched) {

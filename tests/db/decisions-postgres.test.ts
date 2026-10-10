@@ -59,7 +59,7 @@ const listing = (externalId: string, title: string, extra: Partial<StoreListing>
 });
 const LISTINGS = [
   listing("SIN-AÑO", "MARCA DE TEST MODELO INVENTADO HRD+", { ean: EAN }),
-  listing("PACK", "PACK MARCA DE TEST MODELO INVENTADO HRD+ 2026", { price: 199 }),
+  listing("FIRMADA", "MARCA DE TEST MODELO INVENTADO HRD+ 2026 FIRMADA", { price: 199 }),
   listing("EDICION", "MARCA DE TEST MODELO INVENTADO HRD+ EDICIÓN RARA", { price: 250 }),
 ];
 
@@ -71,7 +71,7 @@ const DECISIONS: DecisionFile = {
   decidedAt: "2026-10-05",
   products: [
     decision("SIN-AÑO", { decision: "match", racket: SLUG_2026, confidence: "high", reason: "Revisado a mano" }),
-    decision("PACK", { decision: "reject", reason: "Pack: no es la pala suelta" }),
+    decision("FIRMADA", { decision: "reject", reason: "Edición firmada: no es la pala comparable" }),
     decision("EDICION", {}),
   ],
 };
@@ -107,7 +107,7 @@ describe("decisiones manuales de emparejamiento", { skip: !url && "DATABASE_URL 
 
       const expected = {
         "SIN-AÑO": { external_id: "SIN-AÑO", status: "matched", method: "manual", confidence: "high", note: "Revisado a mano", slug: SLUG_2026 },
-        PACK: { external_id: "PACK", status: "rejected", method: "manual", confidence: null, note: "Pack: no es la pala suelta", slug: null },
+        FIRMADA: { external_id: "FIRMADA", status: "rejected", method: "manual", confidence: null, note: "Edición firmada: no es la pala comparable", slug: null },
         EDICION: { external_id: "EDICION", status: "pending_review", method: "manual", confidence: null, note: "sin ficha equivalente en catálogo", slug: null },
       };
       assert.deepEqual(await states(), expected);
@@ -174,10 +174,110 @@ describe("decisiones manuales de emparejamiento", { skip: !url && "DATABASE_URL 
 
       const stale = (products: ProductDecision[]) => applyDecisions(tx, { ...DECISIONS, products }, NOW);
       // Ya está decidido de otra forma: no se pisa en silencio.
-      await assert.rejects(stale([decision("PACK", { decision: "match", racket: SLUG_2026, confidence: "high", reason: "Otra cosa" })]), /ya no está en revisión/);
+      await assert.rejects(stale([decision("FIRMADA", { decision: "match", racket: SLUG_2026, confidence: "high", reason: "Otra cosa" })]), /ya no está en revisión/);
       // La corrección parte de una pala a la que el producto no está enlazado.
       await assert.rejects(stale([decision("SIN-AÑO", { decision: "reject", reason: "No", from: SLUG_2027 })]), /ya no está enlazado/);
       await assert.rejects(stale([decision("NO-EXISTE", {})]), /No existe el producto/);
+    });
+  });
+
+  it("confirmar un enlace que ya existía solo cambia la confianza y el motivo", async () => {
+    await rolledBack(async (tx) => {
+      const { ingest, states } = await setup(tx);
+      const medium: DecisionFile = {
+        ...DECISIONS,
+        products: [decision("SIN-AÑO", { decision: "match", racket: SLUG_2026, confidence: "medium", reason: "Sin año en el título" })],
+      };
+      await applyDecisions(tx, medium, NOW);
+      await ingest();
+
+      // Todo lo que depende del enlace, fila a fila; del producto, todo menos confianza y motivo.
+      const snapshot = async () => {
+        const one = async (rows: PromiseLike<{ row: unknown }[]>) => (await rows).map((item) => item.row);
+        return {
+          product: await one(tx<{ row: unknown }[]>`
+            select to_jsonb(p) - 'matching_confidence' - 'matching_note' as row
+            from store_products p join stores s on s.id = p.store_id where s.slug = ${STORE} order by p.external_id`),
+          prices: await one(tx<{ row: unknown }[]>`
+            select to_jsonb(sp) as row from store_prices sp join stores s on s.id = sp.store_id where s.slug = ${STORE} order by sp.racket_id`),
+          history: await one(tx<{ row: unknown }[]>`
+            select to_jsonb(h) as row from price_history h join stores s on s.id = h.store_id
+            where s.slug = ${STORE} order by h.racket_id, h.price_date`),
+          stats: await one(tx<{ row: unknown }[]>`
+            select to_jsonb(st) as row from racket_price_stats st join rackets r on r.id = st.racket_id
+            where r.slug in (${SLUG_2026}, ${SLUG_2027}) order by r.slug`),
+          identifiers: await one(tx<{ row: unknown }[]>`
+            select to_jsonb(i) as row from racket_identifiers i join rackets r on r.id = i.racket_id
+            where r.slug in (${SLUG_2026}, ${SLUG_2027}) order by i.value`),
+        };
+      };
+      const before = await snapshot();
+      assert.equal(before.prices.length, 1, "el precio está publicado antes de confirmar");
+      assert.equal(before.history.length, 1);
+      assert.equal(before.stats.length, 1);
+
+      const confirmation: DecisionFile = {
+        ...DECISIONS,
+        products: [decision("SIN-AÑO", { decision: "match", racket: SLUG_2026, confidence: "high", reason: "Año confirmado en la ficha de la tienda" })],
+      };
+      // Bastante después: si recalculase los agregados, cambiarían sus fechas.
+      const later = new Date(NOW.getTime() + 3 * 3_600_000);
+      const report = await applyDecisions(tx, confirmation, later);
+      assert.deepEqual(
+        { ...report, log: report.log.length },
+        {
+          racketsFixed: 0, matched: 0, rejected: 0, inReview: 0, confirmed: 1, unchanged: 0, gtinsAdded: 0,
+          identifiersMoved: 0, identifiersRemoved: 0, pricesMoved: 0, pricesRemoved: 0,
+          historyMoved: 0, historyDeleted: 0, duplicates: [], log: 1,
+        },
+      );
+      assert.match(report.log[0], /sigue en marca-de-test-modelo-inventado-hrd-plus-2026; confianza medium → high$/);
+
+      // El producto, el precio publicado, el histórico, los agregados y los EAN: idénticos.
+      assert.deepEqual(await snapshot(), before);
+      const confirmed = { external_id: "SIN-AÑO", status: "matched", method: "manual", confidence: "high", note: "Año confirmado en la ficha de la tienda", slug: SLUG_2026 };
+      assert.deepEqual((await states())["SIN-AÑO"], confirmed);
+      const repository = createPostgresRepository(tx);
+      assert.equal((await repository.getPalaBySlug(SLUG_2026))?.price?.current, 123.45);
+
+      // Repetirlo no cambia nada, y la siguiente ingestión respeta la confirmación.
+      const again = await applyDecisions(tx, confirmation, later);
+      assert.deepEqual([again.confirmed, again.unchanged], [0, 1]);
+      await ingest();
+      assert.deepEqual((await states())["SIN-AÑO"], confirmed);
+      assert.equal((await repository.getPalaBySlug(SLUG_2026))?.price?.current, 123.45);
+      assert.equal((await repository.getPalaBySlug(SLUG_2027))?.price, null);
+    });
+  });
+
+  it("una confirmación no sirve para cambiar de pala ni para recuperar un producto descartado", async () => {
+    await rolledBack(async (tx) => {
+      const { ingest, states } = await setup(tx);
+      await applyDecisions(tx, DECISIONS, NOW);
+      await ingest();
+      const before = await states();
+      const [prices] = await tx<{ rows: unknown }[]>`
+        select jsonb_agg(to_jsonb(sp) order by sp.racket_id) as rows from store_prices sp join stores s on s.id = sp.store_id where s.slug = ${STORE}`;
+
+      const attempt = (products: ProductDecision[]) => applyDecisions(tx, { ...DECISIONS, products }, NOW);
+      // Otra pala, sin decir de cuál viene: sigue haciendo falta `from`.
+      await assert.rejects(attempt([decision("SIN-AÑO", { decision: "match", racket: SLUG_2027, confidence: "high", reason: "Sería la de 2027" })]), /ya no está en revisión/);
+      // Un producto rechazado o fijado en revisión no está emparejado: no hay nada que confirmar.
+      await assert.rejects(attempt([decision("FIRMADA", { decision: "match", racket: SLUG_2026, confidence: "high", reason: "Otra cosa" })]), /ya no está en revisión/);
+      await assert.rejects(attempt([decision("EDICION", { decision: "match", racket: SLUG_2026, confidence: "high", reason: "Otra cosa" })]), /ya no está en revisión/);
+      // Si una decisión del fichero falla, las confirmaciones que la acompañan tampoco se guardan.
+      await assert.rejects(
+        attempt([
+          decision("SIN-AÑO", { decision: "match", racket: SLUG_2026, confidence: "medium", reason: "No debe quedar guardado" }),
+          decision("FIRMADA", { decision: "match", racket: SLUG_2026, confidence: "high", reason: "Otra cosa" }),
+        ]),
+        /ya no está en revisión/,
+      );
+
+      assert.deepEqual(await states(), before);
+      const [after] = await tx<{ rows: unknown }[]>`
+        select jsonb_agg(to_jsonb(sp) order by sp.racket_id) as rows from store_prices sp join stores s on s.id = sp.store_id where s.slug = ${STORE}`;
+      assert.deepEqual(after.rows, prices.rows);
     });
   });
 
