@@ -30,7 +30,7 @@ interface CompareSelectorProps {
 }
 
 const CTA_CLASS =
-  "flex h-14 items-center justify-center gap-2 rounded-full px-[22px] text-[15px] font-extrabold whitespace-nowrap lg:h-[60px] lg:min-w-[280px]";
+  "flex h-14 items-center justify-center gap-2 rounded-full px-[22px] text-base font-extrabold whitespace-nowrap lg:h-[60px] lg:min-w-[280px]";
 
 /**
  * Selector del comparador: los huecos frente a frente con «VS» entre ellos, la
@@ -78,7 +78,7 @@ export function CompareSelector({ slots }: CompareSelectorProps) {
                 <div className="relative z-[2] -my-3.5 flex items-center justify-center lg:my-0">
                   <VsBadge
                     className={cn(
-                      "size-11 text-[13px] shadow-[0_0_0_6px_#fff]",
+                      "size-11 text-sm shadow-[0_0_0_6px_#fff]",
                       three ? "lg:size-12 lg:text-sm" : "lg:size-[60px] lg:text-lg",
                     )}
                   />
@@ -110,7 +110,7 @@ export function CompareSelector({ slots }: CompareSelectorProps) {
 
       <div className="mt-3.5 flex flex-col gap-2.5 lg:mt-6 lg:items-center lg:gap-3.5">
         {three ? (
-          <p className="text-center text-[13px] text-muted">
+          <p className="text-center text-sm text-muted">
             Máximo {MAX_COMPARED} palas
             {/* En móvil, la pala elegida ya se quita con su «×»; el enlace solo hace falta si el hueco está vacío. */}
             <span className={cn(third?.pala && "hidden lg:inline")}>
@@ -149,7 +149,7 @@ export function CompareSelector({ slots }: CompareSelectorProps) {
             </span>
           )}
           {/* Con tres palas, en móvil el propio botón ya dice «Comparar 3 palas». */}
-          {hint && <p className={cn("text-center text-[13px] text-muted", ready && "hidden lg:block")}>{hint}</p>}
+          {hint && <p className={cn("text-center text-sm text-muted", ready && "hidden lg:block")}>{hint}</p>}
         </div>
       </div>
     </div>

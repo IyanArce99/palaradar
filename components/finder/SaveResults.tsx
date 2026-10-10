@@ -25,7 +25,7 @@ export function SaveResults({ answers }: SaveResultsProps) {
   const message = state.status === "invalid" ? state.message : MESSAGES[state.status];
 
   return (
-    <section aria-labelledby="guardar" className="mt-7 rounded-[22px] bg-carbon p-[22px] text-white">
+    <section aria-labelledby="guardar" className="mt-7 rounded-3xl bg-carbon p-5 text-white">
       <h2 id="guardar" className="text-xl font-black">
         Guarda tus resultados
       </h2>
@@ -34,7 +34,7 @@ export function SaveResults({ answers }: SaveResultsProps) {
       </p>
 
       {state.status === "pending" ? (
-        <p role="status" className="mt-3.5 rounded-[14px] bg-white/10 p-4 text-[15px] leading-normal">
+        <p role="status" className="mt-3.5 rounded-2xl bg-white/10 p-4 text-base leading-normal">
           <strong className="block">Revisa tu correo.</strong>
           Te hemos enviado tus palas. Para que te avisemos cuando bajen de precio, confirma el enlace
           del correo.
@@ -51,13 +51,13 @@ export function SaveResults({ answers }: SaveResultsProps) {
                 required
                 autoComplete="email"
                 placeholder="tu@email.com"
-                className="h-[50px] w-full rounded-[14px] bg-white px-4 text-[15px] text-carbon outline-offset-2 placeholder:text-muted focus-visible:outline-2 focus-visible:outline-lime"
+                className="h-[50px] w-full rounded-2xl bg-white px-4 text-base text-carbon outline-offset-2 placeholder:text-muted focus-visible:outline-2 focus-visible:outline-lime"
               />
             </label>
             <button
               type="submit"
               disabled={pending}
-              className="flex h-[50px] items-center rounded-[14px] bg-lime px-[18px] font-extrabold text-carbon hover:bg-[#bde52f] disabled:opacity-60"
+              className="flex h-[50px] items-center rounded-2xl bg-lime px-[18px] font-extrabold text-carbon hover:bg-[#bde52f] disabled:opacity-60"
             >
               {pending ? "Enviando…" : "Enviar"}
             </button>
@@ -71,7 +71,7 @@ export function SaveResults({ answers }: SaveResultsProps) {
             </label>
           </div>
 
-          <label className="mt-3 flex items-start gap-2.5 text-[13px] leading-[1.45] text-ash">
+          <label className="mt-3 flex items-start gap-2.5 text-sm leading-normal text-ash">
             <input type="checkbox" name="consent" required className="mt-0.5 size-[18px] flex-none accent-lime" />
             <span>
               He leído la{" "}
@@ -84,7 +84,7 @@ export function SaveResults({ answers }: SaveResultsProps) {
           </label>
 
           {message && (
-            <p role="alert" className="mt-3 rounded-xl bg-white/10 px-3.5 py-2.5 text-sm font-bold">
+            <p role="alert" className="mt-3 rounded-2xl bg-white/10 px-3.5 py-2.5 text-sm font-bold">
               {message}
             </p>
           )}

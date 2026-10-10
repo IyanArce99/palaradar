@@ -35,7 +35,7 @@ export function PriceInsight({ price, history, className }: PriceInsightProps) {
   }
 
   const answer = (
-    <p className="mt-2.5 text-base leading-[1.6] text-pretty text-ink">{price.verdict.answer}</p>
+    <p className="mt-2.5 text-base leading-normal text-pretty text-ink">{price.verdict.answer}</p>
   );
 
   if (chartSeries(history, price, MAX_CHART_RANGE).length < MIN_CHART_POINTS) {
@@ -44,7 +44,7 @@ export function PriceInsight({ price, history, className }: PriceInsightProps) {
       <section aria-labelledby={TITLE_ID} className={className}>
         {title}
         {answer}
-        <EmptyNote className="mt-4 lg:mt-[18px]">
+        <EmptyNote className="mt-4 lg:mt-5">
           {/* Con «Precio reciente» la respuesta ya dice desde cuándo se sigue. */}
           {price.verdict.status === "recent"
             ? "La evolución de su precio aparecerá aquí cuando tengamos más días de histórico."

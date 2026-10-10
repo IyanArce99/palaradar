@@ -29,7 +29,7 @@ export function SlotBadge({ slot, className }: SlotBadgeProps) {
       className={cn(
         "inline-flex flex-none items-center justify-center rounded-full font-mono font-bold uppercase",
         SLOT_BADGE[slot],
-        className ?? "size-7 text-[13px]",
+        className ?? "size-7 text-sm",
       )}
     >
       {slot}
@@ -49,7 +49,7 @@ export function VsBadge({ className }: VsBadgeProps) {
       aria-hidden="true"
       className={cn(
         "relative z-[2] flex flex-none items-center justify-center rounded-full bg-carbon font-mono font-bold tracking-[0.04em] text-lime",
-        className ?? "size-7 text-[9px] shadow-[0_0_0_3px_#fff]",
+        className ?? "size-7 text-xs shadow-[0_0_0_3px_#fff]",
       )}
     >
       VS

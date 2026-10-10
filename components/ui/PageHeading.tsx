@@ -14,7 +14,7 @@ export function PageHeading({ title, lead, className }: PageHeadingProps) {
         {title}
       </h1>
       {lead && (
-        <p className="mt-2 max-w-[720px] text-sm leading-[1.45] text-pretty text-muted lg:mt-3 lg:text-[17px] lg:leading-[1.6] lg:text-ink">
+        <p className="mt-2 max-w-[720px] text-sm leading-normal text-pretty text-muted lg:mt-3 lg:text-base lg:leading-normal lg:text-ink">
           {lead}
         </p>
       )}

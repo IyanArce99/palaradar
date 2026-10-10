@@ -11,7 +11,7 @@ function Thumb({ pala, className }: { pala: CardPala; className: string }) {
       src={pala.image}
       alt=""
       sizes="64px"
-      className={cn("flex-none rounded-xl border-2 border-white !bg-white", className)}
+      className={cn("flex-none rounded-2xl border-2 border-white !bg-white", className)}
     />
   );
 }
@@ -23,7 +23,7 @@ export function PairThumbs({ a, b, size }: { a: CardPala; b: CardPala; size: "ca
   return (
     <span className="flex flex-none items-center">
       <Thumb pala={a} className={thumb} />
-      <VsBadge className="-mx-2.5 size-7 text-[9px] shadow-[0_0_0_3px_#fff]" />
+      <VsBadge className="-mx-2.5 size-7 text-xs shadow-[0_0_0_3px_#fff]" />
       <Thumb pala={b} className={thumb} />
     </span>
   );
@@ -35,20 +35,20 @@ function Card({ card }: { card: ComparisonCard }) {
   return (
     <Link
       href={card.href}
-      className="group flex h-full flex-col gap-3.5 rounded-[20px] border border-line bg-white p-4 hover:border-carbon"
+      className="group flex h-full flex-col gap-3.5 rounded-3xl border border-line bg-white p-4 hover:border-carbon"
     >
-      <span className="flex justify-center rounded-[14px] bg-mist py-1.5">
+      <span className="flex justify-center rounded-2xl bg-mist py-1.5">
         <PairThumbs a={a} b={b} size="card" />
       </span>
       <span className="block">
-        <span className="block text-[15px] leading-tight font-extrabold">
+        <span className="block text-base leading-snug font-extrabold">
           {a.brand} {a.model}
         </span>
-        <span className="block text-[15px] leading-tight font-extrabold">
-          <span className="mr-1 font-mono text-[11px] font-bold text-muted">VS</span>
+        <span className="block text-base leading-snug font-extrabold">
+          <span className="mr-1 font-mono text-xs font-bold text-muted">VS</span>
           {b.brand} {b.model}
         </span>
-        <span className="mt-1.5 block text-[13px] text-muted">{card.meta}</span>
+        <span className="mt-1.5 block text-sm text-muted">{card.meta}</span>
       </span>
       <span className="mt-auto flex items-center justify-between text-sm font-extrabold">
         Comparar

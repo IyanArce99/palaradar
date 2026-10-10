@@ -30,7 +30,7 @@ function FilterGroup({ title, name, options, selected, defaultOpen = false }: Fi
 
   return (
     <details open={defaultOpen || selected.length > 0} className="group border-t border-line">
-      <summary className="flex min-h-[50px] items-center justify-between text-[15px] font-extrabold">
+      <summary className="flex min-h-[50px] items-center justify-between text-base font-extrabold">
         {title}
         <DisclosureMarker />
       </summary>

@@ -45,7 +45,7 @@ export async function Footer() {
   const brands = await getBrands();
 
   return (
-    <footer className="border-t border-white/10 bg-carbon text-[13px] leading-[1.7] text-ash lg:text-sm">
+    <footer className="border-t border-white/10 bg-carbon text-sm leading-normal text-ash lg:text-sm">
       <div className="mx-auto grid max-w-[1280px] grid-cols-2 gap-x-[18px] gap-y-6 px-5 pt-7 pb-8 lg:grid-cols-[1.3fr_1fr_1fr_1fr] lg:gap-10 lg:p-12">
         <div className="col-span-2 lg:col-span-1">
           <div className="mb-2.5 flex items-center gap-2 text-lg font-black text-white">

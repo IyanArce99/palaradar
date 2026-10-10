@@ -89,15 +89,15 @@ export async function CollectionPage({ collection, page }: CollectionPageProps) 
 
         <div className="mx-5 mt-12 grid gap-10 border-t border-line pt-10 lg:mx-12 lg:mt-[72px] lg:grid-cols-2 lg:gap-14">
           <section aria-labelledby="sobre-coleccion">
-            <h2 id="sobre-coleccion" className="text-[22px] leading-[1.08] font-black tracking-[-0.025em] text-balance lg:text-[26px]">
+            <h2 id="sobre-coleccion" className="text-2xl leading-[1.1] font-black tracking-[-0.025em] text-balance lg:text-2xl">
               Cómo elegir entre {collection.title.charAt(0).toLowerCase() + collection.title.slice(1)}
             </h2>
             {rest.map((paragraph) => (
-              <p key={paragraph} className="mt-3 text-base leading-[1.6] text-pretty text-ink">
+              <p key={paragraph} className="mt-3 text-base leading-normal text-pretty text-ink">
                 {paragraph}
               </p>
             ))}
-            <p className="mt-3 text-base leading-[1.6] text-pretty text-ink">
+            <p className="mt-3 text-base leading-normal text-pretty text-ink">
               Las características de cada pala son las que declaran fabricantes y tiendas; el precio
               es el más bajo que hemos comprobado hoy en las tiendas que seguimos.
             </p>

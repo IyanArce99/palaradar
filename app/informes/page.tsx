@@ -37,22 +37,22 @@ export default async function ReportsPage() {
         />
         <ul className="grid gap-3 px-5 pt-6 lg:grid-cols-2 lg:gap-5 lg:px-12 lg:pt-10">
           {REPORTS.map((report) => (
-            <li key={report.slug} className="group relative rounded-[22px] border border-line p-5 hover:border-carbon lg:p-6">
-              <h2 className="text-xl leading-[1.15] font-black tracking-[-0.02em]">
+            <li key={report.slug} className="group relative rounded-3xl border border-line p-5 hover:border-carbon lg:p-6">
+              <h2 className="text-xl leading-[1.1] font-black tracking-[-0.02em]">
                 <Link href={routes.report(report.slug)} className="after:absolute after:inset-0 group-hover:underline">
                   {report.title}
                 </Link>
               </h2>
-              <p className="mt-2 text-[15px] leading-[1.5] text-ink">{report.lead}</p>
+              <p className="mt-2 text-base leading-normal text-ink">{report.lead}</p>
             </li>
           ))}
         </ul>
 
-        <section aria-labelledby="de-donde" className="mx-5 mt-10 rounded-[22px] bg-mist p-5 lg:mx-12 lg:p-7">
+        <section aria-labelledby="de-donde" className="mx-5 mt-10 rounded-3xl bg-mist p-5 lg:mx-12 lg:p-7">
           <h2 id="de-donde" className="text-xl font-black tracking-[-0.02em]">
             De dónde salen los datos
           </h2>
-          <dl className="mt-3 grid gap-3 text-[15px] leading-[1.5] lg:grid-cols-2 lg:gap-x-10">
+          <dl className="mt-3 grid gap-3 text-base leading-normal lg:grid-cols-2 lg:gap-x-10">
             <div>
               <dt className="font-extrabold">Tiendas</dt>
               <dd className="text-ink">{method.stores}</dd>
@@ -62,7 +62,7 @@ export default async function ReportsPage() {
               <dd className="text-ink">{method.period}</dd>
             </div>
           </dl>
-          <p className="mt-3 text-[15px] leading-[1.5] text-ink">{method.scope}</p>
+          <p className="mt-3 text-base leading-normal text-ink">{method.scope}</p>
         </section>
       </div>
     </>

@@ -37,13 +37,13 @@ export function Breadcrumbs({ items, mobileBack, actions, className }: Breadcrum
         {parent && (
           <Link
             href={parent.href}
-            className="inline-flex h-11 items-center px-2 text-[15px] font-bold lg:hidden"
+            className="inline-flex h-11 items-center px-2 text-base font-bold lg:hidden"
           >
             <span aria-hidden="true">‹&nbsp;</span>
             {parent.label}
           </Link>
         )}
-        <ol className="hidden flex-wrap gap-x-1.5 text-[13px] text-muted lg:flex">
+        <ol className="hidden flex-wrap gap-x-1.5 text-sm text-muted lg:flex">
           {items.map((item, i) => (
             <li key={item.href} className="flex gap-x-1.5">
               {i > 0 && <span aria-hidden="true">›</span>}

@@ -16,8 +16,8 @@ export const metadata: Metadata = pageMetadata({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mt-9">
-      <h2 className="text-[22px] leading-tight font-black tracking-[-0.02em] lg:text-2xl">{title}</h2>
-      <div className="mt-3 space-y-3 text-base leading-[1.6] text-pretty text-ink">{children}</div>
+      <h2 className="text-2xl leading-snug font-black tracking-[-0.02em] lg:text-2xl">{title}</h2>
+      <div className="mt-3 space-y-3 text-base leading-normal text-pretty text-ink">{children}</div>
     </section>
   );
 }
@@ -29,10 +29,10 @@ export default function PrivacyPage() {
 
   return (
     <div className="mx-auto max-w-[720px] px-5 py-12 lg:py-20">
-      <h1 className="text-[32px] leading-none font-black tracking-[-0.035em] text-balance lg:text-[44px]">
+      <h1 className="text-[32px] leading-none font-black tracking-[-0.035em] text-balance lg:text-[52px]">
         Política de privacidad
       </h1>
-      <p className="mt-4 text-base leading-[1.6] text-pretty text-ink">
+      <p className="mt-4 text-base leading-normal text-pretty text-ink">
         {name} no tiene cuentas de usuario. El único dato personal que guardamos es el correo que
         nos dejas al crear una alerta de precio. Esta web no usa cookies de seguimiento ni
         herramientas de analítica.

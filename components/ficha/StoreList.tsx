@@ -42,7 +42,8 @@ function StoreRow({ offer, cheapest, position, palaSlug, claimCheapest }: StoreR
       )}
     >
       <div>
-        <p className="text-[15px] font-extrabold">
+        {/* En móvil el nombre comparte fila con el precio y el botón: un punto menos para que no se parta. */}
+        <p className="text-sm font-extrabold lg:text-base">
           {offer.store.name}
           {cheapest && claimCheapest && (
             <span className="block text-xs font-bold text-forest lg:inline">
@@ -62,7 +63,7 @@ function StoreRow({ offer, cheapest, position, palaSlug, claimCheapest }: StoreR
           {link?.affiliated && <span className="block">Enlace de afiliado</span>}
         </p>
       </div>
-      <p className="text-[17px] font-black whitespace-nowrap tabular-nums">
+      <p className="text-base font-black whitespace-nowrap tabular-nums lg:text-lg">
         {formatEuro(offer.total)}
       </p>
       {link ? (
@@ -79,7 +80,7 @@ function StoreRow({ offer, cheapest, position, palaSlug, claimCheapest }: StoreR
           <span className="sr-only"> {offer.store.name} (se abre en una pestaña nueva)</span>
         </OutboundLink>
       ) : (
-        <span className="flex h-11 items-center rounded-[14px] bg-mist px-3.5 text-[13px] font-bold whitespace-nowrap text-muted">
+        <span className="flex h-11 items-center rounded-2xl bg-mist px-3.5 text-sm font-bold whitespace-nowrap text-muted">
           Sin enlace
         </span>
       )}
@@ -116,19 +117,20 @@ export function StoreList({ price, palaSlug, id, className }: StoreListProps) {
   }
 
   const unverified = price.offers.filter((offer) => offer.shipping === null);
+  const spread = storeSpread(price.offers, new Date(price.asOf));
 
   return (
     <section aria-labelledby={id} className={className}>
       <SectionTitle id={id}>Precios por tienda</SectionTitle>
-      <p className="mt-1.5 text-[13px] leading-[1.45] text-pretty text-muted">
+      <p className="mt-1.5 text-sm leading-normal text-pretty text-muted">
         {unverified.length > 0
-          ? "Ordenadas por el importe que conocemos de cada una. El envío solo está incluido donde se indica."
+          ? "Precio de la pala; el envío se indica en cada tienda."
           : "Precio final con envío, de más barata a más cara."}{" "}
         {price.freshness === "stale"
           ? `Sin comprobar desde el ${formatDate(price.checkedAt)}.`
           : `Comprobado ${formatTimeAgo(price.checkedAt, price.asOf)}.`}
       </p>
-      <ol className="mt-3.5 overflow-hidden rounded-[18px] border border-line">
+      <ol className="mt-3.5 overflow-hidden rounded-3xl border border-line">
         {price.offers.map((offer, i) => (
           <StoreRow
             key={offer.store.id}
@@ -141,14 +143,11 @@ export function StoreList({ price, palaSlug, id, className }: StoreListProps) {
         ))}
       </ol>
       {/* Cuánto cambia el precio de una tienda a otra: solo existe con dos precios vigentes. */}
-      <StoreSpreadNote
-        spread={storeSpread(price.offers, new Date(price.asOf))}
-        asOf={price.asOf}
-        className="mt-3"
-      />
-      {/* Con un envío sin verificar no se puede afirmar cuál es el total más bajo. */}
-      {unverified.length > 0 && price.offers.length > 1 && (
-        <p className="mt-2.5 text-[13px] leading-[1.45] text-pretty text-muted">
+      <StoreSpreadNote spread={spread} className="mt-3" />
+      {/* Con un envío sin verificar no se puede afirmar cuál es el total más bajo. El recuadro
+          de la diferencia ya lo dice; este aviso solo hace falta cuando no hay recuadro. */}
+      {!spread && unverified.length > 0 && price.offers.length > 1 && (
+        <p className="mt-2.5 text-sm leading-normal text-pretty text-muted">
           No hemos verificado los gastos de envío de {storeNames(unverified)}, así que su importe no los incluye. El
           orden puede cambiar al sumarlos y por eso no señalamos ninguna tienda como la más barata. Compruébalo en la
           tienda antes de comprar.

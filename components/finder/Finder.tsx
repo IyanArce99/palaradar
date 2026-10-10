@@ -32,7 +32,7 @@ const STEP_EVERY = 650;
 /** Lo mínimo que se ve la pantalla de búsqueda, aunque la respuesta llegue antes */
 const MIN_LOADING = 2300;
 
-const EYEBROW = "font-mono text-[11px] leading-none font-bold tracking-[0.08em] text-muted";
+const EYEBROW = "font-mono text-xs leading-none font-bold tracking-[0.08em] text-muted";
 const RING = "absolute rounded-full border border-[#dfe2da]";
 
 export interface FinderShowcase {
@@ -144,7 +144,7 @@ function Intro({ showcase, onStart }: IntroProps) {
           <div className="absolute bottom-[22px] left-5 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_10px_30px_rgb(21_23_26/0.12)] lg:bottom-16 lg:left-12">
             <span aria-hidden="true" className="size-2.5 rounded-full bg-lime shadow-[0_0_0_4px_#eefbc9]" />
             <div>
-              <p className="text-[13px] font-extrabold whitespace-nowrap">{center.name}</p>
+              <p className="text-sm font-extrabold whitespace-nowrap">{center.name}</p>
               <p className="text-xs whitespace-nowrap text-muted">Encaja con tu juego · ejemplo</p>
             </div>
           </div>
@@ -153,23 +153,23 @@ function Intro({ showcase, onStart }: IntroProps) {
 
       <div className="flex flex-col justify-center px-6 pt-6 pb-[22px] lg:px-[72px] lg:py-14">
         <p className={EYEBROW}>PALA IDEAL</p>
-        <h1 className="mt-3 text-[44px] leading-[0.98] font-black tracking-[-0.04em] text-balance lg:text-[76px]">
+        <h1 className="mt-3 text-[44px] leading-[1.1] font-black tracking-[-0.04em] text-balance lg:text-[76px]">
           Encuentra tu pala ideal
         </h1>
-        <p className="mt-3.5 max-w-[440px] text-[17px] leading-normal text-pretty text-ink lg:text-xl">
+        <p className="mt-3.5 max-w-[440px] text-base leading-normal text-pretty text-ink lg:text-xl">
           Responde unas preguntas y descubre las palas que mejor encajan contigo.
         </p>
         <button
           type="button"
           onClick={onStart}
-          className="mt-[26px] flex h-[60px] items-center justify-center gap-2.5 rounded-[30px] bg-lime text-[17px] font-extrabold shadow-[0_2px_0_#9fc21f] transition-transform duration-[120ms] hover:-translate-y-px active:scale-[0.98] lg:max-w-[360px]"
+          className="mt-6 flex h-[60px] items-center justify-center gap-2.5 rounded-3xl bg-lime text-lg font-extrabold shadow-[0_2px_0_#9fc21f] transition-transform duration-[120ms] hover:-translate-y-px active:scale-[0.98] lg:max-w-[360px]"
         >
           Encontrar mi pala
           <span aria-hidden="true" className="text-xl">
             →
           </span>
         </button>
-        <p className="mt-3.5 text-[13px] leading-normal text-balance text-muted">
+        <p className="mt-3.5 text-sm leading-normal text-balance text-muted">
           Solo te llevará 30 segundos · {FINDER_QUESTIONS.length} preguntas · Sin registro
         </p>
       </div>
@@ -207,7 +207,7 @@ function Question({ index, selected, fading, racket, onPick, onBack }: QuestionP
               <div
                 key={item.id}
                 className={cn(
-                  "h-1.5 rounded-[3px] transition-colors duration-[250ms]",
+                  "h-1.5 rounded-md transition-colors duration-[250ms]",
                   i < index || (i === index && selected !== null)
                     ? "bg-carbon"
                     : i === index
@@ -230,7 +230,7 @@ function Question({ index, selected, fading, racket, onPick, onBack }: QuestionP
           )}
         >
           <p className={EYEBROW}>{question.eyebrow}</p>
-          <h1 className="mt-2.5 text-[32px] leading-[1.02] font-black tracking-[-0.035em] text-balance lg:text-5xl">
+          <h1 className="mt-2.5 text-[32px] leading-[1.1] font-black tracking-[-0.035em] text-balance lg:text-5xl">
             {question.title}
           </h1>
           <p className="mt-2.5 text-sm leading-normal text-pretty text-muted lg:hidden">{question.why}</p>
@@ -238,7 +238,7 @@ function Question({ index, selected, fading, racket, onPick, onBack }: QuestionP
           <div
             role="radiogroup"
             aria-label={question.title}
-            className={cn("mt-[22px] grid gap-2.5", question.options.length >= 4 && "lg:grid-cols-2")}
+            className={cn("mt-6 grid gap-2.5", question.options.length >= 4 && "lg:grid-cols-2")}
           >
             {question.options.map((option, i) => {
               const on = selected === i;
@@ -250,7 +250,7 @@ function Question({ index, selected, fading, racket, onPick, onBack }: QuestionP
                   aria-checked={on}
                   onClick={() => onPick(i)}
                   className={cn(
-                    "grid min-h-[76px] grid-cols-[44px_minmax(0,1fr)_26px] items-center gap-3.5 rounded-[18px] border-2 px-4 py-3.5 text-left transition-[border-color,background-color,transform,box-shadow] duration-150 hover:border-carbon active:scale-[0.98] lg:min-h-24",
+                    "grid min-h-[76px] grid-cols-[44px_minmax(0,1fr)_26px] items-center gap-3.5 rounded-3xl border-2 px-4 py-3.5 text-left transition-[border-color,background-color,transform,box-shadow] duration-150 hover:border-carbon active:scale-[0.98] lg:min-h-24",
                     on
                       ? "scale-[1.01] border-carbon bg-lime-tint shadow-[0_6px_18px_rgb(21_23_26/0.08)]"
                       : "border-line bg-white",
@@ -258,15 +258,15 @@ function Question({ index, selected, fading, racket, onPick, onBack }: QuestionP
                 >
                   <FinderIcon question={index} option={i} selected={on} />
                   <span>
-                    <span className="block text-[17px] leading-[1.15] font-extrabold">{option.label}</span>
-                    <span className="mt-[3px] block text-[13px] leading-[1.35] text-muted">
+                    <span className="block text-lg leading-[1.1] font-extrabold">{option.label}</span>
+                    <span className="mt-[3px] block text-sm leading-snug text-muted">
                       {option.description}
                     </span>
                   </span>
                   <span
                     aria-hidden="true"
                     className={cn(
-                      "grid size-[26px] place-items-center rounded-full border-2 text-[13px] font-black transition-colors duration-150",
+                      "grid size-[26px] place-items-center rounded-full border-2 text-sm font-black transition-colors duration-150",
                       on ? "border-carbon bg-lime" : "border-[#d6d9d0] bg-white",
                     )}
                   >
@@ -278,7 +278,7 @@ function Question({ index, selected, fading, racket, onPick, onBack }: QuestionP
           </div>
 
           <div className="flex-1" />
-          <p className="pt-4 pb-2 text-center text-[13px] text-muted">
+          <p className="pt-4 pb-2 text-center text-sm text-muted">
             {selected === null
               ? "Toca una respuesta para continuar"
               : "Puedes cambiar tu respuesta tocando otra"}
@@ -299,9 +299,9 @@ function Question({ index, selected, fading, racket, onPick, onBack }: QuestionP
             className="!absolute top-[50px] left-1/2 size-[420px] -translate-x-1/2 -rotate-[8deg]"
           />
         )}
-        <div className="relative rounded-[20px] bg-white px-[22px] py-5 shadow-[0_10px_30px_rgb(21_23_26/0.08)]">
-          <p className="text-[13px] font-extrabold">Por qué lo preguntamos</p>
-          <p className="mt-1.5 text-base leading-[1.55] text-pretty text-ink">{question.why}</p>
+        <div className="relative rounded-3xl bg-white px-[22px] py-5 shadow-[0_10px_30px_rgb(21_23_26/0.08)]">
+          <p className="text-sm font-extrabold">Por qué lo preguntamos</p>
+          <p className="mt-1.5 text-base leading-normal text-pretty text-ink">{question.why}</p>
         </div>
       </div>
     </div>
@@ -324,7 +324,7 @@ function Loading({ step, catalogCount }: { step: number; catalogCount: number })
         <Sweep seconds={1.6} alpha={0.6} />
         <div className="absolute top-1/2 left-1/2 -mt-[7px] -ml-[7px] size-3.5 rounded-full border-2 border-carbon bg-lime" />
       </div>
-      <h2 className="mt-[30px] text-[26px] font-black tracking-[-0.025em]">Buscando tu pala…</h2>
+      <h2 className="mt-8 text-2xl font-black tracking-[-0.025em]">Buscando tu pala…</h2>
       <ul className="mt-5 flex min-w-[260px] flex-col gap-3 text-left">
         {steps.map((text, i) => {
           const done = i < step;
@@ -333,7 +333,7 @@ function Loading({ step, catalogCount }: { step: number; catalogCount: number })
             <li
               key={text}
               className={cn(
-                "flex items-center gap-3 text-[15px] transition-colors duration-200",
+                "flex items-center gap-3 text-base transition-colors duration-200",
                 done || current ? "text-carbon" : "text-[#9a9f95]",
                 current ? "font-extrabold" : "font-semibold",
               )}
@@ -341,7 +341,7 @@ function Loading({ step, catalogCount }: { step: number; catalogCount: number })
               <span
                 aria-hidden="true"
                 className={cn(
-                  "grid size-[22px] flex-none place-items-center rounded-full border-2 text-[11px] font-black text-carbon",
+                  "grid size-[22px] flex-none place-items-center rounded-full border-2 text-xs font-black text-carbon",
                   done ? "border-carbon bg-lime" : current ? "border-carbon bg-white" : "border-[#d6d9d0] bg-white",
                 )}
               >

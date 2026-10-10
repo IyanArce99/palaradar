@@ -11,7 +11,7 @@ export function PriceDropBadge({ percent, className }: PriceDropBadgeProps) {
   return (
     <span
       className={cn(
-        "rounded bg-lime-soft px-1.5 py-[3px] text-xs font-extrabold whitespace-nowrap text-forest",
+        "rounded-md bg-lime-soft px-1.5 py-[3px] text-xs font-extrabold whitespace-nowrap text-forest",
         className,
       )}
     >

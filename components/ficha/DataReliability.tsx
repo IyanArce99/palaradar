@@ -38,7 +38,7 @@ export function DataReliability({ pala, className }: DataReliabilityProps) {
         {notes.map((note) => {
           const mark = MARKS[note.tone];
           return (
-            <li key={note.text} className="grid grid-cols-[22px_1fr] items-start gap-2.5 text-sm leading-[1.45]">
+            <li key={note.text} className="grid grid-cols-[22px_1fr] items-start gap-2.5 text-sm leading-normal">
               <span aria-hidden="true" className={cn("grid size-[22px] place-items-center rounded-full text-xs font-black", mark.className)}>
                 {mark.symbol}
               </span>

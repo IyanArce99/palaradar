@@ -17,7 +17,7 @@ export function CompareAction({ slug, className }: CompareActionProps) {
     <Link
       href={compareSelectPath({ a: slug })}
       className={cn(
-        "inline-flex h-11 items-center rounded-full border border-line px-3.5 text-[13px] font-bold",
+        "inline-flex h-11 items-center rounded-full border border-line px-3.5 text-sm font-bold",
         className,
       )}
     >

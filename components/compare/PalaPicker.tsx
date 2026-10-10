@@ -96,7 +96,7 @@ export function PalaPicker({ slot, selection, defaultQuery, serverResults, chips
     <section
       aria-label={title}
       className={cn(
-        "rounded-[22px] border-2 p-3 lg:flex lg:flex-col lg:items-stretch lg:gap-4 lg:rounded-3xl lg:p-4",
+        "rounded-3xl border-2 p-3 lg:flex lg:flex-col lg:items-stretch lg:gap-4 lg:rounded-3xl lg:p-4",
         compact ? "lg:min-h-[380px]" : "lg:min-h-[430px]",
         open
           ? "flex flex-col gap-2.5 border-carbon bg-white shadow-[0_12px_30px_rgba(21,23,26,0.10)]"
@@ -104,7 +104,7 @@ export function PalaPicker({ slot, selection, defaultQuery, serverResults, chips
       )}
     >
       <h2 className={cn("flex items-center gap-2 lg:gap-2.5", !open && "col-start-2 row-start-1")}>
-        <SlotBadge slot={slot} className="size-[22px] text-[10px] lg:size-7 lg:text-[13px]" />
+        <SlotBadge slot={slot} className="size-[22px] text-xs lg:size-7 lg:text-sm" />
         <span className="truncate text-sm font-extrabold">{title}</span>
       </h2>
 
@@ -140,7 +140,7 @@ export function PalaPicker({ slot, selection, defaultQuery, serverResults, chips
           placeholder="Buscar marca o modelo…"
           aria-label={`Buscar la pala ${slot.toUpperCase()}`}
           autoComplete="off"
-          className="min-w-0 flex-1 bg-transparent text-sm text-carbon outline-none placeholder:text-muted lg:text-[15px]"
+          className="min-w-0 flex-1 bg-transparent text-sm text-carbon outline-none placeholder:text-muted lg:text-base"
         />
       </form>
 
@@ -160,7 +160,7 @@ export function PalaPicker({ slot, selection, defaultQuery, serverResults, chips
             <Link
               key={chip.slug}
               href={hrefFor(chip.slug)}
-              className="flex h-8 items-center rounded-full bg-white px-3 text-[13px] font-semibold whitespace-nowrap hover:bg-lime-soft"
+              className="flex h-8 items-center rounded-full bg-white px-3 text-sm font-semibold whitespace-nowrap hover:bg-lime-soft"
             >
               {chip.label}
             </Link>

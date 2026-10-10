@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { spreadSentence } from "@/components/pala/StoreSpreadNote";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { PageHeading } from "@/components/ui/PageHeading";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
@@ -50,16 +49,18 @@ export async function generateMetadata({ params }: ReportPageProps): Promise<Met
   });
 }
 
-const H2 = "text-[22px] leading-[1.1] font-black tracking-[-0.025em] lg:text-[28px]";
+const H2 = "text-2xl leading-[1.1] font-black tracking-[-0.025em] lg:text-3xl";
 const TABLE = "w-full min-w-[560px] border-collapse text-left text-sm";
-const TH = "border-b border-line py-2.5 pr-4 text-[13px] font-bold text-muted";
+/** Tablas de columnas cortas (cifras): en móvil caben enteras, sin scroll lateral escondido. */
+const TABLE_NARROW = "w-full border-collapse text-left text-sm md:min-w-[560px]";
+const TH ="border-b border-line py-2.5 pr-4 text-sm font-bold text-muted";
 const TD = "border-b border-line-soft py-2.5 pr-4 align-top";
 const NUM = "tabular-nums whitespace-nowrap";
 const percentText = (value: number) => `${String(Math.abs(value)).replace(".", ",")} %`;
 
 function Summary({ sentences }: { sentences: string[] }) {
   return (
-    <ul className="mt-4 flex flex-col gap-1.5 text-base leading-[1.55] text-ink lg:max-w-[820px]">
+    <ul className="mt-4 flex flex-col gap-1.5 text-base leading-normal text-ink lg:max-w-[820px]">
       {sentences.map((sentence) => (
         <li key={sentence}>{sentence}</li>
       ))}
@@ -82,6 +83,9 @@ async function SpreadSection() {
   const report = await getSpreadReport();
   const now = new Date().toISOString();
   const rows = report.rows.filter((row) => row.spread.difference >= NEGLIGIBLE_SPREAD_EUROS);
+  const shown = rows.slice(0, MAX_ROWS);
+  // La comprobación más antigua de las filas que se enseñan (fechas ISO: se ordenan como texto).
+  const oldestCheck = shown.map((row) => row.spread.oldestCheck).sort((a, b) => a.localeCompare(b))[0] ?? now;
 
   return (
     <>
@@ -91,7 +95,39 @@ async function SpreadSection() {
           <h2 id="tabla" className={H2}>
             Las mayores diferencias de hoy
           </h2>
-          <div className="mt-3 overflow-x-auto">
+          {/* Una sola nota para toda la tabla: repetirla en cada fila no añadía nada a las columnas. */}
+          <p className="mt-1.5 text-sm leading-normal text-muted">
+            Precios comprobados {formatTimeAgo(oldestCheck, now)} o después.
+          </p>
+
+          {/* Móvil: una tarjeta por pala, con la diferencia a la vista. La tabla no cabe sin esconder columnas. */}
+          <ul className="mt-3 border-t border-line md:hidden">
+            {shown.map(({ pala, spread }) => (
+              <li key={pala.slug} className="border-b border-line-soft py-3">
+                <div className="flex items-start justify-between gap-3">
+                  <PalaCell pala={pala} />
+                  <p className={`flex-none text-right ${NUM}`}>
+                    <strong className="block text-base">{formatEuro(spread.difference)}</strong>
+                    <span className="text-xs text-muted">{percentText(spread.percent)}</span>
+                  </p>
+                </div>
+                <p className="mt-2 text-sm leading-normal text-ink">
+                  {spread.cheapest.store.name}{" "}
+                  <strong className={NUM}>{formatEuro(spreadAmount(spread.cheapest, spread.basis))}</strong>
+                  <span className="text-muted"> · </span>
+                  {spread.priciest.store.name}{" "}
+                  <strong className={NUM}>{formatEuro(spreadAmount(spread.priciest, spread.basis))}</strong>
+                </p>
+                {spread.basis === "producto" && (
+                  <p className="text-xs text-muted">
+                    Envío no verificado en {spread.unverifiedShipping.map((store) => store.name).join(" y ")}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-3 hidden overflow-x-auto md:block">
             <table className={TABLE}>
               <thead>
                 <tr>
@@ -102,13 +138,10 @@ async function SpreadSection() {
                 </tr>
               </thead>
               <tbody>
-                {rows.slice(0, MAX_ROWS).map(({ pala, spread }) => (
+                {shown.map(({ pala, spread }) => (
                   <tr key={pala.slug}>
-                    <td className={TD}>
+                    <td className={`${TD} align-middle`}>
                       <PalaCell pala={pala} />
-                      <p className="mt-1 text-xs text-muted">
-                        {spreadSentence(spread)} Comprobado {formatTimeAgo(spread.oldestCheck, now)} o después.
-                      </p>
                     </td>
                     {/* El importe es el que se ha comparado: con envío si la base es «total», sin él si no. */}
                     <td className={TD}>
@@ -162,24 +195,24 @@ async function SeasonsSection() {
   return (
     <>
       <Summary sentences={sentences} />
-      <p className="mt-3 rounded-2xl bg-mist px-4 py-3 text-sm leading-[1.5] text-ink lg:max-w-[820px]">{SEASON_RELATION.note}</p>
+      <p className="mt-3 rounded-2xl bg-mist px-4 py-3 text-sm leading-normal text-ink lg:max-w-[820px]">{SEASON_RELATION.note}</p>
       {pairs.length > 0 && (
         <ul className="mt-8 grid gap-3 lg:grid-cols-2 lg:gap-5">
           {pairs.slice(0, MAX_ROWS).map(({ newer, older, difference, percent, comparison }) => {
             const euros = Math.round(difference);
             return (
-              <li key={`${newer.slug}-${older.slug}`} className="flex flex-col rounded-[22px] border border-line p-4 lg:p-5">
+              <li key={`${newer.slug}-${older.slug}`} className="flex flex-col rounded-3xl border border-line p-4 lg:p-5">
                 <div className="flex gap-3.5">
                   <PalaPhoto src={older.image} alt={palaAlt(older)} sizes="96px" className="h-[110px] w-[88px] flex-none rounded-2xl" />
                   <div className="min-w-0">
                     <p className="text-xs text-muted">{older.brand.name}</p>
-                    <h2 className="text-lg leading-[1.15] font-black">
+                    <h2 className="text-lg leading-[1.1] font-black">
                       <Link href={routes.pala(older.slug)} className="underline-offset-2 hover:underline">
                         {older.model} {older.year}
                       </Link>
                     </h2>
                     <p className={`mt-1 text-xl font-black ${NUM}`}>{older.price !== null && formatEuro(older.price)}</p>
-                    <p className="text-[13px] text-ink">
+                    <p className="text-sm text-ink">
                       {euros === 0 ? (
                         `Prácticamente lo mismo que la de ${newer.year}`
                       ) : (
@@ -195,7 +228,7 @@ async function SeasonsSection() {
                   </div>
                 </div>
                 {comparison && (
-                  <div className="mt-3 text-[13px] leading-[1.45]">
+                  <div className="mt-3 text-sm leading-normal">
                     {comparison.changed.length > 0 && (
                       <p>
                         <span className="font-extrabold">Cambia: </span>
@@ -213,7 +246,7 @@ async function SeasonsSection() {
                     )}
                   </div>
                 )}
-                <Link href={comparePath(newer.slug, older.slug)} className="mt-auto flex min-h-11 items-center pt-2 text-[13px] font-bold underline">
+                <Link href={comparePath(newer.slug, older.slug)} className="mt-auto flex min-h-11 items-center pt-2 text-sm font-bold underline">
                   Comparar la {older.year} con la {newer.year}
                 </Link>
               </li>
@@ -245,7 +278,7 @@ async function CoverageSection() {
           Por marca
         </h2>
         <div className="mt-3 overflow-x-auto">
-          <table className={TABLE}>
+          <table className={TABLE_NARROW}>
             <thead>
               <tr>
                 <th scope="col" className={TH}>Marca</th>
@@ -295,7 +328,7 @@ async function BudgetSection() {
           Por tope de precio y forma
         </h2>
         <div className="mt-3 overflow-x-auto">
-          <table className={TABLE}>
+          <table className={TABLE_NARROW}>
             <thead>
               <tr>
                 <th scope="col" className={TH}>Hasta</th>
@@ -346,11 +379,11 @@ const SECTIONS: Record<string, () => Promise<React.ReactNode>> = {
 
 function MethodologyBlock({ report, method }: { report: ReportDefinition; method: Methodology }) {
   return (
-    <section aria-labelledby="metodo" className="mt-12 rounded-[22px] bg-mist p-5 lg:mt-16 lg:p-7">
+    <section aria-labelledby="metodo" className="mt-12 rounded-3xl bg-mist p-5 lg:mt-16 lg:p-7">
       <h2 id="metodo" className={H2}>
         Cómo se ha calculado
       </h2>
-      <dl className="mt-4 grid gap-4 text-[15px] leading-[1.5] lg:grid-cols-2 lg:gap-x-10">
+      <dl className="mt-4 grid gap-4 text-base leading-normal lg:grid-cols-2 lg:gap-x-10">
         <div>
           <dt className="font-extrabold">Datos</dt>
           <dd className="text-ink">{method.stores}</dd>
@@ -371,7 +404,7 @@ function MethodologyBlock({ report, method }: { report: ReportDefinition; method
         </div>
       </dl>
       <h3 className="mt-5 text-base font-extrabold">Qué no dice este informe</h3>
-      <ul className="mt-1.5 flex list-disc flex-col gap-1 pl-5 text-[15px] leading-[1.5] text-ink">
+      <ul className="mt-1.5 flex list-disc flex-col gap-1 pl-5 text-base leading-normal text-ink">
         <li>{method.scope}</li>
         {report.limitations.map((limitation) => (
           <li key={limitation}>{limitation}</li>
@@ -407,7 +440,7 @@ export default async function ReportPage({ params }: ReportPageProps) {
             <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-1">
               {REPORTS.filter((other) => other.slug !== report.slug).map((other) => (
                 <li key={other.slug}>
-                  <Link href={routes.report(other.slug)} className="inline-flex min-h-11 items-center text-[15px] font-bold underline">
+                  <Link href={routes.report(other.slug)} className="inline-flex min-h-11 items-center text-base font-bold underline">
                     {other.title}
                   </Link>
                 </li>

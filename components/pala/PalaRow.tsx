@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { PalaPhoto } from "@/components/ui/PalaPhoto";
 import { RatingInline } from "@/components/ui/Rating";
-import { RecentPriceNote } from "@/components/ui/RecentPriceNote";
 import { formatEuro } from "@/lib/format";
 import { palaAlt } from "@/lib/media";
 import { routes } from "@/lib/routes";
@@ -19,28 +18,27 @@ export function PalaRow({ pala }: PalaRowProps) {
         src={pala.image}
         alt={palaAlt(pala)}
         sizes="84px"
-        className="h-24 rounded-xl"
+        className="h-24 rounded-2xl"
       />
       <div>
         <p className="text-xs text-muted">
           {pala.brand.name} · {pala.year}
         </p>
-        <h3 className="text-base leading-[1.2] font-extrabold">
+        <h3 className="text-base leading-snug font-extrabold">
           <Link href={routes.pala(pala.slug)} className="after:absolute after:inset-0">
             {pala.model}
           </Link>
         </h3>
-        <p className="mt-[3px] text-sm leading-[1.35] text-ink">{pala.description}</p>
-        <div className="mt-1.5 flex items-baseline justify-between text-[13px]">
-          {/* A la izquierda del precio: la valoración si hay opiniones; si no, el aviso de precio reciente. */}
+        <p className="mt-[3px] text-sm leading-snug text-ink">{pala.description}</p>
+        <div className="mt-1.5 flex items-baseline justify-between text-sm">
+          {/* A la izquierda del precio, la valoración si hay opiniones. */}
           <span>
             {pala.reviewCount > 0 && <RatingInline rating={pala.rating} reviewCount={pala.reviewCount} />}
-            {pala.reviewCount === 0 && pala.priceRecent && <RecentPriceNote />}
           </span>
           {pala.price !== null && (
             <span className="whitespace-nowrap text-muted">
               desde{" "}
-              <strong className="text-[17px] text-carbon tabular-nums">
+              <strong className="text-base text-carbon tabular-nums">
                 {formatEuro(pala.price)}
               </strong>
             </span>

@@ -126,7 +126,7 @@ describe("diferencias entre tiendas", () => {
   it("el resumen lleva sus cifras y avisa del envío sin verificar", () => {
     assert.deepEqual(spreadSummary(spreadReport(items, NOW)), [
       "Hoy se pueden comparar 3 palas: son las que tienen precio vigente en dos tiendas o más.",
-      `La diferencia mediana entre el precio más alto y el más bajo de una misma pala es de5${NBSP}€.`,
+      `La diferencia mediana entre el precio más alto y el más bajo de una misma pala es de 5${NBSP}€.`,
       "En 1 pala las tiendas piden prácticamente lo mismo.",
       "Tienda con el precio más bajo: Tienda A en 1 y Tienda B en 1.",
       "En todas se compara el precio de la pala, sin envío, porque hay gastos de envío sin verificar: el coste final puede cambiar qué tienda sale mejor.",

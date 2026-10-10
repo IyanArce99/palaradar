@@ -9,8 +9,8 @@ import { PairThumbs } from "./ComparisonCards";
 
 /** Titular de sección de la portada del comparador */
 export const landingTitleClass =
-  "text-2xl leading-[1.08] font-black tracking-[-0.025em] text-balance lg:text-[32px]";
-const smallTitleClass = "text-[22px] leading-[1.08] font-black tracking-[-0.025em] text-balance lg:text-[26px]";
+  "text-2xl leading-[1.1] font-black tracking-[-0.025em] text-balance lg:text-[32px]";
+const smallTitleClass = "text-2xl leading-[1.1] font-black tracking-[-0.025em] text-balance lg:text-2xl";
 
 // ───────────────────────── ¿Qué buscas en una pala? ─────────────────────────
 
@@ -62,12 +62,12 @@ const NEEDS: Need[] = [
 /** Iconos geométricos del diseño, uno por necesidad. */
 function NeedIcon({ id }: { id: NeedId }) {
   return (
-    <span aria-hidden="true" className="relative block size-11 rounded-xl bg-mist">
+    <span aria-hidden="true" className="relative block size-11 rounded-2xl bg-mist">
       {id === "potencia" && (
         <>
           <span className="absolute top-2.5 left-2.5 size-6 rounded-full border-[3px] border-carbon bg-lime" />
-          <span className="absolute top-1.5 left-[30px] h-[3px] w-2 -rotate-[35deg] rounded-sm bg-carbon" />
-          <span className="absolute top-3.5 left-8 h-[3px] w-2 rounded-sm bg-carbon" />
+          <span className="absolute top-1.5 left-[30px] h-[3px] w-2 -rotate-[35deg] rounded-md bg-carbon" />
+          <span className="absolute top-3.5 left-8 h-[3px] w-2 rounded-md bg-carbon" />
         </>
       )}
       {id === "control" && (
@@ -80,9 +80,9 @@ function NeedIcon({ id }: { id: NeedId }) {
       {id === "manejabilidad" && (
         <>
           <span className="absolute top-[5px] left-3.5 h-[21px] w-4 rotate-[20deg] rounded-full border-[2.5px] border-carbon" />
-          <span className="absolute top-6 left-[17px] h-3 w-1 rotate-[20deg] rounded-sm bg-carbon" />
-          <span className="absolute top-[30px] left-[30px] h-[2.5px] w-2 rounded-sm bg-carbon opacity-40" />
-          <span className="absolute top-[35px] left-7 h-[2.5px] w-2.5 rounded-sm bg-carbon opacity-40" />
+          <span className="absolute top-6 left-[17px] h-3 w-1 rotate-[20deg] rounded-md bg-carbon" />
+          <span className="absolute top-[30px] left-[30px] h-[2.5px] w-2 rounded-md bg-carbon opacity-40" />
+          <span className="absolute top-[35px] left-7 h-[2.5px] w-2.5 rounded-md bg-carbon opacity-40" />
         </>
       )}
       {id === "tacto" && (
@@ -107,7 +107,7 @@ export function NeedCards({ examples }: NeedCardsProps) {
       <h2 id="que-buscas" className={landingTitleClass}>
         ¿Qué buscas en una pala?
       </h2>
-      <p className="mt-1.5 hidden text-[15px] leading-[1.45] text-pretty text-muted lg:block">
+      <p className="mt-1.5 hidden text-base leading-normal text-pretty text-muted lg:block">
         Si aún no sabes qué comparar, empieza por lo que necesitas.
       </p>
       <ul className="mt-4 grid grid-cols-2 gap-2.5 lg:mt-5 lg:grid-cols-4 lg:gap-4">
@@ -117,24 +117,24 @@ export function NeedCards({ examples }: NeedCardsProps) {
             <li key={need.id}>
               <Link
                 href={need.href}
-                className="flex h-full flex-col gap-2.5 rounded-[18px] border border-line bg-white p-3.5 hover:border-carbon lg:gap-3 lg:rounded-[20px] lg:p-[18px]"
+                className="flex h-full flex-col gap-2.5 rounded-3xl border border-line bg-white p-4 hover:border-carbon lg:gap-3 lg:rounded-3xl lg:p-5"
               >
                 <NeedIcon id={need.id} />
                 <span className="block">
-                  <span className="block text-[15px] leading-[1.15] font-black lg:text-[17px] lg:leading-normal">
+                  <span className="block text-base leading-[1.1] font-black lg:text-lg lg:leading-normal">
                     {need.title}
                   </span>
-                  <span className="mt-2.5 block text-xs leading-[1.35] text-muted lg:mt-[3px] lg:text-[13px] lg:leading-[1.4]">
+                  <span className="mt-2.5 block text-xs leading-snug text-muted lg:mt-[3px] lg:text-sm lg:leading-snug">
                     {need.criterion}
                   </span>
                 </span>
                 {example && (
-                  <span className="mt-auto hidden border-t border-line-soft pt-3 text-[13px] leading-[1.35] lg:block">
+                  <span className="mt-auto hidden border-t border-line-soft pt-3 text-sm leading-snug lg:block">
                     <span className="text-muted">Ej.:</span> <strong>{example}</strong>
                   </span>
                 )}
                 {/* En móvil no hay ejemplo: el enlace es lo que baja al pie de la tarjeta. */}
-                <span className={cn("text-[13px] font-extrabold max-lg:mt-auto lg:text-sm", !example && "mt-auto")}>
+                <span className={cn("text-sm font-extrabold max-lg:mt-auto lg:text-sm", !example && "mt-auto")}>
                   <span className="lg:hidden">Ver →</span>
                   <span className="hidden lg:inline">{need.cta} →</span>
                 </span>
@@ -160,26 +160,26 @@ export function ExploreBlock({ photos }: ExploreBlockProps) {
   return (
     <section
       aria-labelledby="no-sabes"
-      className="rounded-[22px] bg-mist p-[22px] lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-10 lg:rounded-[28px] lg:px-10 lg:py-9"
+      className="rounded-3xl bg-mist p-5 lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-10 lg:rounded-3xl lg:px-10 lg:py-9"
     >
       <div>
-        <h2 id="no-sabes" className="text-[22px] leading-[1.08] font-black tracking-[-0.025em] text-balance lg:text-[32px]">
+        <h2 id="no-sabes" className="text-2xl leading-[1.1] font-black tracking-[-0.025em] text-balance lg:text-3xl">
           ¿No sabes qué palas comparar?
         </h2>
-        <p className="mt-2 text-[15px] leading-[1.55] text-pretty text-ink lg:mt-2.5 lg:text-[17px]">
+        <p className="mt-2 text-base leading-normal text-pretty text-ink lg:mt-2.5 lg:text-base">
           Busca una pala que te guste y descubre alternativas similares.
           <span className="hidden lg:inline"> Desde cada ficha puedes compararla con un toque.</span>
         </p>
-        <div className="mt-4 lg:mt-[22px] lg:flex lg:items-center lg:gap-3">
+        <div className="mt-4 lg:mt-6 lg:flex lg:items-center lg:gap-3">
           <Link
             href={routes.catalog}
-            className="flex h-[50px] items-center justify-center gap-2 rounded-full bg-carbon px-[22px] text-[15px] font-extrabold whitespace-nowrap text-white hover:bg-[#2a2d31] lg:h-[52px]"
+            className="flex h-[50px] items-center justify-center gap-2 rounded-full bg-carbon px-[22px] text-base font-extrabold whitespace-nowrap text-white hover:bg-[#2a2d31] lg:h-[52px]"
           >
             Explorar palas <span aria-hidden="true">→</span>
           </Link>
           <Link
             href={routes.idealPala}
-            className="mt-3 flex min-h-11 items-center justify-center text-[13px] font-bold underline lg:mt-0 lg:text-sm"
+            className="mt-3 flex min-h-11 items-center justify-center text-sm font-bold underline lg:mt-0 lg:text-sm"
           >
             O haz el test de Pala ideal
           </Link>
@@ -193,7 +193,7 @@ export function ExploreBlock({ photos }: ExploreBlockProps) {
               src={photo.image}
               alt=""
               sizes="140px"
-              className={cn("flex-none rounded-[18px] !bg-white", EXPLORE_PHOTO_SIZES[i])}
+              className={cn("flex-none rounded-3xl !bg-white", EXPLORE_PHOTO_SIZES[i])}
             />
           ))}
         </div>
@@ -227,7 +227,7 @@ export function CompareTopics({ aspects }: CompareTopicsProps) {
         <h2 id="que-comparar" className={smallTitleClass}>
           ¿Qué puedes comparar?
         </h2>
-        <p className="mt-1.5 hidden text-sm leading-[1.45] text-pretty text-muted lg:block">
+        <p className="mt-1.5 hidden text-sm leading-normal text-pretty text-muted lg:block">
           Rendimiento, características y precio, en la misma página.
         </p>
       </div>
@@ -239,10 +239,10 @@ export function CompareTopics({ aspects }: CompareTopicsProps) {
           >
             <span aria-hidden="true" className="flex h-[22px] flex-none items-end gap-[3px]">
               {TOPIC_BARS[i % TOPIC_BARS.length].map((height, bar) => (
-                <span key={BAR_COLORS[bar]} className={cn("w-[5px] rounded-sm", BAR_COLORS[bar])} style={{ height }} />
+                <span key={BAR_COLORS[bar]} className={cn("w-[5px] rounded-md", BAR_COLORS[bar])} style={{ height }} />
               ))}
             </span>
-            <span title={aspect} className="min-w-0 truncate text-sm font-extrabold lg:text-[13px]">
+            <span title={aspect} className="min-w-0 truncate text-sm font-extrabold lg:text-sm">
               {aspect}
             </span>
           </li>
@@ -288,9 +288,9 @@ export function RecentComparisons({ activity, now }: RecentComparisonsProps) {
             >
               <PairThumbs a={card.a} b={card.b} size="row" />
               <span className="min-w-0">
-                <span className="block text-sm leading-[1.3] font-extrabold">
+                <span className="block text-sm leading-snug font-extrabold">
                   {card.a.brand} {card.a.model}{" "}
-                  <span className="font-mono text-[10px] font-bold text-muted">VS</span> {card.b.brand}{" "}
+                  <span className="font-mono text-xs font-bold text-muted">VS</span> {card.b.brand}{" "}
                   {card.b.model}
                 </span>
                 <span className="block text-xs text-muted">{formatTimeAgo(at, now)}</span>

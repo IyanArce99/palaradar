@@ -145,7 +145,7 @@ export default async function ComparePage({ params }: ComparePageProps) {
         actions={
           <Link
             href={compareSelectPath(selection)}
-            className="inline-flex h-11 items-center rounded-full px-3 text-[13px] font-bold underline lg:h-auto lg:px-0"
+            className="inline-flex h-11 items-center rounded-full px-3 text-sm font-bold underline lg:h-auto lg:px-0"
           >
             Cambiar palas
           </Link>
@@ -154,7 +154,7 @@ export default async function ComparePage({ params }: ComparePageProps) {
 
       <div className="mx-auto max-w-[1280px] pb-8 lg:pb-20">
         <header className="px-5 pt-1 lg:max-w-[900px] lg:px-12 lg:pt-4">
-          <h1 className="text-[30px] leading-none font-black tracking-[-0.04em] text-balance lg:text-[56px]">
+          <h1 className="text-[32px] leading-none font-black tracking-[-0.04em] text-balance lg:text-[52px]">
             {palas.map((pala, i) => (
               <span key={pala.id}>
                 {i > 0 && " vs "}
@@ -163,11 +163,11 @@ export default async function ComparePage({ params }: ComparePageProps) {
               </span>
             ))}
           </h1>
-          <p className="mt-2 text-[13px] leading-[1.45] text-pretty text-muted lg:hidden">
+          <p className="mt-2 text-sm leading-normal text-pretty text-muted lg:hidden">
             {palas.map((pala) => pala.brand.name).join(" vs ")}
             {checkedOn && ` · precios del ${formatDate(checkedOn)}`}
           </p>
-          <p className="mt-3.5 hidden text-lg leading-[1.55] text-pretty text-ink lg:block">
+          <p className="mt-3.5 hidden text-lg leading-normal text-pretty text-ink lg:block">
             Las comparamos en {topics} para ayudarte a elegir.
             {checkedOn && ` Precios comprobados el ${formatDate(checkedOn)}.`}
           </p>
@@ -181,7 +181,7 @@ export default async function ComparePage({ params }: ComparePageProps) {
           />
         </header>
 
-        <div className="px-4 pt-5 lg:px-12 lg:pt-9">
+        <div className="px-5 pt-5 lg:px-12 lg:pt-9">
           <CompareHeader
             palas={palas}
             addHref={three ? null : compareSelectPath({ ...selection, third: true })}
@@ -196,10 +196,10 @@ export default async function ComparePage({ params }: ComparePageProps) {
               {palas.map(
                 (pala) =>
                   idealFor(pala).length > 0 && (
-                    <div key={pala.id} className="rounded-[22px] border border-line p-[22px]">
-                      <h2 className="text-[15px] font-extrabold">Ideal para</h2>
+                    <div key={pala.id} className="rounded-3xl border border-line p-5">
+                      <h2 className="text-base font-extrabold">Ideal para</h2>
                       <p className="text-xs text-muted">{pala.model}</p>
-                      <ul className="mt-2 text-[15px] leading-[1.55] text-ink">
+                      <ul className="mt-2 text-base leading-normal text-ink">
                         {idealFor(pala).map((item) => (
                           <li key={item}>{item}</li>
                         ))}
@@ -223,7 +223,7 @@ export default async function ComparePage({ params }: ComparePageProps) {
                 {palas.map(
                   (pala) =>
                     pala.price && (
-                      <div key={pala.id} className="rounded-[18px] bg-mist p-4">
+                      <div key={pala.id} className="rounded-3xl bg-mist p-4">
                         <p className="flex justify-between gap-3 text-sm font-extrabold">
                           <span>{pala.model}</span>
                           <span className="whitespace-nowrap tabular-nums">{formatEuro(pala.price.current)}</span>
@@ -264,10 +264,10 @@ export default async function ComparePage({ params }: ComparePageProps) {
                 {faq.map((item) => (
                   <details key={item.question} className="group border-b border-line">
                     <summary className="flex min-h-[58px] items-center justify-between gap-3">
-                      <h3 className="text-[15px] font-bold lg:text-[17px]">{item.question}</h3>
+                      <h3 className="text-base font-bold lg:text-lg">{item.question}</h3>
                       <DisclosureMarker />
                     </summary>
-                    <p className="mb-4 text-[15px] leading-[1.55] text-ink">{item.answer}</p>
+                    <p className="mb-4 text-base leading-normal text-ink">{item.answer}</p>
                   </details>
                 ))}
               </div>

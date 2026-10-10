@@ -11,10 +11,10 @@ const VARIANTS = {
 } as const;
 
 const SIZES = {
-  sm: "h-11 px-3.5 text-[13px] font-bold",
+  sm: "h-11 px-3.5 text-sm font-bold",
   nav: "h-11 px-4 text-base font-extrabold",
-  md: "h-12 px-5 text-[15px] font-extrabold",
-  lg: "h-[54px] px-5 text-[15px] font-extrabold",
+  md: "h-12 px-5 text-base font-extrabold",
+  lg: "h-[54px] px-5 text-base font-extrabold",
 } as const;
 
 interface ButtonStyle {
@@ -28,7 +28,7 @@ interface ButtonStyle {
 export function buttonClass({ variant = "lime", size = "md", pill = false, className }: ButtonStyle) {
   return cn(
     "inline-flex items-center justify-center gap-2 whitespace-nowrap",
-    pill ? "rounded-full" : "rounded-[14px]",
+    pill ? "rounded-full" : "rounded-2xl",
     VARIANTS[variant],
     SIZES[size],
     className,

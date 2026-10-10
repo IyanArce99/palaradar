@@ -62,7 +62,7 @@ export function PalaPhoto({
         placeholderLabel && (
           <span
             aria-hidden="true"
-            className="absolute inset-0 grid place-items-center px-3 text-center font-mono text-[10px] font-medium text-[#8a8f86]"
+            className="absolute inset-0 grid place-items-center px-3 text-center font-mono text-xs font-medium text-[#8a8f86]"
           >
             {placeholderLabel}
           </span>

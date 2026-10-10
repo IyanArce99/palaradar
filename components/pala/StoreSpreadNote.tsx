@@ -1,13 +1,11 @@
 import { cn } from "@/lib/cn";
-import { formatEuro, formatEuroCompact, formatTimeAgo } from "@/lib/format";
+import { formatEuro, formatEuroCompact } from "@/lib/format";
 import { NEGLIGIBLE_SPREAD_EUROS, type StoreSpread } from "@/lib/store-spread";
 
 interface StoreSpreadNoteProps {
   /** null: no hay dos tiendas con precio vigente; el bloque no aparece */
   spread: StoreSpread | null;
-  /** Fecha respecto a la que se dice la antigüedad de los precios (ISO con hora) */
-  asOf: string;
-  /** line: una frase, para listados y comparador · box: recuadro con el detalle, para la ficha */
+  /** line: una frase, para listados y comparador · box: recuadro con la cifra, para la ficha */
   variant?: "line" | "box";
   className?: string;
 }
@@ -31,25 +29,34 @@ export function spreadSentence(spread: StoreSpread): string {
 }
 
 /**
+ * La frase del recuadro de la ficha. La cifra y el porcentaje ya van encima, en
+ * grande: aquí solo se dice entre qué tiendas es y, si falta algún envío por
+ * verificar, que al sumarlo el orden puede cambiar.
+ */
+export function spreadBoxSentence(spread: StoreSpread): string {
+  if (spread.difference < NEGLIGIBLE_SPREAD_EUROS) return spreadSentence(spread);
+  const where = `en ${spread.cheapest.store.name} que en ${spread.priciest.store.name}`;
+  return spread.basis === "total"
+    ? `Con el envío incluido, cuesta menos ${where}.`
+    : `La pala cuesta menos ${where}. Falta sumar el envío de ${names(spread.unverifiedShipping)}, que no hemos verificado y puede cambiar el orden.`;
+}
+
+/**
  * Cuánto cambia hoy el precio de una pala de una tienda a otra (lib/store-spread.ts).
  * Solo existe con dos o más precios vigentes. Si falta algún envío por
  * verificar, se compara el precio de la pala y se dice: no se afirma cuál es el
  * coste final más bajo.
  */
-export function StoreSpreadNote({ spread, asOf, variant = "box", className }: StoreSpreadNoteProps) {
+export function StoreSpreadNote({ spread, variant = "box", className }: StoreSpreadNoteProps) {
   if (!spread) return null;
-
-  const caveat =
-    spread.basis === "producto"
-      ? `No incluye el envío de ${names(spread.unverifiedShipping)}, que no hemos verificado: el coste final puede ser otro.`
-      : null;
-  const checked = `Precios comprobados ${formatTimeAgo(spread.oldestCheck, asOf)} o después.`;
 
   if (variant === "line") {
     return (
-      <p className={cn("text-[13px] leading-[1.45] text-pretty text-ink", className)}>
+      <p className={cn("text-sm leading-normal text-pretty text-ink", className)}>
         {spreadSentence(spread)}
-        {caveat && <span className="text-muted"> Envío no verificado en {names(spread.unverifiedShipping)}.</span>}
+        {spread.basis === "producto" && (
+          <span className="text-muted"> Envío no verificado en {names(spread.unverifiedShipping)}.</span>
+        )}
       </p>
     );
   }
@@ -57,19 +64,17 @@ export function StoreSpreadNote({ spread, asOf, variant = "box", className }: St
   const meaningful = spread.difference >= NEGLIGIBLE_SPREAD_EUROS;
 
   return (
-    <div className={cn("rounded-[18px] border border-line p-4", className)}>
-      <h3 className="text-[15px] font-extrabold">Diferencia entre tiendas</h3>
+    <div className={cn("rounded-2xl bg-mist p-4", className)}>
+      <h3 className="text-sm font-bold text-muted">Diferencia entre tiendas</h3>
       {meaningful && (
-        <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2">
-          <span className="font-mono text-[28px] leading-none font-medium tabular-nums">{formatEuroCompact(spread.difference)}</span>
-          <span className="text-sm text-muted">
-            entre {spread.stores} tiendas · {percentText(spread.percent)} sobre el precio más alto
+        <p className="mt-0.5 flex flex-wrap items-baseline gap-x-2">
+          <span className="text-2xl leading-[1.1] font-black whitespace-nowrap tabular-nums">
+            {formatEuroCompact(spread.difference)}
           </span>
+          <span className="text-sm text-muted">{percentText(spread.percent)}</span>
         </p>
       )}
-      <p className="mt-2 text-sm leading-[1.5] text-pretty text-ink">{spreadSentence(spread)}</p>
-      {caveat && <p className="mt-1 text-[13px] leading-[1.45] text-pretty text-ink">{caveat}</p>}
-      <p className="mt-1.5 text-xs text-muted">{checked}</p>
+      <p className="mt-1 text-sm leading-normal text-pretty text-ink">{spreadBoxSentence(spread)}</p>
     </div>
   );
 }

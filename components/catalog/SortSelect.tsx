@@ -18,7 +18,7 @@ export function SortSelect({ formId, value }: SortSelectProps) {
         defaultValue={value}
         aria-label="Ordenar por"
         onChange={(event) => event.currentTarget.form?.requestSubmit()}
-        className="h-12 w-full appearance-none truncate rounded-[14px] border-[1.5px] border-line bg-white pr-9 pl-4 text-[15px] font-extrabold"
+        className="h-12 w-full appearance-none truncate rounded-2xl border-[1.5px] border-line bg-white pr-9 pl-4 text-sm font-extrabold"
       >
         {SORT_OPTIONS.map((option) => (
           <option key={option.id} value={option.id}>
@@ -28,7 +28,7 @@ export function SortSelect({ formId, value }: SortSelectProps) {
       </select>
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-[15px] font-extrabold"
+        className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-base font-extrabold"
       >
         ▾
       </span>

@@ -18,7 +18,7 @@ export function CheckList({ title, items, tone, className }: CheckListProps) {
         {items.map((item) => (
           <li
             key={item}
-            className="grid grid-cols-[24px_1fr] items-start gap-2.5 text-[15px] leading-[1.45]"
+            className="grid grid-cols-[24px_1fr] items-start gap-2.5 text-base leading-normal"
           >
             <span
               aria-hidden="true"
@@ -26,7 +26,7 @@ export function CheckList({ title, items, tone, className }: CheckListProps) {
                 "grid size-[22px] place-items-center rounded-full font-black",
                 tone === "positive"
                   ? "bg-lime text-xs"
-                  : "bg-line-soft text-[13px] text-muted",
+                  : "bg-line-soft text-sm text-muted",
               )}
             >
               {tone === "positive" ? "✓" : "×"}

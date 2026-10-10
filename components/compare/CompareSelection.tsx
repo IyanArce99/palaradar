@@ -72,7 +72,7 @@ export function CompareToggle({ pala, className }: { pala: SelectedPala; classNa
       }}
       className={cn(
         // La posición la pone quien lo usa: debe quedar por encima del enlace que cubre la tarjeta.
-        "z-10 flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-bold whitespace-nowrap",
+        "z-10 flex h-11 items-center gap-1.5 rounded-full border px-3 text-xs font-bold whitespace-nowrap",
         selected ? "border-carbon bg-carbon text-white" : "border-line bg-white text-carbon hover:border-carbon",
         full && "cursor-not-allowed opacity-50 hover:border-line",
         className,
@@ -106,7 +106,7 @@ export function CompareBar() {
       className="sticky bottom-[calc(71px+env(safe-area-inset-bottom))] z-20 border-t border-line bg-white lg:bottom-0"
     >
       <div className="mx-auto flex max-w-[1280px] items-center gap-3 px-5 py-2.5 lg:px-12 lg:py-3">
-        <p className="min-w-0 flex-1 text-[13px] leading-[1.35] lg:text-sm">
+        <p className="min-w-0 flex-1 text-sm leading-snug lg:text-sm">
           {current.map((item, index) => (
             <span key={item.slug}>
               {index > 0 && <span className="text-muted"> vs </span>}
@@ -118,7 +118,7 @@ export function CompareBar() {
             <span className="hidden text-muted lg:inline"> · puedes añadir una tercera</span>
           )}
         </p>
-        <button type="button" onClick={() => write([])} className="min-h-11 flex-none text-[13px] font-bold underline">
+        <button type="button" onClick={() => write([])} className="min-h-11 flex-none text-sm font-bold underline">
           Quitar
         </button>
         {ready && (
@@ -128,7 +128,7 @@ export function CompareBar() {
               track(ANALYTICS_EVENTS.compareStart, { origen: "listado" });
               write([]);
             }}
-            className="flex h-11 flex-none items-center rounded-[14px] bg-lime px-4 text-sm font-extrabold hover:bg-[#bde52f]"
+            className="flex h-11 flex-none items-center rounded-2xl bg-lime px-4 text-sm font-extrabold hover:bg-[#bde52f]"
           >
             Comparar
           </Link>

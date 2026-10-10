@@ -16,7 +16,7 @@ const STATUS_DOT: Record<PriceVerdict["status"], string> = {
 
 function PriceRow({ label, value }: { label: string; value: number }) {
   return (
-    <div className="flex min-h-[42px] items-center justify-between border-t border-line text-[15px]">
+    <div className="flex min-h-[42px] items-center justify-between border-t border-line text-base">
       <dt className="text-ink">{label}</dt>
       <dd className="font-bold whitespace-nowrap tabular-nums">{formatEuro(value)}</dd>
     </div>
@@ -38,18 +38,18 @@ interface PriceCardProps {
 
 /** Mejor precio hoy, con el veredicto en una frase y, como mucho, tres cifras de contexto. */
 export function PriceCard({ price, msrp, storesHref, alertHref, onSale, className }: PriceCardProps) {
-  const frame = cn("rounded-[22px] border-2 border-carbon p-5 lg:p-6", className);
+  const frame = cn("rounded-3xl border-2 border-carbon p-5 lg:p-6", className);
   // El ahorro sobre el PVPR solo se dice con un precio vigente.
   const saving = price && price.freshness !== "stale" ? msrpSaving(price.current, msrp) : null;
 
   if (!price) {
     return (
       <section aria-label="Mejor precio" className={frame}>
-        <p className="text-[13px] font-bold text-muted">Mejor precio hoy</p>
-        <p className="mt-0.5 text-[26px] leading-[1.1] font-black tracking-[-0.025em]">
+        <p className="text-sm font-bold text-muted">Mejor precio hoy</p>
+        <p className="mt-0.5 text-2xl leading-[1.1] font-black tracking-[-0.025em]">
           Sin precio ahora mismo
         </p>
-        <p className="mt-2 text-[15px] leading-normal text-ink">
+        <p className="mt-2 text-base leading-normal text-ink">
           Ninguna de las tiendas que seguimos tiene esta pala a la venta en este momento.
         </p>
         {alertHref ? (
@@ -57,7 +57,11 @@ export function PriceCard({ price, msrp, storesHref, alertHref, onSale, classNam
             Avísame cuando esté disponible
           </a>
         ) : (
-          <Link href={onSale.href} className={buttonClass({ variant: "outline", className: "mt-4 w-full" })}>
+          // La etiqueta es larga («Ver palas de forma diamante a la venta»): puede partirse en dos líneas.
+          <Link
+            href={onSale.href}
+            className={buttonClass({ variant: "outline", className: "mt-4 h-auto! min-h-12 w-full py-2 text-center whitespace-normal!" })}
+          >
             {onSale.label}
           </Link>
         )}
@@ -67,10 +71,10 @@ export function PriceCard({ price, msrp, storesHref, alertHref, onSale, classNam
 
   return (
     <section aria-label="Mejor precio" className={frame}>
-      <p className="text-[13px] font-bold text-muted">
+      <p className="text-sm font-bold text-muted">
         {priceHeading(price)}
       </p>
-      <p className="mt-0.5 text-[44px] leading-[1.05] font-black tracking-[-0.035em] whitespace-nowrap tabular-nums">
+      <p className="mt-0.5 text-[44px] leading-[1.1] font-black tracking-[-0.035em] whitespace-nowrap tabular-nums">
         {formatEuro(price.current)}
       </p>
       <p className="text-sm text-ink">
@@ -84,7 +88,7 @@ export function PriceCard({ price, msrp, storesHref, alertHref, onSale, classNam
           ` · comprobado ${formatTimeAgo(price.checkedAt, price.asOf)}`}
       </p>
       {saving !== null && msrp !== null && (
-        <p className="mt-2 inline-block rounded-lg bg-lime-soft px-2 py-1 text-[13px] font-extrabold text-forest">
+        <p className="mt-2 inline-block rounded-lg bg-lime-soft px-2 py-1 text-sm font-extrabold text-forest">
           {formatPercent(saving)} por debajo de su PVPR ({formatEuroCompact(msrp)})
         </p>
       )}
@@ -97,11 +101,11 @@ export function PriceCard({ price, msrp, storesHref, alertHref, onSale, classNam
           />
           {price.verdict.label}
         </p>
-        <p className="mt-1.5 text-[15px] leading-normal text-ink">{price.verdict.detail}</p>
+        <p className="mt-1.5 text-base leading-normal text-ink">{price.verdict.detail}</p>
       </div>
 
-      <dl className="mt-3.5">
-        <PriceRow label="Precio actual" value={price.current} />
+      {/* El precio de hoy ya va arriba, en grande: aquí solo las cifras con las que compararlo. */}
+      <dl className="mt-3.5 empty:hidden">
         {/* Media y mínimo solo existen con 30 días de histórico. */}
         {price.average30 !== null && (
           <PriceRow label="Media últimos 30 días" value={price.average30} />

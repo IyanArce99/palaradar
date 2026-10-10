@@ -11,7 +11,7 @@ interface EmptyNoteProps {
  */
 export function EmptyNote({ children, className }: EmptyNoteProps) {
   return (
-    <p className={cn("rounded-[18px] bg-mist p-[18px] text-[15px] leading-normal text-pretty text-ink", className)}>
+    <p className={cn("rounded-3xl bg-mist p-5 text-base leading-normal text-pretty text-ink", className)}>
       {children}
     </p>
   );

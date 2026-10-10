@@ -26,7 +26,7 @@ export function CompareSlot({ slot, pala, changeHref, compact }: CompareSlotProp
   const photo = pala.images[0] ?? null;
 
   return (
-    <section aria-label={title} className="rounded-[22px] border-2 border-carbon bg-white p-3 lg:rounded-3xl lg:p-4">
+    <section aria-label={title} className="rounded-3xl border-2 border-carbon bg-white p-3 lg:rounded-3xl lg:p-4">
       {/* Móvil: fila con miniatura, datos y «×». */}
       <div
         className={cn(
@@ -38,19 +38,19 @@ export function CompareSlot({ slot, pala, changeHref, compact }: CompareSlotProp
           src={photo}
           alt={palaAlt(pala)}
           sizes="84px"
-          className={cn("rounded-[14px]", compact ? "h-[84px]" : "h-[104px]")}
+          className={cn("rounded-2xl", compact ? "h-[84px]" : "h-[104px]")}
         />
         <div className="min-w-0">
           <p className="flex items-center gap-1.5">
-            <SlotBadge slot={slot} className="size-5 text-[9px]" />
+            <SlotBadge slot={slot} className="size-5 text-xs" />
             <span className="truncate text-xs text-muted">
               {pala.brand.name} · {pala.year}
             </span>
           </p>
-          <h2 className="mt-1 text-[17px] leading-[1.1] font-black">{pala.model}</h2>
+          <h2 className="mt-1 text-lg leading-[1.1] font-black">{pala.model}</h2>
           <p className="mt-1.5 text-xs text-muted">{priceHeading(pala.price)}</p>
           {pala.price && (
-            <p className="text-lg leading-tight font-black whitespace-nowrap tabular-nums">
+            <p className="text-lg leading-snug font-black whitespace-nowrap tabular-nums">
               {formatEuro(pala.price.current)}
             </p>
           )}
@@ -73,7 +73,7 @@ export function CompareSlot({ slot, pala, changeHref, compact }: CompareSlotProp
           </p>
           <Link
             href={changeHref}
-            className="flex h-9 items-center rounded-full bg-mist px-3 text-[13px] font-bold hover:bg-line-soft"
+            className="flex h-9 items-center rounded-full bg-mist px-3 text-sm font-bold hover:bg-line-soft"
           >
             Cambiar<span className="sr-only"> la {pala.model}</span>
           </Link>
@@ -85,7 +85,7 @@ export function CompareSlot({ slot, pala, changeHref, compact }: CompareSlotProp
           className={cn("flex-none rounded-2xl", compact ? "h-[190px]" : "h-[230px]")}
         />
         <div>
-          <p className="text-[13px] text-muted">
+          <p className="text-sm text-muted">
             {pala.brand.name} · {pala.year} · {SHAPE_LABELS[pala.shape]}
           </p>
           <h2

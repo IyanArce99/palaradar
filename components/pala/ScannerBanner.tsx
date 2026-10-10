@@ -22,9 +22,9 @@ interface ScannerBannerProps {
 export function ScannerBanner({ variant = "full", example, className }: ScannerBannerProps) {
   if (variant === "compact") {
     return (
-      <aside className={cn("rounded-[20px] bg-carbon p-5 text-white", className)}>
+      <aside className={cn("rounded-3xl bg-carbon p-5 text-white", className)}>
         <h2 className="text-lg font-black">¿La tienes delante?</h2>
-        <p className="mt-1.5 text-sm leading-[1.45] text-ash">
+        <p className="mt-1.5 text-sm leading-normal text-ash">
           Hazle una foto y la identificamos por ti.
         </p>
         <ButtonLink href={routes.scan} className="mt-3.5 w-full sm:w-auto">
@@ -40,11 +40,11 @@ export function ScannerBanner({ variant = "full", example, className }: ScannerB
       <div className="relative mx-auto max-w-[1280px] px-5 py-8 lg:grid lg:grid-cols-2 lg:items-center lg:gap-14 lg:px-12 lg:py-[72px]">
         <RadarRings className="absolute -top-[120px] -right-[120px] size-[300px] opacity-60 lg:hidden" />
         <div className="relative">
-          <p className="text-[13px] font-bold text-lime lg:text-sm">Escáner PalaRadar</p>
-          <h2 className="mt-2 text-[28px] leading-[1.05] font-black tracking-[-0.03em] lg:mt-2.5 lg:text-5xl lg:leading-none lg:tracking-[-0.04em]">
+          <p className="text-sm font-bold text-lime lg:text-sm">Escáner PalaRadar</p>
+          <h2 className="mt-2 text-3xl leading-[1.1] font-black tracking-[-0.03em] lg:mt-2.5 lg:text-5xl lg:leading-none lg:tracking-[-0.04em]">
             ¿Tienes una pala delante y no sabes cuál es?
           </h2>
-          <p className="mt-3 mb-[18px] max-w-[480px] text-[15px] leading-[1.55] text-ash lg:mt-[18px] lg:mb-[26px] lg:text-lg">
+          <p className="mt-3 mb-[18px] max-w-[480px] text-base leading-normal text-ash lg:mt-5 lg:mb-[26px] lg:text-lg">
             Hazle una foto: te decimos qué pala es y dónde está más barata.{" "}
             <span className="lg:hidden">También puedes fotografiar dos y compararlas.</span>
             <span className="hidden lg:inline">O fotografía dos y compáralas.</span>
@@ -63,12 +63,12 @@ export function ScannerBanner({ variant = "full", example, className }: ScannerB
           <RadarRings className="absolute size-[380px]" />
           <div
             aria-hidden="true"
-            className="relative h-[270px] w-[180px] rounded-[20px] border-[3px] border-lime bg-[repeating-linear-gradient(135deg,#1c1f1a_0_10px,#22261f_10px_20px)]"
+            className="relative h-[270px] w-[180px] rounded-3xl border-[3px] border-lime bg-[repeating-linear-gradient(135deg,#1c1f1a_0_10px,#22261f_10px_20px)]"
           />
           {/* Resultado de ejemplo: una pala real del catálogo con su precio de hoy. */}
           {example && (
             <div className="absolute right-5 bottom-[30px] w-[250px] rounded-2xl bg-white px-4 py-3.5 text-carbon">
-              <p className="text-[13px] font-extrabold text-forest">
+              <p className="text-sm font-extrabold text-forest">
                 <span aria-hidden="true">✓ </span>Es una {example.name}
               </p>
               <p className="mt-1 text-sm">

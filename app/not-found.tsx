@@ -7,7 +7,7 @@ export default function NotFound() {
       <h1 className="text-[32px] leading-none font-black tracking-[-0.035em] text-balance lg:text-[52px]">
         No encontramos esta página
       </h1>
-      <p className="mt-3 max-w-[520px] text-base leading-[1.6] text-pretty text-ink">
+      <p className="mt-3 max-w-[520px] text-base leading-normal text-pretty text-ink">
         Puede que el enlace esté mal escrito o que la pala ya no esté en el catálogo.
       </p>
       <div className="mt-6 flex flex-wrap gap-2.5">

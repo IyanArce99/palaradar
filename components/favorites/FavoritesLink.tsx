@@ -19,7 +19,7 @@ export function FavoritesLink({ className }: { className?: string }) {
       </svg>
       <span className="sr-only">Mis palas favoritas{count > 0 ? ` (${count})` : ""}</span>
       {count > 0 && (
-        <span aria-hidden="true" className="absolute -top-0.5 -right-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-carbon px-1 text-[11px] font-extrabold text-white tabular-nums">
+        <span aria-hidden="true" className="absolute -top-0.5 -right-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-carbon px-1 text-xs font-extrabold text-white tabular-nums">
           {count}
         </span>
       )}

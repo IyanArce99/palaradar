@@ -25,8 +25,8 @@ import { absoluteUrl, pageMetadata } from "@/lib/seo";
 export const revalidate = 3600;
 
 const HERO_PHOTOS = 3;
-const H2 = "text-2xl leading-[1.08] font-black tracking-[-0.025em] text-balance lg:text-[30px]";
-const BODY = "text-base leading-[1.65] text-pretty text-ink";
+const H2 = "text-2xl leading-[1.1] font-black tracking-[-0.025em] text-balance lg:text-3xl";
+const BODY = "text-base leading-normal text-pretty text-ink";
 
 interface GuidePageProps {
   params: Promise<{ slug: string }>;
@@ -55,41 +55,41 @@ function PickCard({ resolved }: { resolved: ResolvedPick }) {
 
   return (
     <>
-      <article className="relative mt-4 grid grid-cols-[96px_minmax(0,1fr)] items-center gap-x-3.5 gap-y-3 rounded-[20px] border border-line p-3 hover:border-carbon lg:grid-cols-[150px_minmax(0,1fr)_auto] lg:gap-x-5 lg:rounded-3xl lg:p-4">
+      <article className="relative mt-4 grid grid-cols-[96px_minmax(0,1fr)] items-center gap-x-3.5 gap-y-3 rounded-3xl border border-line p-3 hover:border-carbon lg:grid-cols-[150px_minmax(0,1fr)_auto] lg:gap-x-5 lg:rounded-3xl lg:p-4">
         <PalaPhoto
           src={pala.images[0] ?? null}
           alt={palaAlt(pala)}
           sizes="(min-width: 1024px) 150px, 96px"
-          className="h-[120px] rounded-[14px] lg:h-[170px] lg:rounded-2xl"
+          className="h-[120px] rounded-2xl lg:h-[170px] lg:rounded-2xl"
         />
         <div className="min-w-0">
-          <p className="text-xs text-muted lg:text-[13px]">
+          <p className="text-xs text-muted lg:text-sm">
             {pala.brand.name} · {pala.year}
           </p>
-          <h3 className="text-lg leading-[1.15] font-black lg:text-[22px]">
+          <h3 className="text-lg leading-[1.1] font-black lg:text-2xl">
             <Link href={routes.pala(pala.slug)} className="after:absolute after:inset-0">
               {pala.model}
             </Link>
           </h3>
           {score !== null && pala.sourceRatings && (
-            <p className="mt-1 text-[13px] lg:text-sm">
+            <p className="mt-1 text-sm lg:text-sm">
               <strong className="tabular-nums">{formatRating(score)}</strong> sobre 10{" "}
               <span className="text-muted">· {pala.sourceRatings.source}</span>
             </p>
           )}
-          <p className="mt-1 text-[13px] text-ink lg:text-sm">{pickTraits(pala)}</p>
+          <p className="mt-1 text-sm text-ink lg:text-sm">{pickTraits(pala)}</p>
         </div>
         <div className="col-span-2 flex items-center justify-between gap-3 lg:col-span-1 lg:flex-col lg:items-end">
           <div className="lg:text-right">
             <p className="text-xs text-muted">{price ? "desde" : priceHeading(null)}</p>
             {price && (
-              <p className="text-[22px] leading-tight font-black whitespace-nowrap tabular-nums lg:text-[26px]">
+              <p className="text-2xl leading-snug font-black whitespace-nowrap tabular-nums lg:text-2xl">
                 {formatEuro(price.current)}
               </p>
             )}
             {price?.verdict.status === "recent" && <RecentPriceNote />}
           </div>
-          <span className="flex h-11 items-center rounded-[14px] bg-lime px-5 text-[15px] font-extrabold lg:h-12">
+          <span className="flex h-11 items-center rounded-2xl bg-lime px-5 text-base font-extrabold lg:h-12">
             {price ? "Ver precios" : "Ver ficha"}
           </span>
         </div>
@@ -97,7 +97,7 @@ function PickCard({ resolved }: { resolved: ResolvedPick }) {
 
       <p className={`${BODY} mt-4`}>{pickReason(pala, score)}</p>
       {(best.length > 0 || weakest) && (
-        <dl className="mt-3 grid gap-x-10 gap-y-1.5 text-sm leading-normal lg:grid-cols-2 lg:text-[15px]">
+        <dl className="mt-3 grid gap-x-10 gap-y-1.5 text-sm leading-normal lg:grid-cols-2 lg:text-base">
           {best.length > 0 && (
             <div>
               <dt className="inline font-extrabold">Sus notas más altas: </dt>
@@ -167,7 +167,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
       <div className="mx-auto max-w-[1280px] px-5 pt-1 pb-10 lg:grid lg:grid-cols-[220px_minmax(0,720px)] lg:gap-12 lg:px-12 lg:pt-8 lg:pb-20">
         <nav aria-labelledby="en-esta-guia" className="hidden lg:block">
           <div className="sticky top-6">
-            <p id="en-esta-guia" className="text-[15px] font-extrabold">
+            <p id="en-esta-guia" className="text-base font-extrabold">
               En esta guía
             </p>
             <ul className="mt-3 flex flex-col gap-2.5 text-sm text-muted">
@@ -183,21 +183,21 @@ export default async function GuidePage({ params }: GuidePageProps) {
         </nav>
 
         <article>
-          <h1 className="text-[34px] leading-none font-black tracking-[-0.04em] text-balance lg:text-[56px]">
+          <h1 className="text-[32px] leading-none font-black tracking-[-0.04em] text-balance lg:text-[52px]">
             {guide.title}
           </h1>
-          <p className="mt-3 text-[13px] text-muted">
+          <p className="mt-3 text-sm text-muted">
             Por el equipo de {siteConfig.name} · actualizada el {formatDate(guide.updatedAt)} ·{" "}
             {readingMinutes(guide)} min de lectura
           </p>
           {guide.intro.map((paragraph) => (
-            <p key={paragraph} className="mt-4 text-[17px] leading-[1.6] text-pretty text-ink lg:mt-5 lg:text-[19px]">
+            <p key={paragraph} className="mt-4 text-base leading-normal text-pretty text-ink lg:mt-5 lg:text-lg">
               {paragraph}
             </p>
           ))}
 
           {heroPhotos.length > 0 && (
-            <div aria-hidden="true" className="mt-6 flex h-[200px] items-center justify-center gap-1 overflow-hidden rounded-3xl bg-mist px-3 lg:mt-8 lg:h-[340px] lg:gap-4 lg:rounded-[28px] lg:px-8">
+            <div aria-hidden="true" className="mt-6 flex h-[200px] items-center justify-center gap-1 overflow-hidden rounded-3xl bg-mist px-3 lg:mt-8 lg:h-[340px] lg:gap-4 lg:rounded-3xl lg:px-8">
               {heroPhotos.map((photo, i) => (
                 <PalaPhoto
                   key={photo.image}
@@ -221,7 +221,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
 
           {picks.map((resolved, i) => (
             <section key={resolved.pick.id} id={resolved.pick.id} aria-labelledby={`${resolved.pick.id}-titulo`} className="mt-10 scroll-mt-6 lg:mt-16">
-              <p className="text-[13px] font-extrabold tracking-[0.02em] text-muted uppercase">
+              <p className="text-sm font-extrabold tracking-[0.02em] text-muted uppercase">
                 {i + 1} · {resolved.pick.eyebrow}
               </p>
               <h2 id={`${resolved.pick.id}-titulo`} className={`${H2} mt-1`}>
@@ -256,16 +256,16 @@ export default async function GuidePage({ params }: GuidePageProps) {
             </section>
           ))}
 
-          <aside className="mt-10 flex flex-col gap-4 rounded-[22px] bg-lime p-[22px] lg:mt-12 lg:flex-row lg:items-center lg:justify-between lg:px-6">
+          <aside className="mt-10 flex flex-col gap-4 rounded-3xl bg-lime p-5 lg:mt-12 lg:flex-row lg:items-center lg:justify-between lg:px-6">
             <div>
               <p className="text-xl leading-[1.1] font-black lg:text-2xl">¿Aún con dudas?</p>
-              <p className="mt-1 text-sm leading-[1.45] text-forest lg:text-[15px]">
+              <p className="mt-1 text-sm leading-normal text-forest lg:text-base">
                 6 preguntas y te recomendamos las palas que mejor encajan contigo, con su mejor precio.
               </p>
             </div>
             <Link
               href={routes.idealPala}
-              className="flex h-[50px] flex-none items-center justify-center rounded-[14px] bg-carbon px-5 text-[15px] font-extrabold whitespace-nowrap text-white"
+              className="flex h-[50px] flex-none items-center justify-center rounded-2xl bg-carbon px-5 text-base font-extrabold whitespace-nowrap text-white"
             >
               Encontrar mi pala ideal
             </Link>
@@ -278,7 +278,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
           )}
 
           <nav aria-labelledby="otras-guias" className="mt-10 border-t border-line pt-8 lg:mt-14">
-            <h2 id="otras-guias" className="text-[15px] font-extrabold">
+            <h2 id="otras-guias" className="text-base font-extrabold">
               Otras guías
             </h2>
             <ul className="mt-2">
@@ -286,7 +286,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
                 .filter((other) => other.slug !== guide.slug)
                 .map((other) => (
                   <li key={other.slug}>
-                    <Link href={routes.guide(other.slug)} className="inline-flex min-h-11 items-center text-[15px] font-bold underline">
+                    <Link href={routes.guide(other.slug)} className="inline-flex min-h-11 items-center text-base font-bold underline">
                       {other.title}
                     </Link>
                   </li>

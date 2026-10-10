@@ -19,13 +19,13 @@ export function AudienceFit({ editorial, className }: AudienceFitProps) {
           title="Ideal para"
           items={editorial.idealFor}
           tone="positive"
-          className="rounded-[18px] bg-lime-tint p-[18px]"
+          className="rounded-3xl bg-lime-tint p-5"
         />
         <CheckList
           title="Puede no ser para ti si"
           items={editorial.notFor}
           tone="negative"
-          className="rounded-[18px] bg-mist p-[18px]"
+          className="rounded-3xl bg-mist p-5"
         />
       </div>
     </section>

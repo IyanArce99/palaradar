@@ -20,13 +20,13 @@ export function AlertBox({ id, slug, currentPrice, className }: AlertBoxProps) {
     <section
       id={id}
       aria-labelledby={`${id}-titulo`}
-      className={cn("rounded-[22px] bg-carbon p-[22px] text-white", className)}
+      className={cn("rounded-3xl bg-carbon p-5 text-white", className)}
     >
       <h2 id={`${id}-titulo`} className="text-xl font-black">
         {currentPrice === null ? "Avísame cuando esté disponible" : "Avísame cuando baje de…"}
       </h2>
       {currentPrice === null && (
-        <p className="mt-2.5 text-sm leading-[1.45] text-ash">
+        <p className="mt-2.5 text-sm leading-normal text-ash">
           Te escribiremos cuando alguna de las tiendas que seguimos vuelva a tener esta pala a la
           venta.
         </p>

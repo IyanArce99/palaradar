@@ -40,7 +40,7 @@ export function CompareRows({ palas, rows }: CompareRowsProps) {
 
       <div
         aria-hidden="true"
-        className={cn("grid gap-3 pt-3.5 pb-1.5 text-[13px] font-black lg:gap-6 lg:pt-4 lg:pb-2.5 lg:text-[15px]", mobileCols, desktopCols)}
+        className={cn("grid gap-3 pt-3.5 pb-1.5 text-sm font-black lg:gap-6 lg:pt-4 lg:pb-2.5 lg:text-base", mobileCols, desktopCols)}
       >
         <span className="hidden lg:block" />
         {palas.map((pala, i) => (
@@ -52,7 +52,7 @@ export function CompareRows({ palas, rows }: CompareRowsProps) {
               three && i === 1 && "justify-center",
             )}
           >
-            <SlotBadge slot={SLOT_IDS[i]} className="size-5 text-[9px] lg:size-[22px] lg:text-[10px]" />
+            <SlotBadge slot={SLOT_IDS[i]} className="size-5 text-xs lg:size-[22px] lg:text-xs" />
             <span className="truncate">{pala.model}</span>
           </span>
         ))}
@@ -67,11 +67,11 @@ export function CompareRows({ palas, rows }: CompareRowsProps) {
               desktopCols,
             )}
           >
-            <dt className="text-center font-mono text-[11px] font-bold tracking-[0.04em] text-muted uppercase lg:text-left lg:text-xs">
+            <dt className="text-center font-mono text-xs font-bold tracking-[0.04em] text-muted uppercase lg:text-left lg:text-xs">
               {row.label}
               {row.equal && <span className="font-medium lg:normal-case"> · igual</span>}
             </dt>
-            <dd className={cn("mt-1 grid gap-3 text-[15px] lg:contents", mobileCols)}>
+            <dd className={cn("mt-1 grid gap-3 text-base lg:contents", mobileCols)}>
               {row.values.map((value, i) => (
                 <span
                   key={palas[i].id}

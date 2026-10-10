@@ -29,9 +29,9 @@ const CONFIDENCE_LABELS = { alta: "Confianza alta", media: "Confianza media", ba
 function IndexCard({ index, good }: { index: OpportunityIndex; good: boolean }) {
 
   return (
-    <div className={cn("rounded-[18px] border p-4", good ? "border-lime-border bg-lime-tint" : "border-line")}>
+    <div className={cn("rounded-3xl border p-4", good ? "border-lime-border bg-lime-tint" : "border-line")}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <h3 className="text-[15px] font-extrabold">Índice de oportunidad</h3>
+        <h3 className="text-base font-extrabold">Índice de oportunidad</h3>
         <p className="text-xs text-muted">{CONFIDENCE_LABELS[index.confidence]}</p>
       </div>
       <p className="mt-1.5 flex items-baseline gap-2">
@@ -42,14 +42,14 @@ function IndexCard({ index, good }: { index: OpportunityIndex; good: boolean }) 
       <div aria-hidden="true" className="mt-2.5 h-2 overflow-hidden rounded-full bg-mist">
         <div className={cn("h-full rounded-full", good ? "bg-forest" : "bg-carbon")} style={{ width: `${index.score}%` }} />
       </div>
-      <ul className="mt-3 text-[13px] leading-[1.45] text-ink">
+      <ul className="mt-3 text-sm leading-normal text-ink">
         {index.reasons.map((reason) => (
           <li key={reason} className="mt-0.5">
             {reason}
           </li>
         ))}
       </ul>
-      <p className="mt-2 text-xs leading-[1.45] text-muted">
+      <p className="mt-2 text-xs leading-normal text-muted">
         Compara el precio de hoy con lo que ha costado en los últimos 30 días. Es una orientación, no una predicción.
       </p>
     </div>
@@ -72,7 +72,7 @@ function PeriodTable({ periods }: { periods: PeriodStats[] }) {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[320px] border-collapse text-left text-[13px]">
+      <table className="w-full min-w-[320px] border-collapse text-left text-sm">
         <caption className="sr-only">Estadísticas del precio por periodo</caption>
         <thead>
           <tr className="text-muted">
@@ -125,7 +125,7 @@ export function PriceStatsPanel({ price, history, className }: PriceStatsPanelPr
     <div className={cn("flex flex-col gap-4", className)}>
       {index && <IndexCard index={index} good={price.verdict.status === "good"} />}
       {periods.length > 0 && <PeriodTable periods={periods} />}
-      <p className="text-[13px] leading-[1.5] text-pretty text-muted">
+      <p className="text-sm leading-normal text-pretty text-muted">
         Seguimos el precio de esta pala desde el {formatDate(coverage.since)}: {coverage.observations}{" "}
         {coverage.observations === 1 ? "día" : "días"} con precio registrado.
         {periods.length === 0 &&

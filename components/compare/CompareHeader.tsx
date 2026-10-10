@@ -20,7 +20,7 @@ export function offersHref(pala: Pala): string {
 }
 
 export const OFFERS_BUTTON =
-  "flex items-center justify-center gap-2 rounded-full bg-lime px-[22px] text-[15px] font-extrabold whitespace-nowrap text-carbon shadow-[0_2px_0_#9fc21f] hover:bg-[#bde52f]";
+  "flex items-center justify-center gap-2 rounded-full bg-lime px-[22px] text-base font-extrabold whitespace-nowrap text-carbon shadow-[0_2px_0_#9fc21f] hover:bg-[#bde52f]";
 
 /** «Ahorras X € · ● en stock en N tiendas», con lo que haya de las dos cosas. */
 function SavingLine({ pala, className }: { pala: Pala; className?: string }) {
@@ -44,7 +44,7 @@ function PriceBox({ pala, stacked }: { pala: Pala; stacked: boolean }) {
   return (
     <div
       className={cn(
-        "hidden gap-3 rounded-[18px] bg-mist p-4 lg:flex",
+        "hidden gap-3 rounded-3xl bg-mist p-4 lg:flex",
         stacked ? "flex-col" : "items-end justify-between",
       )}
     >
@@ -56,14 +56,14 @@ function PriceBox({ pala, stacked }: { pala: Pala; stacked: boolean }) {
         {price && (
           <>
             <p className="flex flex-wrap items-baseline gap-x-2.5">
-              <span className="text-[30px] leading-tight font-black tracking-[-0.02em] whitespace-nowrap tabular-nums">
+              <span className="text-3xl leading-snug font-black tracking-[-0.02em] whitespace-nowrap tabular-nums">
                 {formatEuro(price.current)}
               </span>
               {msrp !== null && (
                 <s className="text-sm whitespace-nowrap text-muted tabular-nums">{formatEuro(msrp)}</s>
               )}
             </p>
-            <SavingLine pala={pala} className="text-[13px]" />
+            <SavingLine pala={pala} className="text-sm" />
             {price.freshness !== "current" && (
               <p className="text-xs text-muted">Comprobado {formatTimeAgo(price.checkedAt, price.asOf)}</p>
             )}
@@ -88,7 +88,7 @@ function MobilePrice({ pala }: { pala: Pala }) {
 
   return (
     <div className="lg:hidden">
-      <p className="mt-1.5 text-xl leading-tight font-black whitespace-nowrap tabular-nums">
+      <p className="mt-1.5 text-xl leading-snug font-black whitespace-nowrap tabular-nums">
         {formatEuro(price.current)}
       </p>
       {price.freshness !== "current" && <p className="text-xs text-muted">{priceHeading(price)}</p>}
@@ -114,17 +114,17 @@ function PalaColumn({ pala, slot, three }: { pala: Pala; slot: CompareSlotId; th
         sizes={three ? "(min-width: 1024px) 360px, 33vw" : "(min-width: 1024px) 440px, 50vw"}
         // Las fotos abren la página: se cargan con prioridad.
         priority
-        className={cn("rounded-[18px] lg:h-[300px] lg:rounded-[22px]", three ? "h-[130px]" : "h-[170px]")}
+        className={cn("rounded-3xl lg:h-[300px] lg:rounded-3xl", three ? "h-[130px]" : "h-[170px]")}
       />
       <div>
         <p className="mt-2.5 flex items-center gap-1.5 lg:mt-0 lg:gap-2">
-          <SlotBadge slot={slot} className="size-5 text-[9px] lg:size-6 lg:text-[11px]" />
+          <SlotBadge slot={slot} className="size-5 text-xs lg:size-6 lg:text-xs" />
           <span className="truncate text-xs text-muted lg:text-sm">
             {pala.brand.name}
             <span className="hidden lg:inline"> · {pala.year}</span> · {SHAPE_LABELS[pala.shape]}
           </span>
         </p>
-        <h2 className="mt-1 min-h-9 text-base leading-[1.1] font-black lg:mt-1.5 lg:min-h-0 lg:text-[30px] lg:leading-[1.05] lg:tracking-[-0.03em]">
+        <h2 className="mt-1 min-h-9 text-base leading-[1.1] font-black lg:mt-1.5 lg:min-h-0 lg:text-3xl lg:leading-[1.1] lg:tracking-[-0.03em]">
           <Link href={routes.pala(pala.slug)} className="hover:underline">
             {pala.model}
           </Link>
@@ -180,9 +180,9 @@ export function CompareHeader({ palas, addHref }: CompareHeaderProps) {
         {addHref && (
           <Link
             href={addHref}
-            className="hidden h-[300px] flex-col items-center justify-center gap-2 rounded-[22px] border-[1.5px] border-dashed border-[#9a9f95] p-4 text-center hover:border-carbon lg:flex"
+            className="hidden h-[300px] flex-col items-center justify-center gap-2 rounded-3xl border-[1.5px] border-dashed border-[#9a9f95] p-4 text-center hover:border-carbon lg:flex"
           >
-            <span aria-hidden="true" className="grid size-11 place-items-center rounded-full bg-mist text-[22px] font-bold">
+            <span aria-hidden="true" className="grid size-11 place-items-center rounded-full bg-mist text-2xl font-bold">
               +
             </span>
             <span className="text-sm font-extrabold">Añadir otra pala</span>

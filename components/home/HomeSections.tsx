@@ -22,8 +22,8 @@ import type { CatalogShortcut } from "@/config/navigation";
 import { pricingConfig } from "@/config/pricing";
 
 const titleClass =
-  "text-2xl leading-[1.08] font-black tracking-[-0.025em] text-balance lg:text-[34px]";
-const leadClass = "mt-1.5 text-sm leading-[1.45] text-pretty text-muted lg:mt-2 lg:text-[15px]";
+  "text-2xl leading-[1.1] font-black tracking-[-0.025em] text-balance lg:text-3xl";
+const leadClass = "mt-1.5 text-sm leading-normal text-pretty text-muted lg:mt-2 lg:text-base";
 
 /** Con menos ofertas que estas, el bloque comparte fila en escritorio para no dejar media fila vacía */
 export const FULL_ROW_DEALS = 3;
@@ -55,7 +55,7 @@ export function DealsSection({ deals }: { deals: PalaSummary[] }) {
         >
           {deals.map((pala) => (
             <li key={pala.id} className="w-[190px] flex-none snap-start lg:w-auto">
-              <PalaCard pala={pala} variant="offer" photoClassName="h-[190px] lg:h-[260px]" />
+              <PalaCard pala={pala} variant="offer" className="h-full" photoClassName="h-[190px] lg:h-[260px]" />
             </li>
           ))}
         </ul>
@@ -86,7 +86,7 @@ export function MostStoresSection({ palas }: { palas: PalaSummary[] }) {
       <ul className="mt-6 hidden grid-cols-4 gap-6 lg:grid">
         {palas.map((pala) => (
           <li key={pala.id}>
-            <PalaCard pala={pala} photoClassName="h-[240px]" />
+            <PalaCard pala={pala} className="h-full" photoClassName="h-[240px]" />
           </li>
         ))}
       </ul>
@@ -101,17 +101,14 @@ interface MonthlyDropsSectionProps {
 }
 
 export function MonthlyDropsSection({ drops, wide = false }: MonthlyDropsSectionProps) {
+  // Sin un mes de histórico no hay bajadas que enseñar: la sección no ocupa sitio para decirlo.
+  if (drops.length === 0) return null;
+
   return (
     <section aria-labelledby="bajadas">
       <h2 id="bajadas" className={titleClass}>
         Mayores bajadas del mes
       </h2>
-      {drops.length === 0 && (
-        <EmptyNote className="mt-3 lg:mt-5">
-          Todavía no llevamos un mes siguiendo precios. Cuando lo tengamos, verás aquí las palas
-          que más han bajado.
-        </EmptyNote>
-      )}
       <ul className={cn("mt-3 lg:mt-5", wide && "lg:grid lg:grid-cols-3 lg:gap-x-10")}>
         {drops.map(({ pala, from, to, percent }) => (
           <li
@@ -119,12 +116,12 @@ export function MonthlyDropsSection({ drops, wide = false }: MonthlyDropsSection
             className="relative flex min-h-[58px] items-center justify-between gap-3 border-b border-line lg:min-h-[72px]"
           >
             <div>
-              <h3 className="text-[15px] font-extrabold lg:text-base">
+              <h3 className="text-base font-extrabold lg:text-base">
                 <Link href={routes.pala(pala.slug)} className="after:absolute after:inset-0">
                   {pala.brand.name} {pala.model}
                 </Link>
               </h3>
-              <p className="text-[13px] whitespace-nowrap text-muted tabular-nums lg:text-sm">
+              <p className="text-sm whitespace-nowrap text-muted tabular-nums lg:text-sm">
                 de {formatEuro(from)} a <strong className="text-carbon">{formatEuro(to)}</strong>
               </p>
             </div>
@@ -153,12 +150,12 @@ export function DiscoverSection({ shortcuts }: { shortcuts: ShortcutWithCount[] 
             <li key={shortcut.label}>
               <Link
                 href={listingHref(shortcut.query)}
-                className="flex h-full min-h-[84px] flex-col justify-between rounded-2xl border border-line p-3.5 hover:bg-mist lg:min-h-[110px] lg:rounded-[18px] lg:p-5"
+                className="flex h-full min-h-[84px] flex-col justify-between rounded-2xl border border-line p-4 hover:bg-mist lg:min-h-[110px] lg:rounded-3xl lg:p-5"
               >
-                <span className="text-[15px] leading-[1.2] font-extrabold lg:text-lg">
+                <span className="text-base leading-snug font-extrabold lg:text-lg">
                   {shortcut.label}
                 </span>
-                <span className="text-xs text-muted lg:text-[13px]">
+                <span className="text-xs text-muted lg:text-sm">
                   {pluralize(shortcut.count, "pala", "palas")}
                 </span>
               </Link>
@@ -166,18 +163,18 @@ export function DiscoverSection({ shortcuts }: { shortcuts: ShortcutWithCount[] 
           ))}
         </ul>
 
-        <div className="mt-3 flex flex-col justify-between rounded-[20px] bg-lime p-5 lg:mt-0 lg:rounded-[22px] lg:p-7">
-          <p className="hidden text-[13px] font-bold lg:block">6 preguntas · 1 minuto</p>
+        <div className="mt-3 flex flex-col justify-between rounded-3xl bg-lime p-5 lg:mt-0 lg:rounded-3xl lg:p-7">
+          <p className="hidden text-sm font-bold lg:block">6 preguntas · 1 minuto</p>
           <div>
-            <h3 className="text-xl leading-[1.1] font-black lg:text-[30px] lg:leading-[1.05] lg:tracking-[-0.02em]">
+            <h3 className="text-xl leading-[1.1] font-black lg:text-3xl lg:leading-[1.1] lg:tracking-[-0.02em]">
               ¿No sabes por dónde empezar?
             </h3>
-            <p className="mt-1.5 text-sm leading-[1.45] text-forest lg:mt-2 lg:text-[15px] lg:leading-normal">
+            <p className="mt-1.5 text-sm leading-normal text-forest lg:mt-2 lg:text-base lg:leading-normal">
               <span className="lg:hidden">Responde 6 preguntas sobre cómo juegas</span>
               <span className="hidden lg:inline">Cuéntanos cómo juegas</span> y te recomendamos
               tres palas con su mejor precio.
             </p>
-            <ButtonLink href={routes.idealPala} variant="dark" className="mt-3.5 lg:mt-[18px]">
+            <ButtonLink href={routes.idealPala} variant="dark" className="mt-3.5 lg:mt-5">
               Encontrar mi pala ideal
             </ButtonLink>
           </div>
@@ -195,7 +192,7 @@ function shapeAndBalance(pala: Pala): string {
 
 /** Dos palas del catálogo frente a frente, como entrada al comparador. */
 export function CompareTeaserSection({ pair }: { pair: [Pala, Pala] | null }) {
-  const boxTitle = cn(titleClass, "lg:text-[30px]");
+  const boxTitle = cn(titleClass, "lg:text-3xl");
 
   return (
     <section aria-labelledby="dudas" className="lg:rounded-3xl lg:border lg:border-line lg:p-7">
@@ -203,27 +200,27 @@ export function CompareTeaserSection({ pair }: { pair: [Pala, Pala] | null }) {
         ¿Dudas entre dos?
       </h2>
       {pair ? (
-        <div className="mt-4 rounded-[20px] border border-line p-[18px] lg:mt-5 lg:rounded-none lg:border-0 lg:p-0">
+        <div className="mt-4 rounded-3xl border border-line p-5 lg:mt-5 lg:rounded-none lg:border-0 lg:p-0">
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2.5 lg:gap-3.5">
             <PalaPhoto
               src={pair[0].images[0] ?? null}
               alt={palaAlt(pair[0])}
               sizes="(min-width: 1024px) 240px, 40vw"
-              className="h-[110px] rounded-xl lg:h-[170px] lg:rounded-[14px]"
+              className="h-[110px] rounded-2xl lg:h-[170px] lg:rounded-2xl"
             />
-            <span className="text-[13px] font-extrabold text-muted lg:text-base">vs</span>
+            <span className="text-sm font-extrabold text-muted lg:text-base">vs</span>
             <PalaPhoto
               src={pair[1].images[0] ?? null}
               alt={palaAlt(pair[1])}
               sizes="(min-width: 1024px) 240px, 40vw"
-              className="h-[110px] rounded-xl lg:h-[170px] lg:rounded-[14px]"
+              className="h-[110px] rounded-2xl lg:h-[170px] lg:rounded-2xl"
             />
           </div>
-          <p className="mt-2.5 grid grid-cols-2 gap-2.5 text-[15px] font-extrabold lg:text-base">
+          <p className="mt-2.5 grid grid-cols-2 gap-2.5 text-base font-extrabold lg:text-base">
             <span>{pair[0].model}</span>
             <span className="text-right">{pair[1].model}</span>
           </p>
-          <p className="mt-2 text-[15px] leading-[1.6] text-pretty text-ink lg:mt-2.5 lg:text-base">
+          <p className="mt-2 text-base leading-normal text-pretty text-ink lg:mt-2.5 lg:text-base">
             La {pair[0].model}, de {shapeAndBalance(pair[0])}; la {pair[1].model}, de{" "}
             {shapeAndBalance(pair[1])}.
           </p>
@@ -240,7 +237,7 @@ export function CompareTeaserSection({ pair }: { pair: [Pala, Pala] | null }) {
           Pon dos palas cara a cara para ver en qué se diferencian y cuál está a mejor precio.
         </EmptyNote>
       )}
-      <div className="mt-2.5 flex gap-2.5 lg:mt-[18px]">
+      <div className="mt-2.5 flex gap-2.5 lg:mt-5">
         {pair && (
           <ButtonLink
             href={comparePath(pair[0].slug, pair[1].slug)}
@@ -270,19 +267,19 @@ export function PriceWatchSection({ featured }: PriceWatchSectionProps) {
 
   return (
     <section aria-labelledby="barata-ahora" className="lg:rounded-3xl lg:bg-mist lg:p-7">
-      <h2 id="barata-ahora" className={cn(titleClass, "lg:text-[30px]")}>
+      <h2 id="barata-ahora" className={cn(titleClass, "lg:text-3xl")}>
         ¿Está barata ahora?
       </h2>
-      <p className="mt-2 text-base leading-[1.6] text-pretty text-ink lg:mt-2.5">
+      <p className="mt-2 text-base leading-normal text-pretty text-ink lg:mt-2.5">
         Seguimos el precio de cada pala. Cuando una lleva 30 días en seguimiento, su ficha te dice,
         en una frase, si es buen momento para comprar o si te conviene esperar.
       </p>
       {featured && (
         <Link
           href={routes.pala(featured.pala.slug)}
-          className="mt-4 block rounded-[18px] bg-mist p-4 lg:mt-[18px] lg:rounded-2xl lg:bg-white"
+          className="mt-4 block rounded-3xl bg-mist p-4 lg:mt-5 lg:rounded-2xl lg:bg-white"
         >
-          <span className="flex justify-between gap-3 text-sm font-extrabold lg:text-[15px]">
+          <span className="flex justify-between gap-3 text-sm font-extrabold lg:text-base">
             <span>{featured.pala.model}</span>
             <span className="whitespace-nowrap tabular-nums">
               {formatEuro(featured.price.current)}
@@ -350,12 +347,12 @@ export function PriceSourcesSection() {
       </div>
       <ol className="mt-4 grid gap-3 lg:mt-6 lg:grid-cols-3 lg:gap-6">
         {steps.map((step, index) => (
-          <li key={step.title} className="rounded-[20px] border border-line p-4 lg:p-5">
-            <span aria-hidden="true" className="font-mono text-[13px] font-medium text-muted">
+          <li key={step.title} className="rounded-3xl border border-line p-4 lg:p-5">
+            <span aria-hidden="true" className="font-mono text-sm font-medium text-muted">
               0{index + 1}
             </span>
-            <h3 className="mt-1 text-[17px] leading-[1.2] font-extrabold">{step.title}</h3>
-            <p className="mt-1.5 text-sm leading-[1.5] text-pretty text-ink">{step.text}</p>
+            <h3 className="mt-1 text-lg leading-snug font-extrabold">{step.title}</h3>
+            <p className="mt-1.5 text-sm leading-normal text-pretty text-ink">{step.text}</p>
           </li>
         ))}
       </ol>
@@ -386,15 +383,15 @@ export function GuidesSection({ guides }: { guides: GuideCover[] }) {
               src={image}
               alt=""
               sizes="(min-width: 1024px) 33vw, 110px"
-              className="h-[84px] rounded-[14px] lg:h-[220px] lg:rounded-[20px]"
+              className="h-[84px] rounded-2xl lg:h-[220px] lg:rounded-3xl"
             />
             <div>
-              <h3 className="text-base leading-[1.2] font-extrabold lg:mt-3.5 lg:text-xl lg:font-black">
+              <h3 className="text-base leading-snug font-extrabold lg:mt-3.5 lg:text-xl lg:font-black">
                 <Link href={routes.guide(guide.slug)} className="after:absolute after:inset-0 group-hover:underline">
                   {guide.title}
                 </Link>
               </h3>
-              <p className="mt-[3px] text-[13px] text-muted lg:mt-1 lg:text-[15px]">
+              <p className="mt-[3px] text-sm text-muted lg:mt-1 lg:text-base">
                 {guide.subtitle}
               </p>
             </div>

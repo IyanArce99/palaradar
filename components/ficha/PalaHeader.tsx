@@ -33,7 +33,7 @@ export function PalaHeader({ pala, reviewsHref, storesHref, alertHref, onSale }:
         </Link>{" "}
         · {pala.year} · {SHAPE_LABELS[pala.shape]}
       </p>
-      <h1 className="mt-1 text-[40px] leading-none font-black tracking-[-0.035em] text-balance lg:text-[56px]">
+      <h1 className="mt-1 text-[32px] leading-none font-black tracking-[-0.035em] text-balance lg:text-[52px]">
         {palaName(pala)}
       </h1>
       {/* Sin opiniones reales no se muestran estrellas ni número. */}
@@ -68,7 +68,10 @@ export function PalaHeader({ pala, reviewsHref, storesHref, alertHref, onSale }:
         )}
         {/* Sin precio y sin alertas, la ficha no se queda sin salida. */}
         {!hasPrice && !alertHref && (
-          <Link href={onSale.href} className={buttonClass({ variant: "outline" })}>
+          <Link
+            href={onSale.href}
+            className={buttonClass({ variant: "outline", className: "h-auto! min-h-12 py-2 text-center whitespace-normal!" })}
+          >
             {onSale.label}
           </Link>
         )}

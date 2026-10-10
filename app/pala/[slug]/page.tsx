@@ -69,7 +69,8 @@ const ALTERNATIVES_PER_MODE = 4;
 // escritorio, el contenido va a la izquierda y el precio y la alerta, fijos a
 // la derecha.
 const BLOCK = "px-5 pt-9 lg:px-0 lg:pt-0";
-const BLOCK_WIDE = "px-4 pt-9 lg:px-0 lg:pt-0";
+// Mismo margen lateral que el resto de la página: un bloque no se sale de la columna.
+const BLOCK_WIDE = BLOCK;
 
 interface PalaPageProps {
   params: Promise<{ slug: string }>;
@@ -208,15 +209,16 @@ export default async function PalaPage({ params }: PalaPageProps) {
       />
 
       {/* Cabecera: foto, nombre, precio de partida, acciones y descripción */}
-      <div className="mx-auto max-w-[1280px] lg:grid lg:grid-cols-[1.1fr_1fr] lg:gap-14 lg:px-12 lg:pt-5">
-        <div className="mx-4 lg:mx-0">
+      {/* Desde tablet, la foto y el nombre van en dos columnas: a todo el ancho la foto empuja el precio fuera de pantalla. */}
+      <div className="mx-auto max-w-[1280px] md:grid md:grid-cols-2 md:gap-8 md:px-5 lg:grid-cols-[1.1fr_1fr] lg:gap-14 lg:px-12 lg:pt-5">
+        <div className="mx-5 md:mx-0">
           <PalaPhoto
             src={pala.images[0] ?? null}
             alt={palaAlt(pala)}
             sizes="(min-width: 1024px) 600px, 100vw"
             priority
             placeholderLabel="foto pala · fondo neutro, recortada"
-            className="h-[320px] rounded-3xl lg:h-[520px] lg:rounded-[28px]"
+            className="h-[320px] rounded-3xl lg:h-[520px] lg:rounded-3xl"
           />
           {/* Miniaturas (escritorio) e indicador (móvil): solo si hay más de una imagen. */}
           {pala.images.length > 1 && (
@@ -228,7 +230,7 @@ export default async function PalaPage({ params }: PalaPageProps) {
                       src={src}
                       alt=""
                       sizes="140px"
-                      className={cn("h-24 rounded-[14px]", index === 0 && "border-2 border-carbon")}
+                      className={cn("h-24 rounded-2xl", index === 0 && "border-2 border-carbon")}
                     />
                   </li>
                 ))}
@@ -237,14 +239,14 @@ export default async function PalaPage({ params }: PalaPageProps) {
                 {pala.images.slice(0, 4).map((src, index) => (
                   <span
                     key={src}
-                    className={cn("h-1.5 rounded-[3px]", index === 0 ? "w-[18px] bg-carbon" : "w-1.5 bg-ash")}
+                    className={cn("h-1.5 rounded-md", index === 0 ? "w-[18px] bg-carbon" : "w-1.5 bg-ash")}
                   />
                 ))}
               </div>
             </>
           )}
         </div>
-        <div className="px-5 pt-[18px] lg:px-0 lg:pt-2">
+        <div className="px-5 pt-5 md:px-0 md:pt-0 lg:pt-2">
           <PalaHeader
             pala={pala}
             reviewsHref={`#${REVIEWS_ID}`}
@@ -257,10 +259,10 @@ export default async function PalaPage({ params }: PalaPageProps) {
             <EditorialSummary editorial={pala.editorial} className="mt-8" />
           ) : (
             <section aria-labelledby="descripcion" className="mt-8">
-              <h2 id="descripcion" className="text-[22px] leading-[1.08] font-black tracking-[-0.025em]">
+              <h2 id="descripcion" className="text-2xl leading-[1.1] font-black tracking-[-0.025em]">
                 Cómo es la {pala.model}
               </h2>
-              <p className="mt-2.5 text-[17px] leading-[1.6] text-pretty text-ink">{describePala(pala)}</p>
+              <p className="mt-2.5 text-base leading-normal text-pretty text-ink">{describePala(pala)}</p>
             </section>
           )}
         </div>
@@ -287,13 +289,15 @@ export default async function PalaPage({ params }: PalaPageProps) {
                 history={pala.priceHistory}
                 className={cn(BLOCK, "max-lg:order-5")}
               />
-              {/* En móvil las tiendas van justo debajo del precio: es lo que busca quien quiere comprar. */}
+              {/* Las tiendas van justo después del precio, también en escritorio (primer bloque
+                  de la columna, junto a la tarjeta de precio): es lo que busca quien quiere comprar. */}
               <StoreList
                 price={price}
                 palaSlug={pala.slug}
                 id={STORES_ID}
-                className={cn(BLOCK_WIDE, "max-lg:order-2")}
-              />            </>
+                className={cn(BLOCK_WIDE, "max-lg:order-2 lg:order-first")}
+              />
+            </>
           )}
 
           {hasReviews && (

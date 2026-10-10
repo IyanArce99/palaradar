@@ -17,7 +17,7 @@ export function PriceRange({ name, min, max, step, defaultValue }: PriceRangePro
 
   return (
     <div className="border-t border-line py-3.5">
-      <div className="flex justify-between text-[15px] font-extrabold">
+      <div className="flex justify-between text-base font-extrabold">
         <label htmlFor="filtro-precio">Precio</label>
         <output htmlFor="filtro-precio" className="font-semibold text-muted">
           {value >= max ? "cualquiera" : `hasta ${formatEuroCompact(value)}`}

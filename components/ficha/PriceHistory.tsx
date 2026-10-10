@@ -31,7 +31,7 @@ export function PriceHistory({ title, children, history, price }: PriceHistoryPr
       <div
         role="group"
         aria-label="Periodo del histórico"
-        className="mt-4 flex gap-1 rounded-xl bg-mist p-1 lg:col-start-2 lg:row-start-1 lg:mt-0"
+        className="mt-4 flex gap-1 rounded-2xl bg-mist p-1 lg:col-start-2 lg:row-start-1 lg:mt-0"
       >
         {CHART_RANGES.map((range) => (
           <button
@@ -40,7 +40,7 @@ export function PriceHistory({ title, children, history, price }: PriceHistoryPr
             aria-pressed={range === months}
             onClick={() => setMonths(range)}
             className={cn(
-              "h-[38px] flex-1 rounded-[9px] px-3 text-[13px] font-bold whitespace-nowrap",
+              "h-11 flex-1 rounded-2xl px-3 text-sm font-bold whitespace-nowrap",
               range === months && "bg-white shadow-[0_1px_3px_rgb(0_0_0/0.12)]",
             )}
           >
@@ -50,7 +50,7 @@ export function PriceHistory({ title, children, history, price }: PriceHistoryPr
       </div>
       <div className="lg:col-span-2">
         <PriceChart {...chart} width={350} height={190} className="mt-3 lg:hidden" />
-        <PriceChart {...chart} width={760} height={240} className="mt-[18px] hidden lg:block" />
+        <PriceChart {...chart} width={760} height={240} className="mt-5 hidden lg:block" />
       </div>
     </div>
   );

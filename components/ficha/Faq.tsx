@@ -19,7 +19,7 @@ export function Faq({ items }: FaqProps) {
               <h3 className="text-base font-bold">{item.question}</h3>
               <DisclosureMarker />
             </summary>
-            <p className="mb-4 text-[15px] leading-[1.55] text-ink">{item.answer}</p>
+            <p className="mb-4 text-base leading-normal text-ink">{item.answer}</p>
           </details>
         ))}
       </div>

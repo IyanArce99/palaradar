@@ -21,7 +21,7 @@ export function BrandLinks({ id, title, brands, withCatalogLink = false, classNa
 
   return (
     <nav aria-labelledby={id} className={className}>
-      <h2 id={id} className="mb-3 text-[15px] font-extrabold">
+      <h2 id={id} className="mb-3 text-base font-extrabold">
         {title}
       </h2>
       <ul className="flex flex-wrap gap-2">

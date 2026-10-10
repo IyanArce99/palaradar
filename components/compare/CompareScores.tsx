@@ -33,10 +33,10 @@ interface CompareScoresProps {
  */
 export function CompareScores({ palas, scores }: CompareScoresProps) {
   const legend = (
-    <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] font-bold">
+    <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-bold">
       {palas.map((pala, i) => (
         <li key={pala.id} className="flex items-center gap-1.5">
-          <SlotBadge slot={SLOT_IDS[i]} className="size-5 text-[9px]" />
+          <SlotBadge slot={SLOT_IDS[i]} className="size-5 text-xs" />
           {pala.model}
         </li>
       ))}
@@ -54,7 +54,7 @@ export function CompareScores({ palas, scores }: CompareScoresProps) {
             <h2 id="rendimiento" className={resultTitleClass}>
               Rendimiento
             </h2>
-            <p className="mt-1.5 text-[13px] leading-[1.45] text-pretty text-muted lg:text-sm">
+            <p className="mt-1.5 text-sm leading-normal text-pretty text-muted lg:text-sm">
               Puntuaciones técnicas de {scores.source}, sobre 10. No son valoraciones propias de PalaRadar.
             </p>
           </div>
@@ -76,7 +76,7 @@ export function CompareScores({ palas, scores }: CompareScoresProps) {
                 return (
                   <div key={pala.id} className="flex items-center gap-2 lg:gap-2.5">
                     <dt className="flex-none">
-                      <SlotBadge slot={SLOT_IDS[i]} className="size-5 text-[9px] lg:size-[22px] lg:text-[10px]" />
+                      <SlotBadge slot={SLOT_IDS[i]} className="size-5 text-xs lg:size-[22px] lg:text-xs" />
                       <span className="sr-only">{pala.model}</span>
                     </dt>
                     <dd className="contents">
@@ -101,9 +101,9 @@ export function CompareScores({ palas, scores }: CompareScoresProps) {
         ))}
       </div>
 
-      <aside className="mt-5 rounded-[22px] bg-mist p-[22px] lg:mt-16">
-        <h3 className="text-[15px] font-extrabold">Cómo leer esto</h3>
-        <p className="mt-2 text-sm leading-[1.55] text-ink">
+      <aside className="mt-5 rounded-3xl bg-mist p-5 lg:mt-16">
+        <h3 className="text-base font-extrabold">Cómo leer esto</h3>
+        <p className="mt-2 text-sm leading-normal text-ink">
           Con menos de {formatRating(SIMILAR_SCORE_GAP)} puntos de diferencia las damos por muy parecidas. A partir
           de {NOTABLE_SCORE_GAP} punto, la ventaja entra en «¿Cuál elegir?». Son datos de {scores.source}: PalaRadar
           no puntúa las palas.

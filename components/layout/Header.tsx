@@ -13,13 +13,13 @@ export function Header() {
       <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-[30px] px-5 py-3 lg:px-12 lg:py-4">
         <Link href={routes.home} className="flex items-center gap-2">
           <Logo />
-          <span className="text-[19px] font-black tracking-[-0.02em] lg:text-xl">
+          <span className="text-lg font-black tracking-[-0.02em] lg:text-xl">
             {siteConfig.name}
           </span>
         </Link>
 
         <nav aria-label="Principal" className="hidden lg:block">
-          <ul className="flex gap-[22px] text-[15px] font-bold whitespace-nowrap">
+          <ul className="flex gap-6 text-base font-bold whitespace-nowrap">
             {/* «Pala ideal» no va en la lista: es el botón de la derecha. */}
             {mainNav
               .filter((item) => item.href !== routes.idealPala)

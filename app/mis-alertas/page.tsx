@@ -24,7 +24,7 @@ interface MyAlertsPageProps {
   searchParams: Promise<{ acceso?: string | string[] }>;
 }
 
-const H1 = "text-[34px] leading-none font-black tracking-[-0.035em] lg:text-[48px]";
+const H1 = "text-[32px] leading-none font-black tracking-[-0.035em] lg:text-[52px]";
 
 /** Radar en reposo del estado vacío del diseño. */
 function EmptyRadar() {
@@ -48,7 +48,7 @@ function EmptyState({ expired, canRequest }: { expired: boolean; canRequest: boo
       <h2 className="mt-8 text-center text-2xl leading-[1.1] font-black tracking-[-0.02em] text-balance">
         {expired ? "Este enlace ya no es válido" : "Todavía no sigues ninguna pala"}
       </h2>
-      <p className="mt-3 text-center text-base leading-[1.55] text-pretty text-ink">
+      <p className="mt-3 text-center text-base leading-normal text-pretty text-ink">
         {expired
           ? "Los enlaces de acceso caducan a los pocos días. Pide uno nuevo con tu correo."
           : "Cuando veas una pala que te interese, pulsa «Avísame cuando baje» y te escribiremos en cuanto encontremos un precio mejor."}
@@ -62,7 +62,7 @@ function EmptyState({ expired, canRequest }: { expired: boolean; canRequest: boo
           <h2 id="ya-tengo" className="text-lg font-black">
             ¿Ya tienes alertas?
           </h2>
-          <p className="mt-1.5 mb-3.5 text-[15px] leading-normal text-ink">
+          <p className="mt-1.5 mb-3.5 text-base leading-normal text-ink">
             Escribe tu correo y te enviamos un enlace para verlas y quitar las que no quieras. Sin
             cuenta ni contraseña.
           </p>
@@ -79,7 +79,7 @@ function RemoveButton({ alert }: { alert: Alert }) {
       <input type="hidden" name="token" value={alert.token} />
       <button
         type="submit"
-        className="flex h-11 items-center rounded-full bg-mist px-3.5 text-[13px] font-bold hover:bg-line-soft"
+        className="flex h-11 items-center rounded-full bg-mist px-3.5 text-sm font-bold hover:bg-line-soft"
       >
         Quitar<span className="sr-only"> la alerta de la {alert.racket.name}</span>
       </button>
@@ -92,10 +92,10 @@ function AlertCard({ alert, pala }: { alert: Alert; pala: PalaSummary | undefine
   const price = pala?.price ?? null;
   const name = `${alert.racket.name} ${alert.racket.year}`;
   const photo = (
-    <PalaPhoto src={pala?.image ?? null} alt="" sizes="72px" className="h-[84px] w-[68px] flex-none rounded-xl" />
+    <PalaPhoto src={pala?.image ?? null} alt="" sizes="72px" className="h-[84px] w-[68px] flex-none rounded-2xl" />
   );
   const title = (
-    <h2 className="text-[17px] leading-[1.15] font-extrabold">
+    <h2 className="text-lg leading-[1.1] font-extrabold">
       <Link href={routes.pala(alert.racket.slug)} className="hover:underline">
         {name}
       </Link>
@@ -104,13 +104,13 @@ function AlertCard({ alert, pala }: { alert: Alert; pala: PalaSummary | undefine
 
   if (alert.status === "notified") {
     return (
-      <article className="rounded-[20px] border-2 border-lime-border bg-lime-tint p-4">
+      <article className="rounded-3xl border-2 border-lime-border bg-lime-tint p-4">
         <p className="text-sm font-extrabold text-forest">▼ ¡Ha bajado!</p>
         <div className="mt-2.5 flex items-center gap-3.5">
           {photo}
           <div className="min-w-0">
             {title}
-            <p className="mt-1 text-sm leading-[1.45] text-ink">
+            <p className="mt-1 text-sm leading-normal text-ink">
               {price !== null && (
                 <>
                   Está a <strong className="whitespace-nowrap">{formatEuro(price)}</strong>.{" "}
@@ -128,11 +128,11 @@ function AlertCard({ alert, pala }: { alert: Alert; pala: PalaSummary | undefine
   }
 
   return (
-    <article className="flex items-center gap-3.5 rounded-[20px] border border-line p-4">
+    <article className="flex items-center gap-3.5 rounded-3xl border border-line p-4">
       {photo}
       <div className="min-w-0 flex-1">
         {title}
-        <p className="mt-1 text-sm leading-[1.45] text-ink">
+        <p className="mt-1 text-sm leading-normal text-ink">
           {alert.status === "pending" ? (
             "Pendiente de confirmar: revisa tu correo y pulsa el enlace."
           ) : alert.targetPrice === null ? (
@@ -177,7 +177,7 @@ export default async function MyAlertsPage({ searchParams }: MyAlertsPageProps) 
   return (
     <div className="mx-auto max-w-[640px] px-5 pt-4 pb-12 lg:pt-10 lg:pb-20">
       <h1 className={H1}>Mis alertas</h1>
-      <p className="mt-2.5 text-base leading-[1.55] text-pretty text-ink">
+      <p className="mt-2.5 text-base leading-normal text-pretty text-ink">
         Te escribimos cuando una pala baja del precio que tú elijas. Estas son las de{" "}
         <strong className="break-all">{email}</strong>.
       </p>
@@ -191,7 +191,7 @@ export default async function MyAlertsPage({ searchParams }: MyAlertsPageProps) 
           ))}
         </ul>
       ) : (
-        <p className="mt-6 rounded-[18px] bg-mist p-[18px] text-[15px] leading-normal text-ink">
+        <p className="mt-6 rounded-3xl bg-mist p-5 text-base leading-normal text-ink">
           Ahora mismo no tienes ninguna alerta. Puedes crear una desde la ficha de cualquier pala.
         </p>
       )}

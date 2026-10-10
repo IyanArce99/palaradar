@@ -21,7 +21,8 @@ export function PalaGrid({ palas, variant = "catalog", columns = 3, dense = fals
   return (
     <ul
       className={cn(
-        "grid grid-cols-2 gap-x-3 gap-y-6",
+        // Dos columnas en móvil, tres en tablet y las que pida el listado en escritorio.
+        "grid grid-cols-2 gap-x-3 gap-y-6 md:grid-cols-3 md:gap-x-4",
         dense ? "lg:gap-x-5 lg:gap-y-9" : "lg:gap-x-6 lg:gap-y-10",
         COLUMNS[columns],
         className,
@@ -34,6 +35,7 @@ export function PalaGrid({ palas, variant = "catalog", columns = 3, dense = fals
             pala={pala}
             variant={variant}
             compare
+            className="h-full"
             photoClassName={dense ? "h-[170px] lg:h-[210px]" : undefined}
           />
         </li>

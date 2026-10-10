@@ -9,7 +9,7 @@ export function AccessLinkForm() {
 
   if (state.status === "sent") {
     return (
-      <p role="status" className="rounded-[14px] bg-mist p-4 text-[15px] leading-normal">
+      <p role="status" className="rounded-2xl bg-mist p-4 text-base leading-normal">
         <strong className="block">Revisa tu correo.</strong>
         Si ese correo tiene alertas, te hemos enviado un enlace para verlas. Puede tardar un par de
         minutos.
@@ -35,13 +35,13 @@ export function AccessLinkForm() {
             required
             autoComplete="email"
             placeholder="tu@email.com"
-            className="h-[50px] w-full rounded-[14px] border-[1.5px] border-line bg-white px-4 text-[15px] placeholder:text-muted focus:border-carbon focus:outline-none"
+            className="h-[50px] w-full rounded-2xl border-[1.5px] border-line bg-white px-4 text-base placeholder:text-muted focus:border-carbon focus:outline-none"
           />
         </label>
         <button
           type="submit"
           disabled={pending}
-          className="flex h-[50px] items-center rounded-[14px] bg-carbon px-[18px] text-[15px] font-extrabold text-white disabled:opacity-60"
+          className="flex h-[50px] items-center rounded-2xl bg-carbon px-[18px] text-base font-extrabold text-white disabled:opacity-60"
         >
           {pending ? "Enviando…" : "Enviar enlace"}
         </button>
@@ -54,7 +54,7 @@ export function AccessLinkForm() {
         </label>
       </div>
       {message && (
-        <p role="alert" className="mt-3 rounded-xl bg-mist px-3.5 py-2.5 text-sm font-bold">
+        <p role="alert" className="mt-3 rounded-2xl bg-mist px-3.5 py-2.5 text-sm font-bold">
           {message}
         </p>
       )}

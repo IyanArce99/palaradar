@@ -161,7 +161,7 @@ export default async function ListingPage({ params, searchParams }: ListingPageP
                 <li key={shape}>
                   <Link
                     href={catalogHref({ brands: [brand.slug], shapes: [shape] })}
-                    className="flex h-10 items-center rounded-full border border-line px-3.5 text-[13px] font-bold hover:bg-mist"
+                    className="flex h-10 items-center rounded-full border border-line px-3.5 text-sm font-bold hover:bg-mist"
                   >
                     {SHAPE_LABELS[shape]} <span className="ml-1.5 font-normal text-muted">{count}</span>
                   </Link>

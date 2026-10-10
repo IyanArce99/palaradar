@@ -12,14 +12,14 @@ import { SectionTitle } from "./SectionTitle";
 
 function ReviewCard({ review, className }: { review: Review; className?: string }) {
   return (
-    <li className={cn("rounded-[18px] border border-line p-[18px]", className)}>
+    <li className={cn("rounded-3xl border border-line p-5", className)}>
       <div className="flex items-center justify-between">
-        <Stars rating={review.rating} className="text-[15px]" />
+        <Stars rating={review.rating} className="text-base" />
         <time dateTime={review.createdAt} className="text-xs text-muted">
           {formatMonthYear(review.createdAt)}
         </time>
       </div>
-      <blockquote className="mt-2.5 mb-3 text-base leading-[1.55] text-pretty">
+      <blockquote className="mt-2.5 mb-3 text-base leading-normal text-pretty">
         “{review.body}”
       </blockquote>
       <div className="flex items-center gap-2.5">
@@ -76,7 +76,7 @@ export function OpinionsSummary({ pala, id, highlightsHref, className }: Opinion
         </span>
         <div>
           <Stars rating={pala.rating} className="text-xl" />
-          <p className="mt-0.5 text-[13px] text-muted">
+          <p className="mt-0.5 text-sm text-muted">
             Basado en {formatCount(pala.reviewCount)} opiniones
           </p>
         </div>
@@ -91,8 +91,8 @@ export function OpinionsSummary({ pala, id, highlightsHref, className }: Opinion
               className="grid grid-cols-[118px_1fr_30px] items-center gap-2.5 text-sm"
             >
               <dt>{aspect.label}</dt>
-              <dd aria-hidden="true" className="h-2 overflow-hidden rounded bg-line-soft">
-                <div className="h-full rounded bg-carbon" style={{ width: `${aspect.score * 10}%` }} />
+              <dd aria-hidden="true" className="h-2 overflow-hidden rounded-md bg-line-soft">
+                <div className="h-full rounded-md bg-carbon" style={{ width: `${aspect.score * 10}%` }} />
               </dd>
               <dd className="text-right font-extrabold tabular-nums">
                 {formatRating(aspect.score)}
@@ -104,14 +104,14 @@ export function OpinionsSummary({ pala, id, highlightsHref, className }: Opinion
 
       {pala.reviewHighlights.length > 0 && (
         <>
-          <h3 className="mt-[18px] mb-3 text-sm font-extrabold lg:mt-6">
+          <h3 className="mt-5 mb-3 text-sm font-extrabold lg:mt-6">
             Lo que más repiten<span className="hidden lg:inline"> los jugadores</span>
           </h3>
           <ul className="flex flex-col gap-3">
             {pala.reviewHighlights.map((highlight) => (
               <li
                 key={highlight}
-                className="border-l-[3px] border-lime pl-3.5 text-[15px] leading-normal text-ink"
+                className="border-l-[3px] border-lime pl-3.5 text-base leading-normal text-ink"
               >
                 {highlight}
               </li>

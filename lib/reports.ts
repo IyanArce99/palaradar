@@ -205,7 +205,7 @@ export function spreadSummary(report: SpreadReport): string[] {
     `Hoy se pueden comparar ${pluralize(report.compared, "pala", "palas")}: son las que tienen precio vigente en dos tiendas o más.`,
   ];
   if (report.median !== null) {
-    sentences.push(`La diferencia mediana entre el precio más alto y el más bajo de una misma pala es de${formatEuroCompact(report.median)}.`);
+    sentences.push(`La diferencia mediana entre el precio más alto y el más bajo de una misma pala es de ${formatEuroCompact(report.median)}.`);
   }
   if (report.samePrice > 0) {
     sentences.push(`En ${pluralize(report.samePrice, "pala", "palas")} las tiendas piden prácticamente lo mismo.`);

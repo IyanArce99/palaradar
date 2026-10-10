@@ -18,10 +18,10 @@ export function NoResults({ searchTerm, suggestions, awaitingHistory = false }: 
   if (awaitingHistory) {
     return (
       <div className="max-w-[560px]">
-        <h2 className="text-2xl leading-[1.08] font-black tracking-[-0.025em] text-balance">
+        <h2 className="text-2xl leading-[1.1] font-black tracking-[-0.025em] text-balance">
           Todavía no hay palas en «Mejor precio hoy»
         </h2>
-        <p className="mt-2 text-[15px] leading-[1.6] text-pretty text-ink">
+        <p className="mt-2 text-base leading-normal text-pretty text-ink">
           Aquí aparecen las palas cuyo precio está claramente por debajo de lo que han costado en
           los últimos {HISTORY_WINDOW_DAYS} días. Para decirlo hacen falta {HISTORY_WINDOW_DAYS}{" "}
           días de histórico de cada pala, y todavía no los tenemos.
@@ -35,10 +35,10 @@ export function NoResults({ searchTerm, suggestions, awaitingHistory = false }: 
 
   return (
     <div className="max-w-[560px]">
-      <h2 className="text-2xl leading-[1.08] font-black tracking-[-0.025em] text-balance">
+      <h2 className="text-2xl leading-[1.1] font-black tracking-[-0.025em] text-balance">
         {searchTerm ? `No encontramos «${searchTerm}»` : "Ninguna pala cumple esos filtros"}
       </h2>
-      <p className="mt-2 text-[15px] leading-[1.6] text-pretty text-ink">
+      <p className="mt-2 text-base leading-normal text-pretty text-ink">
         {searchTerm
           ? "Puede que esté mal escrito o que todavía no la tengamos en el catálogo."
           : "Prueba a quitar algún filtro o a subir el precio máximo."}

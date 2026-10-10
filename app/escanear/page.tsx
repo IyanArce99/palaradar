@@ -19,10 +19,10 @@ export default function ScanPage() {
       <div className="relative mx-auto flex min-h-[70vh] max-w-[720px] flex-col items-center justify-center px-5 py-16 text-center">
         <RadarRings className="relative size-[220px] lg:size-[300px]" />
         <p className="mt-8 text-sm font-bold text-lime">Escáner PalaRadar · en preparación</p>
-        <h1 className="mt-2 text-[32px] leading-none font-black tracking-[-0.035em] text-balance lg:text-5xl">
+        <h1 className="mt-2 text-[32px] leading-none font-black tracking-[-0.035em] text-balance lg:text-[52px]">
           Hazle una foto y te decimos qué pala es
         </h1>
-        <p className="mt-4 max-w-[480px] text-base leading-[1.6] text-pretty text-ash">
+        <p className="mt-4 max-w-[480px] text-base leading-normal text-pretty text-ash">
           Estamos entrenando el escáner para reconocer el modelo y el año exactos. Mientras
           tanto, puedes buscar tu pala por nombre.
         </p>

@@ -157,13 +157,13 @@ export default async function CompareSelectPage({ searchParams }: CompareSelectP
       />
 
       <div className="mx-auto max-w-[1280px]">
-        <div className="px-4 pt-4 lg:px-12 lg:pt-14 lg:pb-16">
+        <div className="px-5 pt-4 lg:px-12 lg:pt-14 lg:pb-16">
           <header className="px-1 lg:mx-auto lg:max-w-[760px] lg:px-0 lg:text-center">
-            <p className="font-mono text-[11px] leading-none font-bold tracking-[0.08em] text-muted">COMPARADOR</p>
-            <h1 className="mt-2.5 text-[38px] leading-none font-black tracking-[-0.04em] text-balance lg:mt-3.5 lg:text-[64px]">
+            <p className="font-mono text-xs leading-none font-bold tracking-[0.08em] text-muted">COMPARADOR</p>
+            <h1 className="mt-2.5 text-[40px] leading-none font-black tracking-[-0.04em] text-balance lg:mt-3.5 lg:text-[64px]">
               Compara palas de pádel
             </h1>
-            <p className="mt-2.5 text-base leading-[1.55] text-pretty text-ink lg:mt-4 lg:text-[19px]">
+            <p className="mt-2.5 text-base leading-normal text-pretty text-ink lg:mt-4 lg:text-lg">
               Pon dos palas frente a frente y descubre cuál encaja mejor contigo.
             </p>
           </header>
@@ -179,7 +179,7 @@ export default async function CompareSelectPage({ searchParams }: CompareSelectP
               <h2 id="parecidas" className={landingTitleClass}>
                 Palas parecidas a la {only.model}
               </h2>
-              <p className="mt-1.5 text-[15px] leading-[1.45] text-muted">Elige una para compararla con ella.</p>
+              <p className="mt-1.5 text-base leading-normal text-muted">Elige una para compararla con ella.</p>
               <ul className="scrollbar-none -mx-5 mt-4 flex gap-3.5 overflow-x-auto px-5 pb-1 lg:mx-0 lg:mt-5 lg:grid lg:grid-cols-4 lg:gap-5 lg:overflow-visible lg:px-0">
                 {only.alternatives.map(({ pala, reason }) => (
                   <li key={pala.id} className="w-[200px] flex-none lg:w-auto">
@@ -202,7 +202,7 @@ export default async function CompareSelectPage({ searchParams }: CompareSelectP
                 Comparaciones destacadas
               </h2>
               {/* No hay datos de visitas: son pares de palas parecidas, no un ranking de popularidad. */}
-              <p className="mt-1.5 hidden text-[15px] leading-[1.45] text-pretty text-muted lg:block">
+              <p className="mt-1.5 hidden text-base leading-normal text-pretty text-muted lg:block">
                 Palas parecidas entre sí, con precio hoy en las tiendas que seguimos.
               </p>
               <ComparisonCards cards={comparisons.slice(0, FEATURED_COUNT)} className="mt-4 lg:mt-5" />

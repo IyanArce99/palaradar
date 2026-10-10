@@ -53,20 +53,20 @@ function PriceCard({ pala, index, show }: { pala: Pala; index: number; show: Col
   if (price) rows.push(["Disponibilidad", stockText(pala, facts), facts.inStock > 0]);
 
   return (
-    <article className="flex flex-col rounded-[22px] border border-line bg-white p-[22px]">
+    <article className="flex flex-col rounded-3xl border border-line bg-white p-5">
       <header className="flex items-center gap-2.5">
         <SlotBadge slot={SLOT_IDS[index]} className="size-[26px] text-xs" />
-        <h3 className="text-[17px] font-black">{pala.model}</h3>
+        <h3 className="text-lg font-black">{pala.model}</h3>
       </header>
 
       {price ? (
         <>
           <p className="mt-3.5 flex flex-wrap items-baseline gap-x-3">
-            <span className="text-[40px] leading-tight font-black tracking-[-0.03em] whitespace-nowrap tabular-nums">
+            <span className="text-[40px] leading-snug font-black tracking-[-0.03em] whitespace-nowrap tabular-nums">
               {formatEuro(price.current)}
             </span>
             {facts.msrp !== null && (
-              <s className="text-[15px] whitespace-nowrap text-muted tabular-nums">{formatEuro(facts.msrp)}</s>
+              <s className="text-base whitespace-nowrap text-muted tabular-nums">{formatEuro(facts.msrp)}</s>
             )}
           </p>
           <p className="text-sm text-ink">
@@ -96,7 +96,7 @@ function PriceCard({ pala, index, show }: { pala: Pala; index: number; show: Col
       )}
 
       {offers.length > 0 && (
-        <ul className="mt-3 rounded-[14px] bg-mist px-3.5 py-1">
+        <ul className="mt-3 rounded-2xl bg-mist px-3.5 py-1">
           {offers.map((offer, i) => (
             <li
               key={offer.store.id}
@@ -112,7 +112,7 @@ function PriceCard({ pala, index, show }: { pala: Pala; index: number; show: Col
         </ul>
       )}
       {offers.length > 1 && unverified.length > 0 && (
-        <p className="mt-2 text-xs leading-[1.45] text-pretty text-muted">
+        <p className="mt-2 text-xs leading-normal text-pretty text-muted">
           El importe de {unverified.join(" y ")} no incluye el envío, que no hemos verificado: el orden puede cambiar al
           sumarlo y no señalamos ninguna tienda como la más barata.
         </p>
@@ -130,13 +130,13 @@ function PriceCard({ pala, index, show }: { pala: Pala; index: number; show: Col
 function MobileRow({ label, values, strong = false }: { label: string; values: string[]; strong?: boolean }) {
   return (
     <div className="border-t border-line-soft py-2.5">
-      <dt className="text-center font-mono text-[11px] font-bold tracking-[0.04em] text-muted uppercase">{label}</dt>
+      <dt className="text-center font-mono text-xs font-bold tracking-[0.04em] text-muted uppercase">{label}</dt>
       <dd
         className={cn(
           "mt-0.5 grid gap-3 whitespace-nowrap tabular-nums",
           values.length === MAX_COMPARED ? "grid-cols-3" : "grid-cols-2",
-          strong ? "text-xl font-black" : "text-[15px] font-bold",
-          values.length === MAX_COMPARED && (strong ? "text-base" : "text-[13px]"),
+          strong ? "text-xl font-black" : "text-base font-bold",
+          values.length === MAX_COMPARED && (strong ? "text-base" : "text-sm"),
         )}
       >
         {values.map((value, i) => (
@@ -172,7 +172,7 @@ export function ComparePrices({ palas, conclusion }: ComparePricesProps) {
       <h2 id="precio" className={resultTitleClass}>
         ¿Cuál sale mejor de precio?
       </h2>
-      <p className="mt-2 text-[15px] leading-[1.55] text-pretty text-ink lg:mt-2.5 lg:text-[17px]">
+      <p className="mt-2 text-base leading-normal text-pretty text-ink lg:mt-2.5 lg:text-base">
         {conclusion ? (
           <>
             {conclusion.before}
@@ -185,15 +185,15 @@ export function ComparePrices({ palas, conclusion }: ComparePricesProps) {
       </p>
 
       {/* Escritorio */}
-      <div className={cn("mt-[22px] hidden gap-4 lg:grid", cols)}>
+      <div className={cn("mt-6 hidden gap-4 lg:grid", cols)}>
         {palas.map((pala, i) => (
           <PriceCard key={pala.id} pala={pala} index={i} show={show} />
         ))}
       </div>
 
       {/* Móvil */}
-      <div className="mt-3.5 rounded-[20px] border border-line px-4 pt-1 pb-4 lg:hidden">
-        <div className={cn("grid gap-3 pt-3 pb-1.5 text-[13px] font-black", cols)}>
+      <div className="mt-3.5 rounded-3xl border border-line px-4 pt-1 pb-4 lg:hidden">
+        <div className={cn("grid gap-3 pt-3 pb-1.5 text-sm font-black", cols)}>
           {palas.map((pala, i) => (
             <span
               key={pala.id}
@@ -203,7 +203,7 @@ export function ComparePrices({ palas, conclusion }: ComparePricesProps) {
                 three && i === 1 && "justify-center",
               )}
             >
-              <SlotBadge slot={SLOT_IDS[i]} className="size-5 text-[9px]" />
+              <SlotBadge slot={SLOT_IDS[i]} className="size-5 text-xs" />
               <span className="truncate">{pala.model}</span>
             </span>
           ))}
@@ -256,16 +256,16 @@ export function ComparePrices({ palas, conclusion }: ComparePricesProps) {
 
       {/* Cada pala, entre sus propias tiendas: es otra pregunta que cuál de las palas es más barata. */}
       {spreads.some((spread) => spread !== null) && (
-        <div className="mt-3.5 rounded-[18px] bg-mist px-4 py-3.5">
-          <h3 className="text-[15px] font-extrabold">Diferencia entre tiendas de cada pala</h3>
+        <div className="mt-3.5 rounded-3xl bg-mist px-4 py-3.5">
+          <h3 className="text-base font-extrabold">Diferencia entre tiendas de cada pala</h3>
           <ul className="mt-1.5 flex flex-col gap-1.5">
             {palas.map(
               (pala, i) =>
                 spreads[i] &&
                 pala.price && (
                   <li key={pala.id}>
-                    <p className="text-[13px] font-bold">{pala.model}</p>
-                    <StoreSpreadNote spread={spreads[i]} asOf={pala.price.asOf} variant="line" />
+                    <p className="text-sm font-bold">{pala.model}</p>
+                    <StoreSpreadNote spread={spreads[i]} variant="line" />
                   </li>
                 ),
             )}
@@ -273,7 +273,7 @@ export function ComparePrices({ palas, conclusion }: ComparePricesProps) {
         </div>
       )}
 
-      <p className="mt-2.5 text-xs leading-[1.45] text-muted">
+      <p className="mt-2.5 text-xs leading-normal text-muted">
         PVPR: precio de venta recomendado por el fabricante. El envío solo está incluido donde la tienda lo indica.
       </p>
     </section>

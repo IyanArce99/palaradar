@@ -26,7 +26,7 @@ export function CollectionPills({ query, className }: QueryProps) {
                 href={catalogHref({ ...query, collection: collection.id, page: 1 })}
                 aria-current={active ? "true" : undefined}
                 className={cn(
-                  "flex h-11 items-center rounded-full border border-line px-3.5 text-[13px] font-bold whitespace-nowrap lg:h-[42px] lg:px-[18px] lg:text-sm",
+                  "flex h-11 items-center rounded-full border border-line px-3.5 text-sm font-bold whitespace-nowrap lg:h-[42px] lg:px-[18px] lg:text-sm",
                   active ? "bg-carbon text-white" : "bg-white text-carbon",
                 )}
               >
@@ -80,7 +80,7 @@ export function ActiveFilters({ filters, className }: ActiveFiltersProps) {
   if (filters.length === 0) return null;
 
   return (
-    <ul aria-label="Filtros aplicados" className={cn("flex flex-wrap gap-1.5 text-[13px]", className)}>
+    <ul aria-label="Filtros aplicados" className={cn("flex flex-wrap gap-1.5 text-sm", className)}>
       {filters.map((filter) => (
         <li key={filter.key}>
           <Link

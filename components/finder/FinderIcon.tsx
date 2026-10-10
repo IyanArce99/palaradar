@@ -92,7 +92,7 @@ export function FinderIcon({ question, option, selected }: FinderIconProps) {
   return (
     <span
       aria-hidden="true"
-      className={`relative block size-11 rounded-xl ${selected ? "bg-white" : "bg-mist"}`}
+      className={`relative block size-11 rounded-2xl ${selected ? "bg-white" : "bg-mist"}`}
     >
       {iconParts(question, option).map((style, i) => (
         <span key={i} className="absolute box-border block" style={style} />

@@ -29,7 +29,7 @@ export function AlertForm({ slug, target }: AlertFormProps) {
 
   if (state.status === "pending") {
     return (
-      <p role="status" className="mt-3.5 rounded-[14px] bg-white/10 p-4 text-[15px] leading-normal">
+      <p role="status" className="mt-3.5 rounded-2xl bg-white/10 p-4 text-base leading-normal">
         {/* Solo la pala: el correo nunca sale hacia la analítica. */}
         <TrackView event={ANALYTICS_EVENTS.alertCreate} props={{ pala: slug, origen: "ficha" }} />
         <strong className="block">Revisa tu correo.</strong>
@@ -52,13 +52,13 @@ export function AlertForm({ slug, target }: AlertFormProps) {
               aria-label={`Bajar ${STEP} euros el precio objetivo`}
               disabled={price - STEP < STEP}
               onClick={() => setPrice(price - STEP)}
-              className="grid size-12 flex-none place-items-center rounded-xl bg-white/10 text-xl disabled:opacity-40"
+              className="grid size-12 flex-none place-items-center rounded-2xl bg-white/10 text-xl disabled:opacity-40"
             >
               −
             </button>
             <output
               aria-label="Precio objetivo"
-              className="grid h-14 flex-1 place-items-center rounded-[14px] bg-white text-[28px] font-black whitespace-nowrap text-carbon tabular-nums"
+              className="grid h-14 flex-1 place-items-center rounded-2xl bg-white text-3xl font-black whitespace-nowrap text-carbon tabular-nums"
             >
               {formatEuroCompact(price)}
             </output>
@@ -67,12 +67,12 @@ export function AlertForm({ slug, target }: AlertFormProps) {
               aria-label={`Subir ${STEP} euros el precio objetivo`}
               disabled={price + STEP > target.max}
               onClick={() => setPrice(price + STEP)}
-              className="grid size-12 flex-none place-items-center rounded-xl bg-white/10 text-xl disabled:opacity-40"
+              className="grid size-12 flex-none place-items-center rounded-2xl bg-white/10 text-xl disabled:opacity-40"
             >
               +
             </button>
           </div>
-          <p className="mt-2.5 text-sm leading-[1.45] text-ash">
+          <p className="mt-2.5 text-sm leading-normal text-ash">
             Te avisaremos cuando encontremos este precio o uno inferior en cualquier tienda.
           </p>
         </>
@@ -86,7 +86,7 @@ export function AlertForm({ slug, target }: AlertFormProps) {
           required
           autoComplete="email"
           placeholder="tu@email.com"
-          className="h-[50px] w-full rounded-[14px] bg-white px-4 text-[15px] text-carbon outline-offset-2 placeholder:text-muted focus-visible:outline-2 focus-visible:outline-lime"
+          className="h-[50px] w-full rounded-2xl bg-white px-4 text-base text-carbon outline-offset-2 placeholder:text-muted focus-visible:outline-2 focus-visible:outline-lime"
         />
       </label>
 
@@ -98,7 +98,7 @@ export function AlertForm({ slug, target }: AlertFormProps) {
         </label>
       </div>
 
-      <label className="mt-3 flex items-start gap-2.5 text-[13px] leading-[1.45] text-ash">
+      <label className="mt-3 flex items-start gap-2.5 text-sm leading-normal text-ash">
         <input type="checkbox" name="consent" required className="mt-0.5 size-[18px] flex-none accent-lime" />
         <span>
           He leído la{" "}
@@ -111,7 +111,7 @@ export function AlertForm({ slug, target }: AlertFormProps) {
       </label>
 
       {message && (
-        <p role="alert" className="mt-3 rounded-xl bg-white/10 px-3.5 py-2.5 text-sm font-bold">
+        <p role="alert" className="mt-3 rounded-2xl bg-white/10 px-3.5 py-2.5 text-sm font-bold">
           {message}
         </p>
       )}
@@ -119,7 +119,7 @@ export function AlertForm({ slug, target }: AlertFormProps) {
       <button
         type="submit"
         disabled={pending}
-        className="mt-3.5 flex h-[52px] w-full items-center justify-center rounded-[14px] bg-lime text-[15px] font-extrabold text-carbon disabled:opacity-60"
+        className="mt-3.5 flex h-[52px] w-full items-center justify-center rounded-2xl bg-lime text-base font-extrabold text-carbon disabled:opacity-60"
       >
         {pending ? "Creando la alerta…" : "Crear alerta"}
       </button>

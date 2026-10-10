@@ -86,7 +86,8 @@ export default async function HomePage() {
             <MonthlyDropsSection drops={drops} wide />
           </>
         ) : (
-          <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-14">
+          // Sin bajadas del mes, las ofertas ocupan todo el ancho en vez de dejar una columna vacía.
+          <div className={drops.length > 0 ? "grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-14" : undefined}>
             <DealsSection deals={deals} />
             <MonthlyDropsSection drops={drops} />
           </div>

@@ -28,13 +28,13 @@ export function AlertTokenPage({ title, children, alert, others = [], action }: 
 
   return (
     <div className="mx-auto max-w-[640px] px-5 py-12 lg:py-20">
-      <h1 className="text-[32px] leading-none font-black tracking-[-0.035em] text-balance lg:text-[44px]">
+      <h1 className="text-[32px] leading-none font-black tracking-[-0.035em] text-balance lg:text-[52px]">
         {title}
       </h1>
-      <div className="mt-3 text-base leading-[1.6] text-pretty text-ink">{children}</div>
+      <div className="mt-3 text-base leading-normal text-pretty text-ink">{children}</div>
 
       {alert && (
-        <ul className="mt-5 flex flex-col gap-1.5 rounded-[18px] bg-mist p-[18px] text-[15px] leading-normal text-ink">
+        <ul className="mt-5 flex flex-col gap-1.5 rounded-3xl bg-mist p-5 text-base leading-normal text-ink">
           {[alert, ...others].map((item) => (
             <li key={item.id}>{alertWish(item)}</li>
           ))}

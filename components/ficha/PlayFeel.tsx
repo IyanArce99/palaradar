@@ -23,12 +23,12 @@ export function PlayFeel({ pala, className }: PlayFeelProps) {
   return (
     <section aria-labelledby="sensaciones" className={className}>
       <SectionTitle id="sensaciones">¿Cómo se siente jugando?</SectionTitle>
-      {declared && <p className="mt-3 text-base leading-[1.6] text-pretty text-ink">{declared}</p>}
+      {declared && <p className="mt-3 text-base leading-normal text-pretty text-ink">{declared}</p>}
 
       {ratings && (
-        <div className="mt-5 rounded-[18px] bg-mist p-[18px]">
-          <h3 className="text-[15px] font-extrabold">Puntuaciones técnicas de {ratings.source}</h3>
-          <p className="mt-1 text-[13px] leading-[1.45] text-muted">
+        <div className="mt-5 rounded-3xl bg-mist p-5">
+          <h3 className="text-base font-extrabold">Puntuaciones técnicas de {ratings.source}</h3>
+          <p className="mt-1 text-sm leading-normal text-muted">
             Datos heredados de {ratings.source}, de 0 a 10. No son valoraciones propias de PalaRadar.
           </p>
           <dl className="mt-3.5 flex flex-col gap-2.5">
@@ -36,8 +36,8 @@ export function PlayFeel({ pala, className }: PlayFeelProps) {
               <div key={aspect.label} className="grid grid-cols-[118px_1fr_30px] items-center gap-2.5 text-sm">
                 <dt>{aspect.label}</dt>
                 <dd className="contents">
-                  <span aria-hidden="true" className="h-2 overflow-hidden rounded bg-line">
-                    <span className="block h-full rounded bg-carbon" style={{ width: `${aspect.score * 10}%` }} />
+                  <span aria-hidden="true" className="h-2 overflow-hidden rounded-md bg-line">
+                    <span className="block h-full rounded-md bg-carbon" style={{ width: `${aspect.score * 10}%` }} />
                   </span>
                   <span className="text-right font-extrabold tabular-nums">{formatRating(aspect.score)}</span>
                 </dd>
@@ -52,7 +52,7 @@ export function PlayFeel({ pala, className }: PlayFeelProps) {
           )}
           {/* Puntos fuertes y a tener en cuenta: solo lo que dicen las notas, y solo si se diferencian. */}
           {highlights && (
-            <dl className="mt-3 border-t border-line pt-3 text-sm leading-[1.5]">
+            <dl className="mt-3 border-t border-line pt-3 text-sm leading-normal">
               <div>
                 <dt className="inline font-extrabold">Donde puntúa más alto: </dt>
                 <dd className="inline text-ink">{highlights.best.join(" y ")}.</dd>

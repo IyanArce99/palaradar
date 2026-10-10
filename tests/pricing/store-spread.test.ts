@@ -2,7 +2,7 @@
 // pala, en céntimos enteros, y sin afirmar un coste final si falta algún envío.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { spreadSentence } from "@/components/pala/StoreSpreadNote";
+import { spreadBoxSentence, spreadSentence } from "@/components/pala/StoreSpreadNote";
 import { spreadAmount, storeSpread, toCents } from "@/lib/store-spread";
 import type { StoreOffer } from "@/types/catalog";
 
@@ -119,5 +119,24 @@ describe("frase", () => {
     const spread = storeSpread([offer("a", 199.5), offer("b", 199.95)], NOW);
     assert.ok(spread);
     assert.equal(spreadSentence(spread), "Las 2 tiendas piden prácticamente lo mismo por esta pala.");
+    assert.equal(spreadBoxSentence(spread), "Las 2 tiendas piden prácticamente lo mismo por esta pala.");
+  });
+
+  it("en el recuadro de la ficha no repite la cifra y avisa una sola vez del envío sin verificar", () => {
+    const verified = storeSpread([offer("a", 180), offer("b", 200)], NOW);
+    assert.ok(verified);
+    assert.equal(spreadBoxSentence(verified), "Con el envío incluido, cuesta menos en Tienda A que en Tienda B.");
+
+    const unverified = storeSpread([offer("a", 200, { shipping: 6 }), offer("b", 203, { shipping: null })], NOW);
+    assert.ok(unverified);
+    const sentence = spreadBoxSentence(unverified);
+    assert.equal(
+      sentence,
+      "La pala cuesta menos en Tienda A que en Tienda B. Falta sumar el envío de Tienda B, que no hemos verificado y puede cambiar el orden.",
+    );
+    // La cifra y el porcentaje van encima, en grande: la frase no los repite.
+    assert.doesNotMatch(sentence, /€|%/);
+    // Con un envío sin verificar no se afirma cuál es la más barata ni el coste final.
+    assert.doesNotMatch(sentence, /más barata|envío incluido/);
   });
 });

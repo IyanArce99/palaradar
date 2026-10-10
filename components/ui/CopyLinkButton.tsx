@@ -57,7 +57,7 @@ export function CopyLinkButton({ path, title, label = "Compartir", event, classN
       <button
         type="button"
         onClick={share}
-        className="inline-flex h-11 items-center gap-2 rounded-[14px] border-[1.5px] border-carbon bg-white px-3.5 text-[13px] font-bold whitespace-nowrap text-carbon"
+        className="inline-flex h-11 items-center gap-2 rounded-2xl border-[1.5px] border-carbon bg-white px-3.5 text-sm font-bold whitespace-nowrap text-carbon"
       >
         <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1" />
@@ -65,7 +65,7 @@ export function CopyLinkButton({ path, title, label = "Compartir", event, classN
         </svg>
         {label}
       </button>
-      <span aria-live="polite" className="text-[13px] font-bold">
+      <span aria-live="polite" className="text-sm font-bold">
         {status === "copied" && <span className="text-forest">Enlace copiado</span>}
         {status === "error" && (
           <span className="text-ink">No se ha podido copiar: copia la dirección de la barra del navegador.</span>

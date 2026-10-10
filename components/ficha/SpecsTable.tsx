@@ -37,7 +37,7 @@ export function SpecsTable({ pala, className }: SpecsTableProps) {
         ))}
       </dl>
       {missing.length > 0 && (
-        <p className="mt-3 text-[13px] leading-[1.45] text-muted">
+        <p className="mt-3 text-sm leading-normal text-muted">
           <span className="font-bold text-ink">Dato no disponible:</span> {missing.join(", ")}. La fuente no lo declara
           y no lo damos por supuesto.
         </p>

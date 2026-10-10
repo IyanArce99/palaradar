@@ -43,15 +43,15 @@ export default async function GuidesPage() {
                   src={image}
                   alt=""
                   sizes="(min-width: 1024px) 33vw, 100vw"
-                  className="h-[180px] rounded-[20px] transition-[filter] group-hover:brightness-[0.97] lg:h-[220px]"
+                  className="h-[180px] rounded-3xl transition-[filter] group-hover:brightness-[0.97] lg:h-[220px]"
                 />
-                <p className="mt-3.5 text-[13px] text-muted">{readingMinutes(guide)} min de lectura</p>
-                <h2 className="mt-1 text-xl leading-[1.2] font-black">
+                <p className="mt-3.5 text-sm text-muted">{readingMinutes(guide)} min de lectura</p>
+                <h2 className="mt-1 text-xl leading-snug font-black">
                   <Link href={routes.guide(guide.slug)} className="after:absolute after:inset-0 group-hover:underline">
                     {guide.title}
                   </Link>
                 </h2>
-                <p className="mt-1 text-[15px] leading-[1.45] text-muted">{guide.subtitle}</p>
+                <p className="mt-1 text-base leading-normal text-muted">{guide.subtitle}</p>
               </article>
             </li>
           ))}

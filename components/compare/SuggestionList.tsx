@@ -25,7 +25,7 @@ export function SuggestionList({ suggestions, hrefFor }: SuggestionListProps) {
               {/* Como mucho dos líneas: el nombre completo queda en el title. */}
               <span
                 title={`${pala.brand} ${pala.model}`}
-                className="line-clamp-2 text-sm leading-[1.2] font-extrabold"
+                className="line-clamp-2 text-sm leading-snug font-extrabold"
               >
                 {pala.brand} {pala.model}
               </span>

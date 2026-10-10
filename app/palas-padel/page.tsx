@@ -191,12 +191,12 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
               <div className="mt-7">
                 {/* Qué criterio limita: cuántas palas hay quitando solo ese. Nunca se quita sin avisar. */}
                 {relaxed.length > 0 && (
-                  <div className="mb-7 rounded-[18px] border border-line p-4 lg:p-5">
-                    <h3 className="text-[15px] font-extrabold">Ninguna pala cumple todo a la vez. Prueba a quitar una cosa:</h3>
+                  <div className="mb-7 rounded-3xl border border-line p-4 lg:p-5">
+                    <h3 className="text-base font-extrabold">Ninguna pala cumple todo a la vez. Prueba a quitar una cosa:</h3>
                     <ul className="mt-2.5 flex flex-col gap-1.5">
                       {relaxed.map((option) => (
                         <li key={option.label}>
-                          <Link href={catalogHref(option.query)} className="inline-flex min-h-11 items-center text-[15px] font-bold underline lg:min-h-9">
+                          <Link href={catalogHref(option.query)} className="inline-flex min-h-11 items-center text-base font-bold underline lg:min-h-9">
                             {option.label}
                           </Link>
                           <span className="text-sm text-muted"> · {pluralize(option.total, "pala", "palas")}</span>
@@ -221,10 +221,10 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
 
         <div className="mx-5 mt-12 grid gap-10 border-t border-line pt-10 pb-10 lg:mx-12 lg:mt-[72px] lg:grid-cols-2 lg:gap-14 lg:pb-[72px]">
           <section>
-            <h2 className="text-[26px] leading-[1.08] font-black tracking-[-0.025em] text-balance">
+            <h2 className="text-2xl leading-[1.1] font-black tracking-[-0.025em] text-balance lg:text-3xl">
               Cómo elegir una pala de pádel
             </h2>
-            <p className="mt-3 text-base leading-[1.6] text-pretty text-ink">
+            <p className="mt-3 text-base leading-normal text-pretty text-ink">
               Lo más importante es tu nivel y cómo juegas. Si estás empezando, una pala redonda y
               de balance bajo te perdonará más los golpes descentrados. Si ya rematas a menudo,
               una de lágrima o diamante te dará más potencia a cambio de exigir más técnica.

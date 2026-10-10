@@ -40,22 +40,22 @@ function useCurrentData(slugs: string[]): { status: Status; bySlug: Map<string, 
 }
 
 function PriceLine({ favorite, current, status }: { favorite: FavoritePala; current: PalaSuggestion | undefined; status: Status }) {
-  if (status === "loading") return <p className="text-[13px] text-muted">Comprobando el precio…</p>;
-  if (status === "error") return <p className="text-[13px] text-muted">No hemos podido comprobar el precio ahora.</p>;
-  if (!current) return <p className="text-[13px] text-muted">Esta pala ya no está en el catálogo.</p>;
-  if (current.price === null) return <p className="text-[13px] text-muted">Sin precio disponible ahora</p>;
+  if (status === "loading") return <p className="text-sm text-muted">Comprobando el precio…</p>;
+  if (status === "error") return <p className="text-sm text-muted">No hemos podido comprobar el precio ahora.</p>;
+  if (!current) return <p className="text-sm text-muted">Esta pala ya no está en el catálogo.</p>;
+  if (current.price === null) return <p className="text-sm text-muted">Sin precio disponible ahora</p>;
 
   const change = favoritePriceChange(favorite.savedPrice, current.price);
   return (
     <>
       <p className="text-lg font-black whitespace-nowrap tabular-nums">{formatEuro(current.price)}</p>
       {change ? (
-        <p className={change.difference < 0 ? "text-[13px] font-bold text-forest" : "text-[13px] text-muted"}>
+        <p className={change.difference < 0 ? "text-sm font-bold text-forest" : "text-sm text-muted"}>
           {change.difference < 0 ? "Ha bajado" : "Ha subido"} {formatEuroCompact(Math.abs(change.difference))} (
           {formatPercent(Math.abs(change.percent))}) desde que la guardaste
         </p>
       ) : (
-        favorite.savedPrice !== null && <p className="text-[13px] text-muted">Mismo precio que cuando la guardaste</p>
+        favorite.savedPrice !== null && <p className="text-sm text-muted">Mismo precio que cuando la guardaste</p>
       )}
     </>
   );
@@ -69,9 +69,9 @@ export function FavoritesList() {
 
   if (favorites.length === 0) {
     return (
-      <div className="rounded-[22px] border border-line p-6 lg:p-8">
+      <div className="rounded-3xl border border-line p-6 lg:p-8">
         <h2 className="text-xl font-black tracking-[-0.02em]">Todavía no has guardado ninguna pala</h2>
-        <p className="mt-2 max-w-[560px] text-[15px] leading-[1.55] text-ink">
+        <p className="mt-2 max-w-[560px] text-base leading-normal text-ink">
           Pulsa el corazón de cualquier pala para guardarla aquí. Se guardan en este navegador, sin cuenta ni correo, y
           cada vez que vuelvas verás su precio de ese día.
         </p>
@@ -98,7 +98,7 @@ export function FavoritesList() {
   return (
     <div>
       {!persistent && (
-        <p role="status" className="mb-4 rounded-2xl bg-mist px-4 py-3 text-sm leading-[1.5] text-ink">
+        <p role="status" className="mb-4 rounded-2xl bg-mist px-4 py-3 text-sm leading-normal text-ink">
           Tu navegador no nos deja guardar datos, así que estas favoritas se perderán al cerrar la página.
         </p>
       )}
@@ -111,7 +111,7 @@ export function FavoritesList() {
         {favorites.map((favorite) => {
           const current = bySlug.get(favorite.slug);
           return (
-            <li key={favorite.slug} className="flex gap-4 rounded-[22px] border border-line p-3.5 lg:p-4">
+            <li key={favorite.slug} className="flex gap-4 rounded-3xl border border-line p-4 lg:p-4">
               <PalaPhoto
                 src={current?.image ?? null}
                 alt=""
@@ -121,9 +121,9 @@ export function FavoritesList() {
               <div className="flex min-w-0 flex-1 flex-col">
                 {/* Una pala que ya no está en el catálogo no tiene ficha a la que enlazar. */}
                 {status === "ready" && !current ? (
-                  <p className="text-base leading-[1.2] font-extrabold">{favorite.name}</p>
+                  <p className="text-base leading-snug font-extrabold">{favorite.name}</p>
                 ) : (
-                  <Link href={routes.pala(favorite.slug)} className="text-base leading-[1.2] font-extrabold underline-offset-2 hover:underline">
+                  <Link href={routes.pala(favorite.slug)} className="text-base leading-snug font-extrabold underline-offset-2 hover:underline">
                     {favorite.name}
                   </Link>
                 )}
@@ -134,7 +134,7 @@ export function FavoritesList() {
                 <button
                   type="button"
                   onClick={() => removeFavoritePala(favorite.slug)}
-                  className="mt-auto flex min-h-11 items-center self-start text-[13px] font-bold underline"
+                  className="mt-auto flex min-h-11 items-center self-start text-sm font-bold underline"
                 >
                   Quitar<span className="sr-only"> {favorite.name} de favoritas</span>
                 </button>

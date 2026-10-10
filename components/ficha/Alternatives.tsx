@@ -38,7 +38,7 @@ function RelatedList({ pala, items }: { pala: AlternativesProps["pala"]; items: 
           <PalaCard pala={item.pala} variant="alternative" badge={item.reason} photoClassName="h-[170px]" />
           {/* El primer motivo ya va en la etiqueta de la tarjeta. */}
           {item.reasons && item.reasons.length > 1 && (
-            <ul className="mt-1.5 text-[13px] leading-[1.4] text-ink">
+            <ul className="mt-1.5 text-sm leading-snug text-ink">
               {item.reasons.slice(1).map((reason) => (
                 <li key={reason} className="mt-0.5">
                   {reason}
@@ -48,7 +48,7 @@ function RelatedList({ pala, items }: { pala: AlternativesProps["pala"]; items: 
           )}
           <Link
             href={comparePath(pala.slug, item.pala.slug)}
-            className="mt-1 flex min-h-11 items-center text-[13px] font-bold underline"
+            className="mt-1 flex min-h-11 items-center text-sm font-bold underline"
           >
             Comparar con la {pala.model}
           </Link>
@@ -70,13 +70,13 @@ export function Alternatives({ pala, title, lead, items, groups = [], className 
   return (
     <section aria-labelledby="alternativas" className={className}>
       <SectionTitle id="alternativas">{title}</SectionTitle>
-      <p className="mt-1.5 text-sm leading-[1.45] text-pretty text-muted">{lead}</p>
+      <p className="mt-1.5 text-sm leading-normal text-pretty text-muted">{lead}</p>
 
       {groups.length === 0 ? (
-        related && <div className="mt-4 lg:mt-[18px]">{related}</div>
+        related && <div className="mt-4 lg:mt-5">{related}</div>
       ) : (
         <>
-          <p className="mt-4 text-[15px] font-extrabold lg:mt-5">
+          <p className="mt-4 text-base font-extrabold lg:mt-5">
             Parecida, pero más barata o con otras características: elige qué buscas.
           </p>
           <AlternativeTabs
@@ -89,7 +89,7 @@ export function Alternatives({ pala, title, lead, items, groups = [], className 
                 label: group.label,
                 content: (
                   <>
-                    <p className="mb-3.5 text-[13px] leading-[1.45] text-pretty text-muted">{group.criterion}</p>
+                    <p className="mb-3.5 text-sm leading-normal text-pretty text-muted">{group.criterion}</p>
                     <RelatedList
                       pala={pala}
                       items={group.items.map((item) => ({ pala: item.pala, reason: item.reasons[0], reasons: item.reasons }))}
@@ -99,7 +99,7 @@ export function Alternatives({ pala, title, lead, items, groups = [], className 
               })),
             ]}
           />
-          <p className="mt-3 text-xs leading-[1.45] text-pretty text-muted">
+          <p className="mt-3 text-xs leading-normal text-pretty text-muted">
             Las alternativas se ordenan por los datos declarados que comparten con esta pala; a igualdad, primero las
             que tienen foto y después por su precio de hoy. No son una valoración: lo que una pala no declara no se da
             por igual.
@@ -112,7 +112,7 @@ export function Alternatives({ pala, title, lead, items, groups = [], className 
           Comparar con otra pala
         </ButtonLink>
         {/* La misma búsqueda, pero eligiendo qué conservar y qué cambiar. */}
-        <Link href={`${routes.upgrade}?pala=${pala.slug}`} className="inline-flex min-h-11 items-center text-[13px] font-bold underline">
+        <Link href={`${routes.upgrade}?pala=${pala.slug}`} className="inline-flex min-h-11 items-center text-sm font-bold underline">
           Tengo esta pala y quiero cambiar
         </Link>
       </div>

@@ -45,7 +45,7 @@ export function SearchInterpretation({
   const overridden = unapplied.length > 0;
 
   return (
-    <div role="status" className={cn("rounded-[18px] bg-mist px-4 py-3.5 text-sm leading-[1.5]", className)}>
+    <div role="status" className={cn("rounded-3xl bg-mist px-4 py-3.5 text-sm leading-normal", className)}>
       {applied.length > 0 && (
         <>
           <p>
@@ -53,7 +53,7 @@ export function SearchInterpretation({
             {applied.map((criterion) => criterion.label).join(" · ")}
             {query.q !== "" && ` · texto «${query.q}»`}.
           </p>
-          <p className="mt-1 text-[13px] text-muted">
+          <p className="mt-1 text-sm text-muted">
             Son los filtros de abajo: puedes quitarlos o cambiarlos uno a uno.{" "}
             <Link href={catalogHref({ ...query, page: 1 })} className="font-bold text-carbon underline">
               Fijar estos filtros
@@ -62,12 +62,12 @@ export function SearchInterpretation({
         </>
       )}
       {byHand.length > 0 && (
-        <p className={cn("text-[13px] text-muted", applied.length > 0 && "mt-1")}>
+        <p className={cn("text-sm text-muted", applied.length > 0 && "mt-1")}>
           No aplicado, porque ya habías fijado ese filtro a mano: {byHand.join(" · ")}.
         </p>
       )}
       {noEffect.length > 0 && (
-        <p className={cn("text-[13px] text-muted", (applied.length > 0 || byHand.length > 0) && "mt-1")}>
+        <p className={cn("text-sm text-muted", (applied.length > 0 || byHand.length > 0) && "mt-1")}>
           No aplicado: {noEffect.join(" · ")} no deja fuera ninguna pala del catálogo.
         </p>
       )}
@@ -92,7 +92,7 @@ export function SearchInterpretation({
       )}
 
       {intent.notes.map((note) => (
-        <p key={note} className="mt-1 text-[13px] text-muted">
+        <p key={note} className="mt-1 text-sm text-muted">
           {note}
         </p>
       ))}

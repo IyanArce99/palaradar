@@ -53,7 +53,7 @@ export function FavoriteToggle({ pala, variant = "icon", origin, className }: Fa
       <button
         {...common}
         className={cn(
-          "inline-flex h-12 items-center justify-center gap-2 rounded-[14px] border-[1.5px] px-5 text-[15px] font-extrabold whitespace-nowrap",
+          "inline-flex h-12 items-center justify-center gap-2 rounded-2xl border-[1.5px] px-5 text-base font-extrabold whitespace-nowrap",
           saved ? "border-carbon bg-carbon text-white" : "border-carbon bg-white text-carbon",
           full && "cursor-not-allowed opacity-50",
           className,
@@ -71,7 +71,7 @@ export function FavoriteToggle({ pala, variant = "icon", origin, className }: Fa
       {...common}
       className={cn(
         // La posición la pone quien lo usa: debe quedar por encima del enlace que cubre la tarjeta.
-        "z-10 grid size-9 place-items-center rounded-full border",
+        "z-10 grid size-11 place-items-center rounded-full border",
         saved ? "border-carbon bg-carbon text-lime" : "border-line bg-white text-carbon hover:border-carbon",
         full && "cursor-not-allowed opacity-50 hover:border-line",
         className,
